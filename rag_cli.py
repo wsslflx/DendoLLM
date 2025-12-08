@@ -8,14 +8,23 @@ from __future__ import annotations
 
 import os
 import pathlib
+import xml.etree.ElementTree as ET
+import re
+import json
+import hashlib
+import argparse
 from collections import defaultdict
 from typing import Optional
+import math
 
 import requests
+from langchain_core.documents import Document
 from dotenv import load_dotenv
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
-from langchain_core.output_parsers import StrOutputParser
+try:
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
+except ImportError:
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -25,12 +34,37 @@ from langchain_community.document_loaders import (
 )
 from PyPDF2 import PdfReader 
 from PyPDF2.errors import PdfReadError
+from pydantic import BaseModel, constr
+try:
+    from langchain_community.vectorstores.utils import maximal_marginal_relevance
+except ImportError:  # fallback for older langchain versions
+    from langchain.vectorstores.utils import maximal_marginal_relevance
 
 load_dotenv()
 
 EMAIL = os.getenv("EMAIL", "trifonova.kate.s@gmail.com")
 BASE_URL = "https://api.openalex.org/works"
+NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 DEFAULT_QUERY = "Cape golden mole, star-nosed mole, naked mole-rat, blind mole-rat"
+
+# when False, keep bullets even if citations don't match allowed_tags
+STRICT_CITATION_FILTER = False
+
+
+def canonical_doc_id(paper: dict) -> Optional[str]:
+    """Derive a stable doc identifier for deduplication."""
+    doi = paper.get("doi")
+    if doi:
+        return f"doi:{doi.lower()}"
+    paper_id = paper.get("id")
+    if paper_id:
+        return f"oa:{paper_id}"
+    title = paper.get("title")
+    if title:
+        norm = re.sub(r"\s+", " ", title.strip().lower())
+        title_hash = hashlib.sha256(norm.encode("utf-8")).hexdigest()
+        return f"title:{title_hash}"
+    return None
 
 
 def works_with_oa(query: str, first_n: int = 1) -> list[dict]:
@@ -39,11 +73,51 @@ def works_with_oa(query: str, first_n: int = 1) -> list[dict]:
         "filter": f'abstract.search:"{query}",best_open_version:published',
         "per-page": first_n,
         # request publication year for downstream citations
-        "select": "id,title,publication_year,best_oa_location",
+        "select": "id,title,publication_year,doi,best_oa_location",
         "mailto": EMAIL,
     }
     papers = requests.get(BASE_URL, params=params, timeout=60).json()["results"]
     return papers
+
+
+def pmc_search(query: str, first_n: int = 3) -> list[str]:
+    """Find PMC IDs for the query."""
+    params = {
+        "db": "pmc",
+        "term": query,
+        "retmax": first_n,
+        "retmode": "json",
+        "email": EMAIL,
+    }
+    resp = requests.get(f"{NCBI_BASE}/esearch.fcgi", params=params, timeout=60)
+    resp.raise_for_status()
+    data = resp.json()
+    return data.get("esearchresult", {}).get("idlist", [])
+
+
+def pmc_fetch_fulltext(pmcid: str) -> Optional[str]:
+    """Fetch full-text XML for a PMCID and return concatenated text from the body."""
+    params = {
+        "db": "pmc",
+        "id": pmcid,
+        "retmode": "xml",
+    }
+    resp = requests.get(f"{NCBI_BASE}/efetch.fcgi", params=params, timeout=60)
+    resp.raise_for_status()
+    # basic content-type guard
+    if "xml" not in resp.headers.get("Content-Type", "").lower():
+        return None
+    try:
+        root = ET.fromstring(resp.content)
+    except ET.ParseError:
+        return None
+    # pull all text within the <body> element
+    body_elems = root.findall(".//body")
+    texts = []
+    for body in body_elems:
+        texts.append(" ".join(body.itertext()))
+    full_text = " ".join(texts).strip()
+    return full_text or None
 
 def get_pdf(paper: dict, location: str) -> pathlib.Path | None:
     """Download the PDF associated with an OpenAlex record if available."""
@@ -97,7 +171,11 @@ class RAG:
             embedding_function=OpenAIEmbeddings(),
             persist_directory=persist_dir,  # keep embeddings/metadata across runs
         )
-        self.threshold = 0.5
+        self.threshold: float | None = None  # optional hard cutoff on distance
+        self.per_species_keep_percentile = 0.4  # keep best 40% (by distance; lower is better) of MMR-selected
+        self.per_species_final_k = 5
+        self.per_species_fetch_k = 20
+        self.mmr_lambda = 0.5
         self.ingested_per_species: dict[str, set[str]] = defaultdict(set)
 
     @staticmethod
@@ -120,9 +198,15 @@ class RAG:
                     return True
         return False
 
-    @staticmethod
+    def _already_ingested(self, doc_id: Optional[str]) -> bool:
+        """Check vector store for an existing doc_id."""
+        if not doc_id:
+            return False
+        existing = self.vectorstore.get(where={"doc_id": doc_id})
+        return bool(existing.get("ids"))
+
     def fetch_and_prepare(
-        query: str, location: str = "./pdfs", first_new: int = 10
+        self, query: str, location: str = "./pdfs", first_new: int = 10, specie_norm: Optional[str] = None
     ) -> list[dict]:
         """Download PDFs for a species query and keep accompanying metadata."""
         pdf_dir = pathlib.Path(location)
@@ -135,15 +219,21 @@ class RAG:
             # keep both PDF path and OpenAlex metadata together
             paper_id = paper["id"].split("/")[-1]
             pdf_path = pdf_dir / f"{paper_id}.pdf"
+            doc_id = canonical_doc_id(paper)
+
+            if self._already_ingested(doc_id):
+                if specie_norm and doc_id:
+                    self.ingested_per_species[specie_norm].add(doc_id)
+                continue
 
             if pdf_path.exists():
-                downloaded_entries.append({"pdf_path": pdf_path, "paper": paper})
+                downloaded_entries.append({"pdf_path": pdf_path, "paper": paper, "doc_id": doc_id})
                 continue
 
             try:
                 downloaded = get_pdf(paper, location)
                 if downloaded:
-                    downloaded_entries.append({"pdf_path": downloaded, "paper": paper})
+                    downloaded_entries.append({"pdf_path": downloaded, "paper": paper, "doc_id": doc_id})
             except Exception as exc:
                 print(f"Failed to download PDF for paper {paper['id']}: {exc}")
                 continue
@@ -184,6 +274,8 @@ class RAG:
                     "chunk_index": i,
                     "source_path": str(pdf_path),
                     "specie": specie_norm,
+                    # carry a canonical doc_id so we can dedup across sources (doi -> oa/id -> title hash)
+                    "doc_id": paper_meta.get("doc_id") if paper_meta else None,
                 }
             )
             if paper_meta:
@@ -200,8 +292,46 @@ class RAG:
 
         self.vectorstore.add_documents(splits)
         # persist to disk so future runs can reuse without re-embedding
-        self.vectorstore.persist()
         return splits
+
+    def ingest_pmc_texts(
+        self, query: str, specie_norm: str, first_n: int = 3
+    ) -> None:
+        """Fetch PMC full text for the query and ingest as chunks."""
+        pmc_ids = pmc_search(query, first_n=first_n)
+        for pmcid in pmc_ids:
+            source_path = f"pmc:{pmcid}"
+            # skip if already present in the vector store
+            existing = self.vectorstore.get(where={"source_path": source_path})
+            if existing.get("ids"):
+                self.ingested_per_species[specie_norm].add(source_path)
+                continue
+
+            full_text = pmc_fetch_fulltext(pmcid)
+            if not full_text:
+                print(f"No PMC full text for {pmcid}")
+                continue
+
+            splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000, chunk_overlap=200
+            )
+            splits = splitter.split_documents(
+                [Document(page_content=full_text, metadata={})]
+            )
+            for i, doc in enumerate(splits):
+                doc.metadata.update(
+                    {
+                        "chunk_index": i,
+                        "source_path": source_path,
+                        "specie": specie_norm,
+                        "pmcid": pmcid,
+                        "source": "pmc",
+                        "doc_id": f"pmc:{pmcid}",
+                    }
+                )
+
+            self.vectorstore.add_documents(splits)
+            self.ingested_per_species[specie_norm].add(source_path)
 
     def chain(self, question: str) -> str:
         """Run the retrieval + generation chain for a question."""
@@ -209,18 +339,46 @@ class RAG:
             return "Vector store not initialized."
 
         def format_docs(docs: list) -> str:
-            return "\n".join(doc.page_content for doc in docs)
+            formatted = []
+            for doc in docs:
+                meta = doc.metadata or {}
+                tag = "[source: {id}|chunk:{idx}]".format(
+                    id=meta.get("doc_id") or meta.get("openalex_id", "unknown"),
+                    idx=meta.get("chunk_index", "na"),
+                )
+                formatted.append(f"{tag}\n{doc.page_content}")
+            return "\n\n".join(formatted)
 
         # run per-species retrieval to avoid one species crowding out others
         species_list = list(self.ingested_per_species.keys())
-        per_species_k = 5
         results_with_scores = []
         for specie in species_list:
-            results_with_scores.extend(
-                self.vectorstore.similarity_search_with_score(
-                    question, k=per_species_k, filter={"specie": specie}
-                )
+            # grab a wider candidate pool then pick diverse chunks via MMR
+            candidates = self.vectorstore.similarity_search_with_score(
+                question, k=self.per_species_fetch_k, filter={"specie": specie}
             )
+            if not candidates:
+                continue
+            try:
+                query_embedding = self.vectorstore._embedding_function.embed_query(question)  # type: ignore[attr-defined]
+                doc_embeddings = self.vectorstore._embedding_function.embed_documents(  # type: ignore[attr-defined]
+                    [doc.page_content for doc, _ in candidates]
+                )
+                mmr_indices = maximal_marginal_relevance(
+                    query_embedding,
+                    doc_embeddings,
+                    k=min(self.per_species_final_k, len(candidates)),
+                    lambda_mult=self.mmr_lambda,
+                )
+            except Exception as exc:
+                print(f"MMR fallback for specie '{specie}': {exc}")
+                mmr_indices = list(range(min(self.per_species_final_k, len(candidates))))
+            selected = [candidates[idx] for idx in mmr_indices]
+            # percentile filter within species based on distance (lower is better)
+            if selected:
+                sorted_by_score = sorted(selected, key=lambda t: t[1])
+                keep_n = max(1, math.ceil(self.per_species_keep_percentile * len(sorted_by_score)))
+                results_with_scores.extend(sorted_by_score[:keep_n])
 
         # dedupe by document/chunk to avoid repeats across species pulls
         seen_keys = set()
@@ -230,7 +388,7 @@ class RAG:
             if key in seen_keys:
                 continue
             seen_keys.add(key)
-            if score <= self.threshold:
+            if self.threshold is None or score <= self.threshold:
                 filtered_docs.append(doc)
 
         if not filtered_docs:
@@ -244,8 +402,20 @@ class RAG:
             if specie and source:
                 used_per_species[specie].add(source)
 
+        # build allowed citation tags from retrieved chunks
+        allowed_tags = sorted(
+            {
+                "[source: {id}|chunk:{idx}]".format(
+                    id=(doc.metadata or {}).get("doc_id", "unknown"),
+                    idx=(doc.metadata or {}).get("chunk_index", "na"),
+                )
+                for doc in filtered_docs
+            }
+        )
+        print("Allowed tags:", allowed_tags)
+
         prompt = PromptTemplate(
-            input_variables=["context", "question"],
+            input_variables=["context", "question", "format_instructions", "allowed_tags"],
             template=pathlib.Path("prompt.txt").read_text(encoding="utf8"),
         )
 
@@ -253,7 +423,10 @@ class RAG:
 
         def inspect_prompt(inputs: dict) -> dict:
             formatted_prompt = prompt.format(
-                context=format_docs(filtered_docs), question=question
+                context=format_docs(filtered_docs),
+                question=question,
+                format_instructions="Return JSON with a top-level 'bullets' array; each item has 'statement' (string) and 'citations' (string of citation tags).",
+                allowed_tags="\n".join(allowed_tags),
             )
             print(formatted_prompt)
             return inputs
@@ -262,14 +435,55 @@ class RAG:
             {
                 "context": RunnableLambda(lambda _: format_docs(filtered_docs)),
                 "question": RunnablePassthrough(),
+                "format_instructions": RunnableLambda(lambda _: "Return JSON with a top-level 'bullets' array; each item has 'statement' (string) and 'citations' (string of citation tags)."),
+                "allowed_tags": RunnableLambda(lambda _: "\n".join(allowed_tags)),
             }
             | RunnableLambda(inspect_prompt)
             | prompt
             | llm
-            | StrOutputParser()
         )
 
-        answer = rag_chain.invoke(question)
+        raw_answer = rag_chain.invoke(question)
+        print("Debug raw_answer:", raw_answer)
+        try:
+            payload = raw_answer.content if hasattr(raw_answer, "content") else raw_answer
+            text_payload = payload.strip()
+            if text_payload.startswith("```"):
+                # Strip Markdown fences, optionally with a leading 'json' tag
+                import re as _re
+                m = _re.search(r"```(?:json)?\s*(.*?)```", text_payload, _re.DOTALL)
+                if m:
+                    text_payload = m.group(1).strip()
+            data = json.loads(text_payload)
+            bullets = data.get("bullets", [])
+        except Exception:
+            print("Debug: no valid JSON in model output")
+            bullets = []
+        if not bullets:
+            print("Debug: no bullets returned after parsing")
+        bullets_out = []
+        allowed_set = set(allowed_tags)
+        for item in bullets:
+            stmt = item.get("statement", "").strip()
+            cits_raw = item.get("citations", "")
+            # extract full tags with a regex
+            cits_list = re.findall(r"\[source: [^\]]+\|chunk:\d+\]", cits_raw)
+            clean_cits = [c for c in cits_list if c in allowed_set]
+            if not stmt:
+                print("Debug: skipped bullet with empty statement")
+                continue
+            if STRICT_CITATION_FILTER:
+                if not clean_cits:
+                    print(f"Debug: skipped bullet '{stmt}' due to no allowed citations")
+                    continue
+                use_cits = clean_cits
+            else:
+                use_cits = clean_cits if clean_cits else cits_list
+                if not use_cits:
+                    print(f"Debug: bullet '{stmt}' had no citations")
+            if use_cits:
+                bullets_out.append(f"- {stmt} " + " ".join(use_cits))
+        answer = "\n".join(bullets_out)
 
         # Append counts summary for transparency
         summaries = []
@@ -282,26 +496,69 @@ class RAG:
 
         return f"{answer}\n\n{counts_line}"
 
-    def query(self, question: str) -> None:
-        """Download PDFs for each species in the query, then run the chain."""
+    def query(self, question: str, species_groups: Optional[list] = None) -> None:
+        """Download PDFs for each species (with aliases), then run the chain."""
         self.ingested_per_species.clear()
-        for puppy in question.split(","):
-            specie_norm = puppy.strip().lower()
-            papers = self.fetch_and_prepare(query=puppy)
 
-            for paper_entry in papers:
-                pdf_path = paper_entry["pdf_path"]
-                paper_meta = paper_entry.get("paper")
-                print(f"Processing PDF: {pdf_path}")
-                # pass metadata so chunks retain citation fields
-                self.load_ocr(
-                    pdf_path=str(pdf_path), puppy=puppy.strip(), paper_meta=paper_meta
-                )
-                self.ingested_per_species[specie_norm].add(str(pdf_path))
+        # Build list of (canonical, search_terms) tuples
+        groups = []
+        if species_groups:
+            for entry in species_groups:
+                canonical = entry.get("canonical", "").strip().lower()
+                aliases = [a.strip() for a in entry.get("aliases", []) if a.strip()]
+                if canonical:
+                    search_terms = [canonical] + [a.lower() for a in aliases]
+                    groups.append((canonical, search_terms))
+        else:
+            # fallback to comma-separated question terms
+            terms = [t.strip() for t in question.split(",") if t.strip()]
+            groups = [(t.lower(), [t.lower()]) for t in terms]
 
-        print(self.chain(question))
+        for canonical, search_terms in groups:
+            for term in search_terms:
+                # then fall back to OpenAlex PDFs for each alias/term
+                papers = self.fetch_and_prepare(query=term, specie_norm=canonical)
+
+                for paper_entry in papers:
+                    pdf_path = paper_entry["pdf_path"]
+                    paper_meta = paper_entry.get("paper") or {}
+                    # attach doc_id from fetch phase so chunks carry it
+                    if "doc_id" not in paper_meta:
+                        paper_meta["doc_id"] = paper_entry.get("doc_id")
+                    print(f"Processing PDF: {pdf_path}")
+                    # pass metadata so chunks retain citation fields
+                    self.load_ocr(
+                        pdf_path=str(pdf_path), puppy=canonical, paper_meta=paper_meta
+                    )
+                    self.ingested_per_species[canonical].add(str(pdf_path))
+
+            # PMC ingestion disabled by default; uncomment to enable
+            self.ingest_pmc_texts(query=canonical, specie_norm=canonical)
+
+        # If species_groups was provided, set question to canonical list for prompt
+        final_question = question
+        if species_groups:
+            final_question = ", ".join([c for c, _ in groups])
+
+        print(self.chain(final_question))
+
+
+def load_species_file(path: str) -> list:
+    """Load species/alias mapping from a JSON file."""
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, list):
+        raise ValueError("Species file must contain a list of mappings")
+    return data
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run RAG pipeline.")
+    parser.add_argument("--species-file", help="Path to JSON file with canonical/aliases mappings.")
+    parser.add_argument("--question", default=DEFAULT_QUERY, help="Fallback comma-separated species string.")
+    args = parser.parse_args()
+
+    species_groups = load_species_file(args.species_file) if args.species_file else None
+
     rag = RAG()
-    rag.query(DEFAULT_QUERY)
+    rag.query(args.question, species_groups=species_groups)
