@@ -1,2 +1,4 @@
 .env
 pdfs/*
+chroma_store/*
+logs/*

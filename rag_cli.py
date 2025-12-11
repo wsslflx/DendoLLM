@@ -16,6 +16,8 @@ import argparse
 from collections import defaultdict
 from typing import Optional
 import math
+import numpy as np
+from datetime import datetime
 
 import requests
 from langchain_core.documents import Document
@@ -73,7 +75,7 @@ def works_with_oa(query: str, first_n: int = 1) -> list[dict]:
         "filter": f'abstract.search:"{query}",best_open_version:published',
         "per-page": first_n,
         # request publication year for downstream citations
-        "select": "id,title,publication_year,doi,best_oa_location",
+        "select": "id,title,publication_year,doi,best_oa_location,primary_location,locations",
         "mailto": EMAIL,
     }
     papers = requests.get(BASE_URL, params=params, timeout=60).json()["results"]
@@ -122,7 +124,55 @@ def pmc_fetch_fulltext(pmcid: str) -> Optional[str]:
 def get_pdf(paper: dict, location: str) -> pathlib.Path | None:
     """Download the PDF associated with an OpenAlex record if available."""
     best_location = paper.get("best_oa_location") or {}
+    primary_location = paper.get("primary_location") or {}
+    locations = paper.get("locations") or []
+    doi = paper.get("doi")
+
+    # start with best_oa_location, then fall back to any OA location, then primary_location
     url = best_location.get("pdf_url")
+    if not url:
+        for loc in locations:
+            if loc.get("is_oa") and loc.get("pdf_url"):
+                url = loc["pdf_url"]
+                break
+    if not url and primary_location.get("pdf_url"):
+        url = primary_location["pdf_url"]
+    if not url:
+        # as a final fallback, accept any pdf_url in locations even if is_oa flag is missing
+        for loc in locations:
+            if loc.get("pdf_url"):
+                url = loc["pdf_url"]
+                break
+    def fetch_via_unpaywall(doi_str: str) -> Optional[str]:
+        try:
+            resp = requests.get(
+                f"https://api.unpaywall.org/v2/{doi_str}",
+                params={"email": EMAIL},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            up_loc = data.get("best_oa_location") or {}
+            if not up_loc:
+                oa_locs = data.get("oa_locations") or []
+                if oa_locs:
+                    up_loc = oa_locs[0]
+            candidate = up_loc.get("url_for_pdf") or up_loc.get("url")
+            return candidate
+        except Exception as exc:
+            print(f"Unpaywall lookup failed for {doi}: {exc}")
+            return None
+
+    tried_unpaywall = False
+    if not url and doi:
+        doi_str = doi.replace("https://doi.org/", "").replace("http://doi.org/", "")
+        url = fetch_via_unpaywall(doi_str)
+        tried_unpaywall = True
+
+    if not url:
+        print(f"No PDF URL for paper {paper.get('id')}")
+        return None
+
     paper_id = paper["id"].split("/")[-1]
     pdf_dir = pathlib.Path(location)
     pdf_dir.mkdir(parents=True, exist_ok=True)
@@ -137,34 +187,46 @@ def get_pdf(paper: dict, location: str) -> pathlib.Path | None:
 
     with requests.Session() as session:
         session.headers.update({"From": EMAIL})
-        try:
-            resp = session.get(url, stream=True, timeout=120)
-            resp.raise_for_status()
-        except requests.HTTPError as exc:
-            print(f"HTTPError downloading PDF for paper {paper_id}: {exc}")
-            return None
-        except Exception as exc:
-            print(f"Error downloading PDF for paper {paper_id}: {exc}")
-            return None
+        def attempt_download(target_url: str) -> bool:
+            nonlocal tried_unpaywall
+            try:
+                resp = session.get(target_url, stream=True, timeout=120)
+                resp.raise_for_status()
+            except requests.HTTPError as exc:
+                # on 403, try Unpaywall (if not yet tried) to get an alternate link
+                if exc.response is not None and exc.response.status_code == 403 and doi:
+                    doi_str = doi.replace("https://doi.org/", "").replace("http://doi.org/", "")
+                    alt_url = fetch_via_unpaywall(doi_str) if not tried_unpaywall else None
+                    tried_unpaywall = True
+                    if alt_url and alt_url != target_url:
+                        return attempt_download(alt_url)
+                print(f"HTTPError downloading PDF for paper {paper_id}: {exc}")
+                return False
+            except Exception as exc:
+                print(f"Error downloading PDF for paper {paper_id}: {exc}")
+                return False
 
-        content_type = resp.headers.get("Content-Type", "")
-        # skip HTML or other non-PDF payloads to avoid corrupt files
-        if "pdf" not in content_type.lower():
-            print(f"Non-PDF content for paper {paper_id}: {content_type}")
-            return None
+            content_type = resp.headers.get("Content-Type", "")
+            # skip HTML or other non-PDF payloads to avoid corrupt files
+            if "pdf" not in content_type.lower():
+                print(f"Non-PDF content for paper {paper_id}: {content_type}")
+                return False
 
-        with open(pdf_path, "wb") as handle:
-            for chunk in resp.iter_content(chunk_size=8192):
-                if chunk:
-                    handle.write(chunk)
+            with open(pdf_path, "wb") as handle:
+                for chunk in resp.iter_content(chunk_size=8192):
+                    if chunk:
+                        handle.write(chunk)
+            return True
 
-    return pdf_path
+        success = attempt_download(url)
+
+    return pdf_path if pdf_path.exists() else None
 
 
 class RAG:
     """Lightweight retrieval-augmented generation helper."""
 
-    def __init__(self) -> None:
+    def __init__(self, log_runs: bool = False, log_root: str = "./logs") -> None:
         persist_dir = "./chroma_store"
         self.vectorstore = Chroma(
             collection_name="bunch_of_docs",
@@ -173,10 +235,21 @@ class RAG:
         )
         self.threshold: float | None = None  # optional hard cutoff on distance
         self.per_species_keep_percentile = 0.4  # keep best 40% (by distance; lower is better) of MMR-selected
-        self.per_species_final_k = 5
-        self.per_species_fetch_k = 20
+        self.per_species_final_k = 10
+        self.per_species_fetch_k = 50
         self.mmr_lambda = 0.5
         self.ingested_per_species: dict[str, set[str]] = defaultdict(set)
+        self.log_runs = log_runs
+        self.log_root = pathlib.Path(log_root)
+        self.log_dir: pathlib.Path | None = None
+
+    def _init_log_dir(self) -> None:
+        if not self.log_runs:
+            return
+        if self.log_dir is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            self.log_dir = self.log_root / timestamp
+            self.log_dir.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def has_text(pdf_path: str, max_pages: int = 3, min_words: int = 10) -> bool:
@@ -360,9 +433,15 @@ class RAG:
             if not candidates:
                 continue
             try:
-                query_embedding = self.vectorstore._embedding_function.embed_query(question)  # type: ignore[attr-defined]
-                doc_embeddings = self.vectorstore._embedding_function.embed_documents(  # type: ignore[attr-defined]
-                    [doc.page_content for doc, _ in candidates]
+                query_embedding = np.array(
+                    self.vectorstore._embedding_function.embed_query(question),  # type: ignore[attr-defined]
+                    dtype=float,
+                )
+                doc_embeddings = np.array(
+                    self.vectorstore._embedding_function.embed_documents(  # type: ignore[attr-defined]
+                        [doc.page_content for doc, _ in candidates]
+                    ),
+                    dtype=float,
                 )
                 mmr_indices = maximal_marginal_relevance(
                     query_embedding,
@@ -394,6 +473,9 @@ class RAG:
         if not filtered_docs:
             return "booooooo, no docs found within the given threshold"
 
+        # initialize logging folder if enabled
+        self._init_log_dir()
+
         # summarize how many distinct PDFs were actually used per species
         used_per_species: dict[str, set[str]] = defaultdict(set)
         for doc in filtered_docs:
@@ -412,7 +494,26 @@ class RAG:
                 for doc in filtered_docs
             }
         )
-        print("Allowed tags:", allowed_tags)
+        # log input chunk metadata
+        if self.log_dir:
+            chunk_meta = []
+            for doc in filtered_docs:
+                meta = doc.metadata or {}
+                chunk_meta.append(
+                    {
+                        "doc_id": meta.get("doc_id"),
+                        "chunk_index": meta.get("chunk_index"),
+                        "specie": meta.get("specie"),
+                        "source_path": meta.get("source_path"),
+                        "openalex_id": meta.get("openalex_id"),
+                        "title": meta.get("title"),
+                        "publication_year": meta.get("publication_year"),
+                        "pdf_url": meta.get("pdf_url"),
+                        "snippet": (doc.page_content or "")[:500],
+                    }
+                )
+            with open(self.log_dir / "input_chunks.json", "w", encoding="utf-8") as f:
+                json.dump(chunk_meta, f, ensure_ascii=False, indent=2)
 
         prompt = PromptTemplate(
             input_variables=["context", "question", "format_instructions", "allowed_tags"],
@@ -428,7 +529,9 @@ class RAG:
                 format_instructions="Return JSON with a top-level 'bullets' array; each item has 'statement' (string) and 'citations' (string of citation tags).",
                 allowed_tags="\n".join(allowed_tags),
             )
-            print(formatted_prompt)
+            if self.log_dir:
+                with open(self.log_dir / "prompt.txt", "w", encoding="utf-8") as f:
+                    f.write(formatted_prompt)
             return inputs
 
         rag_chain = (
@@ -444,7 +547,6 @@ class RAG:
         )
 
         raw_answer = rag_chain.invoke(question)
-        print("Debug raw_answer:", raw_answer)
         try:
             payload = raw_answer.content if hasattr(raw_answer, "content") else raw_answer
             text_payload = payload.strip()
@@ -494,7 +596,13 @@ class RAG:
             summaries.append(f"{specie}: {ingested} PDFs ingested / {used} used")
         counts_line = "Counts: " + "; ".join(summaries) if summaries else "Counts: none"
 
-        return f"{answer}\n\n{counts_line}"
+        final_answer = f"{answer}\n\n{counts_line}"
+
+        if self.log_dir:
+            with open(self.log_dir / "answer.txt", "w", encoding="utf-8") as f:
+                f.write(final_answer)
+
+        return final_answer
 
     def query(self, question: str, species_groups: Optional[list] = None) -> None:
         """Download PDFs for each species (with aliases), then run the chain."""
@@ -515,6 +623,9 @@ class RAG:
             groups = [(t.lower(), [t.lower()]) for t in terms]
 
         for canonical, search_terms in groups:
+            # First pull PMC texts for this species
+            self.ingest_pmc_texts(query=canonical, specie_norm=canonical)
+
             for term in search_terms:
                 # then fall back to OpenAlex PDFs for each alias/term
                 papers = self.fetch_and_prepare(query=term, specie_norm=canonical)
@@ -531,9 +642,6 @@ class RAG:
                         pdf_path=str(pdf_path), puppy=canonical, paper_meta=paper_meta
                     )
                     self.ingested_per_species[canonical].add(str(pdf_path))
-
-            # PMC ingestion disabled by default; uncomment to enable
-            self.ingest_pmc_texts(query=canonical, specie_norm=canonical)
 
         # If species_groups was provided, set question to canonical list for prompt
         final_question = question
@@ -556,9 +664,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run RAG pipeline.")
     parser.add_argument("--species-file", help="Path to JSON file with canonical/aliases mappings.")
     parser.add_argument("--question", default=DEFAULT_QUERY, help="Fallback comma-separated species string.")
+    parser.add_argument("--log-run", action="store_true", help="Log inputs, prompt, and answer to logs/<timestamp>/")
     args = parser.parse_args()
 
     species_groups = load_species_file(args.species_file) if args.species_file else None
 
-    rag = RAG()
+    rag = RAG(log_runs=args.log_run)
     rag.query(args.question, species_groups=species_groups)
