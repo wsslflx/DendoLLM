@@ -7,6 +7,7 @@ Use concrete, specific phrases (e.g. “Long snout”, “Powerful digging claws
 IMPORTANT:
 • Output must be listed in bullet points only; no prose, no headings.
 • Each point must describe a COMMON trait SHARED by ALL the named species — not features of one species.
+• If no common trait shared by all the named species can be found, write "No trait found". Do not invent something.
 • Each point must be 3–5 words; no punctuation at the end.
 • After each point, append one or more source tags exactly as provided in the context (e.g., “[source: doi:10.xxxx|chunk:7]” or “[source: pmc:12345|chunk:3]”). If multiple chunks support the claim, list multiple tags separated by spaces.
 • Cite only tags present in the context; do not invent or reformat them.
