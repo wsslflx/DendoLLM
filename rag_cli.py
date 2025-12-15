@@ -48,6 +48,7 @@ EMAIL = os.getenv("EMAIL", "trifonova.kate.s@gmail.com")
 BASE_URL = "https://api.openalex.org/works"
 NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 DEFAULT_QUERY = "Cape golden mole, star-nosed mole, naked mole-rat, blind mole-rat"
+PROMPT_FILE = "prompt2.txt"
 
 # when False, keep bullets even if citations don't match allowed_tags
 STRICT_CITATION_FILTER = False
@@ -515,9 +516,11 @@ class RAG:
             with open(self.log_dir / "input_chunks.json", "w", encoding="utf-8") as f:
                 json.dump(chunk_meta, f, ensure_ascii=False, indent=2)
 
+        prompt_file=PROMPT_FILE    
         prompt = PromptTemplate(
             input_variables=["context", "question", "format_instructions", "allowed_tags"],
-            template=pathlib.Path("prompt.txt").read_text(encoding="utf8"),
+            template=pathlib.Path(prompt_file).read_text(encoding="utf8"),
+            template_format="jinja2",
         )
 
         llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2)
@@ -526,11 +529,11 @@ class RAG:
             formatted_prompt = prompt.format(
                 context=format_docs(filtered_docs),
                 question=question,
-                format_instructions="Return JSON with a top-level 'bullets' array; each item has 'statement' (string) and 'citations' (string of citation tags).",
+                format_instructions="Return a JSON array of bullets; each bullet has 'trait' (string), 'subclaims' (list of {statement, sources}), and 'combined_sources' (list of citation tags).",
                 allowed_tags="\n".join(allowed_tags),
             )
             if self.log_dir:
-                with open(self.log_dir / "prompt.txt", "w", encoding="utf-8") as f:
+                with open(self.log_dir / prompt_file, "w", encoding="utf-8") as f:
                     f.write(formatted_prompt)
             return inputs
 
@@ -547,6 +550,9 @@ class RAG:
         )
 
         raw_answer = rag_chain.invoke(question)
+        if self.log_dir:
+            with open(self.log_dir / "raw_answer.txt", "w", encoding="utf-8") as f:
+                f.write(str(raw_answer))
         try:
             payload = raw_answer.content if hasattr(raw_answer, "content") else raw_answer
             text_payload = payload.strip()
@@ -556,36 +562,47 @@ class RAG:
                 m = _re.search(r"```(?:json)?\s*(.*?)```", text_payload, _re.DOTALL)
                 if m:
                     text_payload = m.group(1).strip()
-            data = json.loads(text_payload)
-            bullets = data.get("bullets", [])
+            if text_payload.strip().lower() == "no trait found":
+                bullets = []
+                no_trait_found = True
+            else:
+                no_trait_found = False
+                data = json.loads(text_payload)
+                if isinstance(data, dict):
+                    bullets = data.get("bullets", [])
+                elif isinstance(data, list):
+                    bullets = data
+                else:
+                    bullets = []
         except Exception:
             print("Debug: no valid JSON in model output")
             bullets = []
-        if not bullets:
+            no_trait_found = False
+        if not bullets and not no_trait_found:
             print("Debug: no bullets returned after parsing")
         bullets_out = []
         allowed_set = set(allowed_tags)
         for item in bullets:
-            stmt = item.get("statement", "").strip()
-            cits_raw = item.get("citations", "")
-            # extract full tags with a regex
-            cits_list = re.findall(r"\[source: [^\]]+\|chunk:\d+\]", cits_raw)
-            clean_cits = [c for c in cits_list if c in allowed_set]
-            if not stmt:
-                print("Debug: skipped bullet with empty statement")
+            trait = (item.get("trait") or "").strip()
+            subclaims = item.get("subclaims") or []
+            combined_sources = item.get("combined_sources") or []
+            citations = list(combined_sources)
+            if not citations and subclaims:
+                for sub in subclaims:
+                    citations.extend(sub.get("sources") or [])
+            citations = [c for c in citations if c in allowed_set]
+            if not trait:
+                print("Debug: skipped bullet with empty trait")
                 continue
-            if STRICT_CITATION_FILTER:
-                if not clean_cits:
-                    print(f"Debug: skipped bullet '{stmt}' due to no allowed citations")
-                    continue
-                use_cits = clean_cits
-            else:
-                use_cits = clean_cits if clean_cits else cits_list
-                if not use_cits:
-                    print(f"Debug: bullet '{stmt}' had no citations")
-            if use_cits:
-                bullets_out.append(f"- {stmt} " + " ".join(use_cits))
-        answer = "\n".join(bullets_out)
+            if STRICT_CITATION_FILTER and not citations:
+                print(f"Debug: skipped bullet '{trait}' due to no allowed citations")
+                continue
+            use_cits = citations if citations else []
+            if not use_cits:
+                print(f"Debug: bullet '{trait}' had no citations")
+            if trait and use_cits:
+                bullets_out.append(f"- {trait} " + " ".join(use_cits))
+        answer = "No trait found" if no_trait_found else "\n".join(bullets_out)
 
         # Append counts summary for transparency
         summaries = []
