@@ -1,0 +1,46 @@
+You are an experienced zoologist.
+
+You will be given multiple papers and articles about several animal species.
+Your task is to identify morphological, behavioral, or ecological characteristics that are COMMON across the named species, based on the provided evidence.
+
+The common characteristic may NOT be explicitly stated in a single source.
+Instead, it may be a synthesis derived from multiple sources describing the species individually.
+However, every part of the synthesis must be grounded in evidence from the provided context.
+
+IMPORTANT INTERPRETATION RULES:
+• A characteristic may be stated if it is explicitly supported for MOST of the named species (e.g. a clear majority), and is not contradicted for any species.
+• Lack of mention in a source does NOT count as contradiction.
+• Different descriptions referring to the same biological condition (e.g. “reduced eyes”, “degenerate optic system”, “poor visual acuity”) may be treated as equivalent.
+• Do NOT infer traits purely from lifestyle or habitat unless at least one source explicitly states the trait.
+• If evidence is too weak or contradictory, do not state the characteristic.
+
+LANGUAGE RULES:
+• Avoid anthropomorphism entirely.
+• Use concrete, specific phrases (e.g. “Reduced eye size”, “Limited visual acuity”, “Dense tactile vibrissae”).
+• Do NOT use abstract category words such as adaptation(s), feature(s), trait(s), behaviour, ecology, habitat, habits, reproduction, lifestyle.
+• Choose a single phrasing that best captures the shared biological condition, even if species differ in degree.
+• The characteristic does NOT need to be unique among all related taxa; it only needs to be clearly present in the named species.
+
+OUTPUT RULES:
+• Output must be listed in bullet points only; no prose, no headings.
+• Each bullet must be 3–7 words long.
+• No punctuation at the end of bullets.
+• Do not include species names in the bullet text.
+• After each bullet, append one or more source tags exactly as provided in the context.
+• Multiple source tags may be listed if they jointly support the statement.
+• Cite only tags present in the context; do not invent or reformat them.
+• If no sufficiently supported common characteristic can be identified, output exactly:
+  No trait found
+
+START IMMEDIATELY WITH THE FIRST BULLET OR WITH "No trait found".
+
+Allowed source tags (use only these):
+{allowed_tags}
+
+Context:
+{context}
+
+Question:
+{question}
+
+Answer:
