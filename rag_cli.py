@@ -48,7 +48,7 @@ EMAIL = os.getenv("EMAIL", "trifonova.kate.s@gmail.com")
 BASE_URL = "https://api.openalex.org/works"
 NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 DEFAULT_QUERY = "Cape golden mole, star-nosed mole, naked mole-rat, blind mole-rat"
-PROMPT_FILE = "prompt2.txt"
+PROMPT_FILE = "prompt3.txt"
 
 # when False, keep bullets even if citations don't match allowed_tags
 STRICT_CITATION_FILTER = False
@@ -121,6 +121,61 @@ def pmc_fetch_fulltext(pmcid: str) -> Optional[str]:
         texts.append(" ".join(body.itertext()))
     full_text = " ".join(texts).strip()
     return full_text or None
+
+def wikipedia_fetch_plain(species_name: str, lang: str = "en") -> Optional[str]:
+    """Search Wikipedia for a title match and fetch full article plaintext."""
+    api_url = f"https://{lang}.wikipedia.org/w/api.php"
+    headers = {
+        "User-Agent": f"SMTB2025/0.1 (mailto:{EMAIL})",
+        "From": EMAIL,
+    }
+    try:
+        search_params = {
+            "action": "query",
+            "format": "json",
+            "list": "search",
+            "srsearch": species_name,
+            "srlimit": 1,
+        }
+        search_resp = requests.get(api_url, params=search_params, headers=headers, timeout=20)
+        search_resp.raise_for_status()
+        search_data = search_resp.json()
+        hits = search_data.get("query", {}).get("search", [])
+        if not hits:
+            # fallback: try a title-scoped search if general search fails
+            search_params["srsearch"] = f"intitle:{species_name}"
+            search_resp = requests.get(api_url, params=search_params, headers=headers, timeout=20)
+            search_resp.raise_for_status()
+            search_data = search_resp.json()
+            hits = search_data.get("query", {}).get("search", [])
+            if not hits:
+                return None
+        pageid = hits[0].get("pageid")
+        if not pageid:
+            return None
+
+        extract_params = {
+            "action": "query",
+            "format": "json",
+            "prop": "extracts",
+            "explaintext": 1,
+            "redirects": 1,
+            "pageids": pageid,
+        }
+        resp = requests.get(api_url, params=extract_params, headers=headers, timeout=20)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as exc:
+        print(f"Wikipedia fetch failed for '{species_name}': {exc}")
+        return None
+
+    pages = data.get("query", {}).get("pages", {})
+    for page in pages.values():
+        extract = page.get("extract")
+        if extract:
+            return extract.strip()
+    return None
+
 
 def get_pdf(paper: dict, location: str) -> pathlib.Path | None:
     """Download the PDF associated with an OpenAlex record if available."""
@@ -407,6 +462,41 @@ class RAG:
             self.vectorstore.add_documents(splits)
             self.ingested_per_species[specie_norm].add(source_path)
 
+    def ingest_wikipedia(
+        self, title: str, specie_norm: str, lang: str = "en"
+    ) -> bool:
+        """Fetch and ingest a Wikipedia article as plaintext."""
+        source_path = f"wikipedia:{lang}:{title}"
+        # skip if already present in the vector store
+        existing = self.vectorstore.get(where={"source_path": source_path})
+        if existing.get("ids"):
+            self.ingested_per_species[specie_norm].add(source_path)
+            return True
+
+        content = wikipedia_fetch_plain(title, lang=lang)
+        if not content:
+            print(f"No Wikipedia content for '{title}'")
+            return False
+
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        splits = splitter.split_documents(
+            [Document(page_content=content, metadata={})]
+        )
+        for i, doc in enumerate(splits):
+            doc.metadata.update(
+                {
+                    "chunk_index": i,
+                    "source_path": source_path,
+                    "specie": specie_norm,
+                    "doc_id": f"wiki:{lang}:{title}".lower(),
+                    "title": title,
+                    "source": "wikipedia",
+                }
+            )
+        self.vectorstore.add_documents(splits)
+        self.ingested_per_species[specie_norm].add(source_path)
+        return True
+
     def chain(self, question: str) -> str:
         """Run the retrieval + generation chain for a question."""
         if not self.vectorstore:
@@ -608,9 +698,17 @@ class RAG:
         summaries = []
         all_species = set(self.ingested_per_species.keys()) | set(used_per_species.keys())
         for specie in sorted(all_species):
-            ingested = len(self.ingested_per_species.get(specie, set()))
-            used = len(used_per_species.get(specie, set()))
-            summaries.append(f"{specie}: {ingested} PDFs ingested / {used} used")
+            ingested = self.ingested_per_species.get(specie, set())
+            used = used_per_species.get(specie, set())
+            # separate counts by source type
+            ingested_pdfs = {s for s in ingested if not str(s).startswith("wikipedia:")}
+            ingested_wiki = {s for s in ingested if str(s).startswith("wikipedia:")}
+            used_pdfs = {s for s in used if not str(s).startswith("wikipedia:")}
+            used_wiki = {s for s in used if str(s).startswith("wikipedia:")}
+            summaries.append(
+                f"{specie}: PDFs {len(ingested_pdfs)} ingested / {len(used_pdfs)} used; "
+                f"Wikipedia {len(ingested_wiki)} ingested / {len(used_wiki)} used"
+            )
         counts_line = "Counts: " + "; ".join(summaries) if summaries else "Counts: none"
 
         final_answer = f"{answer}\n\n{counts_line}"
@@ -640,6 +738,15 @@ class RAG:
             groups = [(t.lower(), [t.lower()]) for t in terms]
 
         for canonical, search_terms in groups:
+            # Wikipedia first: try canonical, then aliases until one succeeds
+            wiki_ingested = False
+            for term in search_terms:
+                if term == canonical:
+                    continue
+                if self.ingest_wikipedia(title=term, specie_norm=canonical):
+                    wiki_ingested = True
+                    break
+
             # First pull PMC texts for this species
             self.ingest_pmc_texts(query=canonical, specie_norm=canonical)
 
