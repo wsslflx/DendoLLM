@@ -1,0 +1,53 @@
+[
+  {
+    "canonical": "Electrophorus electricus",
+    "aliases": [
+      "Electrophorus electricus",
+      "Electric eel"
+    ]
+  },
+  {
+    "canonical": "Gnathonemus petersii",
+    "aliases": [
+      "Gnathonemus petersii",
+      "Peter's elephantnose fish",
+      "Elephantnose fish"
+    ]
+  },
+  {
+    "canonical": "Carcharodon carcharias",
+    "aliases": [
+      "Carcharodon carcharias",
+      "Great white shark"
+    ]
+  },
+  {
+    "canonical": "Torpedo marmorata",
+    "aliases": [
+      "Torpedo marmorata",
+      "Marbled electric ray"
+    ]
+  },
+  {
+    "canonical": "Ictalurus punctatus",
+    "aliases": [
+      "Ictalurus punctatus",
+      "Channel catfish"
+    ]
+  },
+  {
+    "canonical": "Ambystoma mexicanum",
+    "aliases": [
+      "Ambystoma mexicanum",
+      "Axolotl"
+    ]
+  },
+  {
+    "canonical": "Ornithorhynchus anatinus",
+    "aliases": [
+      "Ornithorhynchus anatinus",
+      "Platypus",
+      "Duck-billed platypus"
+    ]
+  }
+]
