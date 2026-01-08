@@ -14,12 +14,13 @@ from datetime import datetime
 
 import numpy as np
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableLambda
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_openai import ChatOpenAI
 
 from rag_cli import RAG, maximal_marginal_relevance
 
 PROMPT_FILE = "Prompts/prompt_inventory_json_cited.txt"
+SYNTHESIS_PROMPT_FILE = "Prompts/prompt_synthesis_common.txt"
 
 
 def slugify(name: str) -> str:
@@ -112,7 +113,16 @@ def ingest_species(rag: RAG, canonical: str, aliases: list[str]) -> None:
             rag.ingested_per_species[canonical_norm].add(str(pdf_path))
 
 
-def run_inventory(specie: str, aliases: list[str], log_runs: bool = False) -> None:
+def run_inventory(specie: str, aliases: list[str], log_runs: bool = False, reuse_traits: bool = False) -> list[dict]:
+    traits_dir = pathlib.Path("traits")
+    traits_dir.mkdir(parents=True, exist_ok=True)
+    out_path = traits_dir / f"{slugify(specie)}.json"
+    if reuse_traits and out_path.exists():
+        with open(out_path, "r", encoding="utf-8") as f:
+            traits = json.load(f)
+        print(json.dumps(traits, ensure_ascii=False, indent=2))
+        return traits if isinstance(traits, list) else []
+
     rag = RAG(log_runs=log_runs)
     ingest_species(rag, canonical=specie, aliases=aliases)
 
@@ -121,7 +131,7 @@ def run_inventory(specie: str, aliases: list[str], log_runs: bool = False) -> No
     print(f"[Inventory] {specie}: {ingested} ingested / {len(docs)} used")
     if not docs:
         print("No relevant documents found.")
-        return
+        return []
 
     log_dir = init_log_dir(log_runs)
     context_text = format_docs(docs)
@@ -159,12 +169,10 @@ def run_inventory(specie: str, aliases: list[str], log_runs: bool = False) -> No
     except Exception:
         print("Debug: no valid JSON in model output")
         traits = []
-    traits_dir = pathlib.Path("traits")
-    traits_dir.mkdir(parents=True, exist_ok=True)
-    out_path = traits_dir / f"{slugify(specie)}.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(traits, f, ensure_ascii=False, indent=2)
     print(json.dumps(traits, ensure_ascii=False, indent=2))
+    return traits
 
 
 def load_species_file(path: str) -> list[dict]:
@@ -175,6 +183,25 @@ def load_species_file(path: str) -> list[dict]:
     return data
 
 
+def run_synthesis(inventories: dict[str, list[dict]], log_runs: bool = False) -> None:
+    prompt = PromptTemplate(
+        input_variables=["extracted_species_lists"],
+        template=pathlib.Path(SYNTHESIS_PROMPT_FILE).read_text(encoding="utf-8"),
+    )
+    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.0)
+    chain = {"extracted_species_lists": RunnablePassthrough()} | prompt | llm
+    payload = chain.invoke(json.dumps(inventories, ensure_ascii=False, indent=2))
+    content = payload.content if hasattr(payload, "content") else payload
+    if log_runs:
+        log_dir = init_log_dir(log_runs)
+        if log_dir:
+            with open(log_dir / "synthesis_prompt.txt", "w", encoding="utf-8") as f:
+                f.write(prompt.format(extracted_species_lists=json.dumps(inventories, ensure_ascii=False, indent=2)))
+            with open(log_dir / "synthesis_answer.txt", "w", encoding="utf-8") as f:
+                f.write(str(content))
+    print(content)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run per-species inventory prompt and print JSON traits.")
     group = parser.add_mutually_exclusive_group(required=True)
@@ -182,19 +209,29 @@ def main():
     group.add_argument("--species-file", help="Path to JSON file with canonical/aliases mappings.")
     parser.add_argument("--aliases", help="Comma-separated aliases to use for ingestion/search.")
     parser.add_argument("--log-run", action="store_true", help="Log prompt and answer to logs/<timestamp>/.")
+    parser.add_argument(
+        "--reuse-traits",
+        action="store_true",
+        help="Reuse existing traits/<species>.json if present (skip ingestion and prompting).",
+    )
     args = parser.parse_args()
 
     if args.species_file:
         species_groups = load_species_file(args.species_file)
+        inventories: dict[str, list[dict]] = {}
         for entry in species_groups:
             canonical = (entry.get("canonical") or "").strip()
             aliases = [a.strip() for a in entry.get("aliases", []) if a.strip()]
             if canonical:
-                run_inventory(canonical, aliases, log_runs=args.log_run)
+                inventories[canonical] = run_inventory(
+                    canonical, aliases, log_runs=args.log_run, reuse_traits=args.reuse_traits
+                )
+        if inventories:
+            run_synthesis(inventories, log_runs=args.log_run)
         return
 
     aliases = [a.strip() for a in (args.aliases or "").split(",") if a.strip()]
-    run_inventory(args.species.strip(), aliases, log_runs=args.log_run)
+    run_inventory(args.species.strip(), aliases, log_runs=args.log_run, reuse_traits=args.reuse_traits)
 
 
 if __name__ == "__main__":

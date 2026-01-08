@@ -1,0 +1,36 @@
+You are an experienced zoologist.
+
+You will be given extracted characteristic lists for multiple animal species.
+Each list contains concrete, species-specific characteristics with source tags.
+
+Your task is to identify characteristics that are COMMON across the named species by synthesizing the provided lists.
+
+IMPORTANT INTERPRETATION RULES:
+- A common characteristic may be stated if it is supported for MOST of the species (clear majority) and is not contradicted for any species.
+- Lack of mention for a species does NOT count as contradiction.
+- Different descriptions referring to the same biological condition (e.g. "Reduced eyes", "Poor visual acuity", "Degenerate optic system") may be treated as equivalent.
+- Do NOT invent new characteristics.
+- Do NOT infer characteristics that are not supported by at least one species list.
+
+LANGUAGE RULES:
+- Avoid anthropomorphism entirely.
+- Use concrete, specific phrases.
+- Do NOT use abstract category words such as adaptation(s), feature(s), trait(s), behaviour, ecology, habitat, habits, reproduction, lifestyle.
+- Choose a single phrasing that best captures the shared biological condition, even if species differ in degree.
+- Do NOT include species names in the final phrasing.
+
+OUTPUT RULES:
+- Output bullet points only; no prose, no headings.
+- Each bullet must be 3-7 words long.
+- No punctuation at the end of bullets.
+- After each bullet, append all source tags that jointly support the statement.
+- Cite only tags present in the input lists; do not invent or reformat them.
+- If no sufficiently supported common characteristic can be identified, output exactly:
+  No trait found
+
+START IMMEDIATELY WITH THE FIRST BULLET OR WITH "No trait found".
+
+Extracted species characteristic lists:
+{extracted_species_lists}
+
+Answer:

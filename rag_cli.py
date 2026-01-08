@@ -290,8 +290,8 @@ class RAG:
             persist_directory=persist_dir,  # keep embeddings/metadata across runs
         )
         self.threshold: float | None = None  # optional hard cutoff on distance
-        self.per_species_keep_percentile = 0.8  # keep best 40% (by distance; lower is better) of MMR-selected
-        self.per_species_final_k = 15
+        self.per_species_keep_percentile = 0.4  # keep best 40% (by distance; lower is better) of MMR-selected
+        self.per_species_final_k = 25
         self.per_species_fetch_k = 50
         self.mmr_lambda = 0.5
         self.ingested_per_species: dict[str, set[str]] = defaultdict(set)
