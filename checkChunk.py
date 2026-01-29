@@ -13,7 +13,7 @@ def parse_tag(tag: str) -> tuple[str, int]:
     return match.group("doc_id"), int(match.group("chunk"))
 
 
-def main() -> None:
+def main() -> None: 
     if len(sys.argv) != 2:
         print("Usage: python checkChunk.py \"[source: <doc_id>|chunk:<int>]\"")
         raise SystemExit(2)

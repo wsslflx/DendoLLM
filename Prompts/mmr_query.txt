@@ -1,0 +1,6 @@
+Template:
+{species_name} morphology behavior ecology sensory phenotype
+
+Guidelines:
+- Keep it broad to capture diverse observable traits.
+- Add habitat/activity terms only when needed (e.g., fossorial, subterranean, nocturnal).

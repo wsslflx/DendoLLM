@@ -49,9 +49,20 @@ BASE_URL = "https://api.openalex.org/works"
 NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 DEFAULT_QUERY = "Cape golden mole, star-nosed mole, naked mole-rat, blind mole-rat"
 PROMPT_FILE = "prompt3.txt"
+MMR_QUERY_FILE = "Prompts/mmr_query.txt"
 
 # when False, keep bullets even if citations don't match allowed_tags
 STRICT_CITATION_FILTER = False
+
+
+def load_mmr_query_template() -> str:
+    path = pathlib.Path(MMR_QUERY_FILE)
+    if path.exists():
+        return path.read_text(encoding="utf-8").strip()
+    return "{species_name}"
+
+
+MMR_QUERY_TEMPLATE = load_mmr_query_template()
 
 
 def canonical_doc_id(paper: dict) -> Optional[str]:
@@ -123,19 +134,88 @@ def pmc_fetch_fulltext(pmcid: str) -> Optional[str]:
     return full_text or None
 
 def wikipedia_fetch_plain(species_name: str, lang: str = "en") -> Optional[str]:
-    """Search Wikipedia for a title match and fetch full article plaintext."""
+    """Search Wikipedia for a best title match and fetch full article plaintext."""
     api_url = f"https://{lang}.wikipedia.org/w/api.php"
     headers = {
         "User-Agent": f"SMTB2025/0.1 (mailto:{EMAIL})",
         "From": EMAIL,
     }
+
+    def extract_by_pageid(pageid: int) -> Optional[str]:
+        extract_params = {
+            "action": "query",
+            "format": "json",
+            "prop": "extracts",
+            "explaintext": 1,
+            "redirects": 1,
+            "pageids": pageid,
+        }
+        resp = requests.get(api_url, params=extract_params, headers=headers, timeout=20)
+        resp.raise_for_status()
+        data = resp.json()
+        pages = data.get("query", {}).get("pages", {})
+        for page in pages.values():
+            extract = page.get("extract")
+            if extract:
+                return extract.strip()
+        return None
+
+    def extract_by_title(title: str) -> Optional[str]:
+        params = {
+            "action": "query",
+            "format": "json",
+            "prop": "extracts",
+            "explaintext": 1,
+            "redirects": 1,
+            "titles": title,
+        }
+        resp = requests.get(api_url, params=params, headers=headers, timeout=20)
+        resp.raise_for_status()
+        data = resp.json()
+        pages = data.get("query", {}).get("pages", {})
+        for page in pages.values():
+            extract = page.get("extract")
+            if extract:
+                return extract.strip()
+        return None
+
+    def pick_best_hit(hits: list[dict]) -> Optional[dict]:
+        if not hits:
+            return None
+        norm = species_name.lower()
+        tokens = [t for t in norm.split() if t]
+        best = hits[0]
+        best_score = -1
+        for hit in hits:
+            title = (hit.get("title") or "").lower()
+            snippet = (hit.get("snippet") or "").lower()
+            score = 0
+            if title == norm:
+                score += 5
+            if norm in title:
+                score += 3
+            if tokens and all(t in title for t in tokens):
+                score += 2
+            if norm in snippet:
+                score += 1
+            if "genus" in title or "genus" in snippet:
+                score -= 2
+            if score > best_score:
+                best = hit
+                best_score = score
+        return best
+
     try:
+        direct = extract_by_title(species_name)
+        if direct:
+            return direct
+
         search_params = {
             "action": "query",
             "format": "json",
             "list": "search",
             "srsearch": species_name,
-            "srlimit": 1,
+            "srlimit": 5,
         }
         search_resp = requests.get(api_url, params=search_params, headers=headers, timeout=20)
         search_resp.raise_for_status()
@@ -150,31 +230,16 @@ def wikipedia_fetch_plain(species_name: str, lang: str = "en") -> Optional[str]:
             hits = search_data.get("query", {}).get("search", [])
             if not hits:
                 return None
-        pageid = hits[0].get("pageid")
+        best_hit = pick_best_hit(hits)
+        pageid = (best_hit or {}).get("pageid")
         if not pageid:
             return None
-
-        extract_params = {
-            "action": "query",
-            "format": "json",
-            "prop": "extracts",
-            "explaintext": 1,
-            "redirects": 1,
-            "pageids": pageid,
-        }
-        resp = requests.get(api_url, params=extract_params, headers=headers, timeout=20)
-        resp.raise_for_status()
-        data = resp.json()
+        data_text = extract_by_pageid(pageid)
     except Exception as exc:
         print(f"Wikipedia fetch failed for '{species_name}': {exc}")
         return None
 
-    pages = data.get("query", {}).get("pages", {})
-    for page in pages.values():
-        extract = page.get("extract")
-        if extract:
-            return extract.strip()
-    return None
+    return data_text
 
 
 def get_pdf(paper: dict, location: str) -> pathlib.Path | None:
@@ -290,9 +355,9 @@ class RAG:
             persist_directory=persist_dir,  # keep embeddings/metadata across runs
         )
         self.threshold: float | None = None  # optional hard cutoff on distance
-        self.per_species_keep_percentile = 0.4  # keep best 40% (by distance; lower is better) of MMR-selected
-        self.per_species_final_k = 25
-        self.per_species_fetch_k = 50
+        self.per_species_keep_percentile = 0.6  # keep best 40% (by distance; lower is better) of MMR-selected
+        self.per_species_final_k = 50
+        self.per_species_fetch_k = 100
         self.mmr_lambda = 0.5
         self.ingested_per_species: dict[str, set[str]] = defaultdict(set)
         self.log_runs = log_runs
@@ -408,13 +473,14 @@ class RAG:
                 }
             )
             if paper_meta:
+                best_oa_location = paper_meta.get("best_oa_location") or {}
                 # attach bibliographic metadata for later citation
                 metadata.update(
                     {
                         "openalex_id": paper_meta.get("id"),
                         "title": paper_meta.get("title"),
                         "publication_year": paper_meta.get("publication_year"),
-                        "pdf_url": paper_meta.get("best_oa_location", {}).get("pdf_url"),
+                        "pdf_url": best_oa_location.get("pdf_url"),
                     }
                 )
             doc.metadata = metadata
@@ -518,14 +584,15 @@ class RAG:
         results_with_scores = []
         for specie in species_list:
             # grab a wider candidate pool then pick diverse chunks via MMR
+            mmr_query = MMR_QUERY_TEMPLATE.format(species_name=specie)
             candidates = self.vectorstore.similarity_search_with_score(
-                question, k=self.per_species_fetch_k, filter={"specie": specie}
+                mmr_query, k=self.per_species_fetch_k, filter={"specie": specie}
             )
             if not candidates:
                 continue
             try:
                 query_embedding = np.array(
-                    self.vectorstore._embedding_function.embed_query(question),  # type: ignore[attr-defined]
+                    self.vectorstore._embedding_function.embed_query(mmr_query),  # type: ignore[attr-defined]
                     dtype=float,
                 )
                 doc_embeddings = np.array(

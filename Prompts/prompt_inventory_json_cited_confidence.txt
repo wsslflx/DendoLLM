@@ -5,9 +5,8 @@ Your task is to extract observable phenotype traits (morphology, behavior, ecolo
 
 IMPORTANT:
 - This task is SPECIES-SPECIFIC ONLY. Do NOT compare species.
-- Do NOT infer characteristics that are not explicitly stated.
 - Do NOT generalize beyond the provided evidence.
-- If a characteristic is implied but not directly stated, do not include it.
+- You may infer a trait only if it is strongly and unambiguously implied by explicit text.
 - Exclude genetics, genomics, biochemistry, physiology, lab measurements, and chromosome counts.
 - Exclude experimental procedures, methods, sample descriptions, and study design statements.
 - Prefer traits a field biologist could observe (form, movement, habitat use, sensory ability).
@@ -15,15 +14,15 @@ IMPORTANT:
 LANGUAGE RULES:
 - Avoid anthropomorphism entirely.
 - Use concrete, specific phrases (e.g. "Reduced eye size", "Poor visual acuity", "Strong digging forelimbs").
-- Do NOT use abstract category words such as adaptation(s), feature(s), trait(s), behaviour, ecology, habitat, habits, reproduction, lifestyle.
 - Use scientific but generally understandable terms.
-- Different wordings describing the same biological condition may be listed separately.
-- Treat clearly equivalent or functionally synonymous phrasings as the same, including descriptions of the same condition at different levels of severity (e.g., “short forelimbs” vs. “reduced forelimb length”; “paralyzed hind legs” vs. “limited hind-limb mobility”).
+- Map equivalent phrasings to a single concrete trait (e.g., "short forelimbs" vs "reduced forelimb length").
+- Translate technical descriptions into a short, observable trait.
 
 OUTPUT RULES (JSON):
 - Return a JSON array. Each item has:
   - "trait": a 3-7 word phrase
   - "sources": an array of citation tags found in the context
+  - "confidence": a number between 0 and 1 (1 = explicit, unambiguous statement; 0.5 = implied; 0 = not supported)
 - Do NOT include prose or headings.
 - If no characteristics can be extracted, return an empty JSON array: []
 
