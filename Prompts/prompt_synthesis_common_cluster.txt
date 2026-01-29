@@ -8,15 +8,20 @@ Your task is to identify characteristics that are COMMON across the named specie
 IMPORTANT INTERPRETATION RULES:
 - A common characteristic may be stated if it is supported for MOST of the species (clear majority) and is not contradicted for any species.
 - Lack of mention for a species does NOT count as contradiction.
-- Different descriptions referring to the same biological condition (e.g. "Reduced eyes", "Poor visual acuity", "Degenerate optic system") may be treated as equivalent.
+- Different descriptions referring to the same biological condition may be treated as equivalent.
 - Do NOT invent new characteristics.
 - Do NOT infer characteristics that are not supported by at least one species list.
+
+PROCESS:
+- First, cluster traits by meaning (not wording).
+- Then write one canonical phrasing per cluster.
+- Include every source tag from all items in the cluster.
 
 LANGUAGE RULES:
 - Avoid anthropomorphism entirely.
 - Use concrete, specific phrases.
 - Do NOT use abstract category words such as adaptation(s), feature(s), trait(s), behaviour, ecology, habitat, habits, reproduction, lifestyle.
-- Choose a single phrasing that best captures the shared biological condition, even if species differ in degree.
+- Choose the shortest, most general phrasing that preserves the shared biological condition.
 - Do NOT include species names in the final phrasing.
 
 OUTPUT RULES (JSON):
@@ -26,7 +31,6 @@ OUTPUT RULES (JSON):
   - "confidence": 1 if the trait is explicitly stated for most species, 0.5 if it is only strongly implied
 - Do NOT include prose or headings.
 - Cite only tags present in the input lists; do not invent or reformat them.
-- Include every supporting source tag from all species lists for each common trait.
 - If no sufficiently supported common characteristic can be identified, return an empty JSON array: []
 
 START IMMEDIATELY WITH THE JSON ARRAY.

@@ -1,0 +1,65 @@
+You are an experienced zoologist specializing in comparative phenotype analysis.
+
+You will be given a list of animal species and their extracted observable phenotype traits.
+Each species list may use different wording, granularity, or perspective to describe
+the same underlying biological condition.
+
+Your task is to identify observable phenotype traits
+(morphology, behavior, ecology, sensory capability)
+that are biologically COMMON across most of these species.
+
+You MUST perform this task in TWO CONCEPTUAL STEPS:
+
+STEP 1 — CONCEPT NORMALIZATION (internal reasoning):
+- Group traits from different species that refer to the same underlying biological condition,
+  even if phrased differently or described at different levels
+  (e.g. structure vs function, presence vs reduction, degree differences).
+- Prefer higher-level observable biological conditions over narrow or technical descriptions.
+- Treat differences in degree as compatible unless explicitly contradictory.
+
+STEP 2 — COMMON-TRAIT SELECTION:
+A trait may be reported as common if:
+- It is supported by a CLEAR MAJORITY of species.
+- It is NOT explicitly contradicted for any species.
+- Lack of mention does NOT count as contradiction.
+- The trait corresponds to at least one explicitly extracted trait
+  (you may not invent new traits).
+
+STRICT RULES:
+- Do NOT invent new characteristics.
+- Do NOT infer unsupported traits.
+- Do NOT compare species explicitly.
+- Do NOT include species names in the final phrasing.
+
+LANGUAGE RULES:
+- Avoid anthropomorphism entirely.
+- Use concrete, observable phenotype phrases.
+- Use a single canonical phrasing per biological condition.
+- Do NOT use abstract category words such as:
+  adaptation(s), feature(s), trait(s), behaviour, ecology, habitat, lifestyle, reproduction.
+- Choose phrasing that would remain valid across species
+  even if expression differs in strength or form.
+
+OUTPUT RULES (JSON):
+- Return a JSON array.
+- Each item MUST contain:
+  - "trait": a 3–7 word canonical observable phenotype phrase
+  - "sources": an array of ALL citation tags from ALL species
+               whose traits support this biological condition
+  - "confidence":
+      * 1.0 → explicitly stated for most species
+      * 0.7 → explicitly stated for some species and strongly implied for others
+      * 0.5 → strongly implied but consistently supported
+
+- Cite ONLY tags present in the input lists.
+- Include EVERY supporting source tag for each common trait.
+- Do NOT include prose, explanations, headings, or reasoning steps.
+- If no sufficiently supported common trait exists,
+  return an empty JSON array: []
+
+START IMMEDIATELY WITH THE JSON ARRAY.
+
+Extracted species characteristic lists:
+{extracted_species_lists}
+
+Answer:

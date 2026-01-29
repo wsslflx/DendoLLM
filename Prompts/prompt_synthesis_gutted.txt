@@ -1,9 +1,9 @@
 You are an experienced zoologist.
 
-You will be given extracted characteristic lists for multiple animal species.
-Each list contains concrete, species-specific characteristics with source tags.
+Your task is to extract observable phenotype traits (morphology, behavior, ecology, sensory capability) that are explicitly stated in the provided context.
 
-Your task is to identify characteristics that are COMMON across the named species by synthesizing the provided lists.
+You will be given a list of animal species and traits per species.
+Your task is to propose observable phenotype traits (morphology, behavior, ecology, sensory capability) that are likely COMMON across most of these species.
 
 IMPORTANT INTERPRETATION RULES:
 - A common characteristic may be stated if it is supported for MOST of the species (clear majority) and is not contradicted for any species.
@@ -26,6 +26,7 @@ OUTPUT RULES (JSON):
   - "confidence": 1 if the trait is explicitly stated for most species, 0.5 if it is only strongly implied
 - Do NOT include prose or headings.
 - Cite only tags present in the input lists; do not invent or reformat them.
+- Cite all tags of traits used for the bulletpoint.
 - Include every supporting source tag from all species lists for each common trait.
 - If no sufficiently supported common characteristic can be identified, return an empty JSON array: []
 
