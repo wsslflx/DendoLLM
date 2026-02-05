@@ -1,0 +1,46 @@
+{
+  "groups": [
+    {
+      "canonical": "poor visual acuity",
+      "members": [
+        "poor visual acuity",
+        "reduced or absent vision"
+      ]
+    },
+    {
+      "canonical": "subterranean lifestyle",
+      "members": [
+        "subterranean lifestyle",
+        "digging behavior",
+        "adaptations for underground living",
+        "adapted for underground living"
+      ]
+    },
+    {
+      "canonical": "colonial living",
+      "members": [
+        "colonial living",
+        "colonial social structure",
+        "social behavior in colonies"
+      ]
+    },
+    {
+      "canonical": "active both day and night",
+      "members": [
+        "active both day and night"
+      ]
+    },
+    {
+      "canonical": "cylindrically shaped body",
+      "members": [
+        "cylindrically shaped body"
+      ]
+    },
+    {
+      "canonical": "highly sensitive tactile receptors",
+      "members": [
+        "highly sensitive tactile receptors"
+      ]
+    }
+  ]
+}

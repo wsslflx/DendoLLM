@@ -1,0 +1,207 @@
+{
+  "n_runs": 10,
+  "trait_frequency": [
+    [
+      "ability to change color",
+      9
+    ],
+    [
+      "robust body structure",
+      7
+    ],
+    [
+      "arboreal habitat preference",
+      4
+    ],
+    [
+      "presence of limbs for movement",
+      3
+    ],
+    [
+      "presence of specialized limbs",
+      2
+    ],
+    [
+      "ability to change color for camouflage",
+      1
+    ],
+    [
+      "habitat associated with aquatic environments",
+      1
+    ],
+    [
+      "large body size",
+      1
+    ],
+    [
+      "presence of complex behaviors",
+      1
+    ],
+    [
+      "presence of limbs or appendages",
+      1
+    ]
+  ],
+  "citation_drift": {
+    "ability to change color": {
+      "runs_present": 9,
+      "citation_union_size": 6,
+      "mean_pairwise_jaccard": 0.669,
+      "mean_vs_union_jaccard": 0.444,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/ncomms7368",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1",
+        "doi:https://doi.org/10.22215/etd/2024-16064|chunk:27",
+        "source: doi:https://doi.org/10.1038/s41597-019-0017-6|chunk:0",
+        "source: wiki:en:octopus vulgaris|chunk:1",
+        "wiki:en:dryophytes versicolor|chunk:2"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/ncomms7368": 9,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1": 8,
+        "doi:https://doi.org/10.22215/etd/2024-16064|chunk:27": 1,
+        "source: doi:https://doi.org/10.1038/s41597-019-0017-6|chunk:0": 2,
+        "source: wiki:en:octopus vulgaris|chunk:1": 3,
+        "wiki:en:dryophytes versicolor|chunk:2": 1
+      }
+    },
+    "robust body structure": {
+      "runs_present": 7,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 0.548,
+      "mean_vs_union_jaccard": 0.524,
+      "citation_union": [
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1",
+        "source: doi:https://doi.org/10.12782/sd.21.1.031|chunk:42",
+        "source: doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1": 6,
+        "source: doi:https://doi.org/10.12782/sd.21.1.031|chunk:42": 4,
+        "source: doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1": 1
+      }
+    },
+    "presence of limbs for movement": {
+      "runs_present": 3,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 0.167,
+      "mean_vs_union_jaccard": 0.444,
+      "citation_union": [
+        "source: doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1",
+        "source: wiki:en:panulirus cygnus|chunk:4",
+        "wiki:en:panulirus cygnus|chunk:4"
+      ],
+      "citation_counts": {
+        "source: doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1": 1,
+        "source: wiki:en:panulirus cygnus|chunk:4": 2,
+        "wiki:en:panulirus cygnus|chunk:4": 1
+      }
+    },
+    "arboreal habitat preference": {
+      "runs_present": 4,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 0.667,
+      "mean_vs_union_jaccard": 0.667,
+      "citation_union": [
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2",
+        "doi:https://doi.org/10.3140/bull.geosci.1259"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1": 1,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2": 3,
+        "doi:https://doi.org/10.3140/bull.geosci.1259": 4
+      }
+    },
+    "ability to change color for camouflage": {
+      "runs_present": 1,
+      "citation_union_size": 5,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/ncomms7368",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1",
+        "source: doi:https://doi.org/10.1038/s41597-019-0017-6|chunk:0",
+        "source: wiki:en:octopus vulgaris|chunk:1",
+        "wiki:en:dryophytes versicolor|chunk:2"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/ncomms7368": 1,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1": 1,
+        "source: doi:https://doi.org/10.1038/s41597-019-0017-6|chunk:0": 1,
+        "source: wiki:en:octopus vulgaris|chunk:1": 1,
+        "wiki:en:dryophytes versicolor|chunk:2": 1
+      }
+    },
+    "presence of specialized limbs": {
+      "runs_present": 2,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 0.5,
+      "mean_vs_union_jaccard": 0.75,
+      "citation_union": [
+        "source: doi:https://doi.org/10.12782/sd.21.1.031|chunk:42",
+        "wiki:en:panulirus cygnus|chunk:4"
+      ],
+      "citation_counts": {
+        "source: doi:https://doi.org/10.12782/sd.21.1.031|chunk:42": 1,
+        "wiki:en:panulirus cygnus|chunk:4": 2
+      }
+    },
+    "presence of complex behaviors": {
+      "runs_present": 1,
+      "citation_union_size": 1,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:dryophytes versicolor|chunk:29"
+      ],
+      "citation_counts": {
+        "wiki:en:dryophytes versicolor|chunk:29": 1
+      }
+    },
+    "large body size": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.3140/bull.geosci.1259",
+        "wiki:en:panulirus cygnus|chunk:4"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.3140/bull.geosci.1259": 1,
+        "wiki:en:panulirus cygnus|chunk:4": 1
+      }
+    },
+    "presence of limbs or appendages": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "source: doi:https://doi.org/10.12782/sd.21.1.031|chunk:42",
+        "source: wiki:en:panulirus cygnus|chunk:4"
+      ],
+      "citation_counts": {
+        "source: doi:https://doi.org/10.12782/sd.21.1.031|chunk:42": 1,
+        "source: wiki:en:panulirus cygnus|chunk:4": 1
+      }
+    },
+    "habitat associated with aquatic environments": {
+      "runs_present": 1,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "source: doi:https://doi.org/10.1038/s41597-019-0017-6|chunk:0",
+        "source: doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2",
+        "source: wiki:en:panulirus cygnus|chunk:4"
+      ],
+      "citation_counts": {
+        "source: doi:https://doi.org/10.1038/s41597-019-0017-6|chunk:0": 1,
+        "source: doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2": 1,
+        "source: wiki:en:panulirus cygnus|chunk:4": 1
+      }
+    }
+  }
+}

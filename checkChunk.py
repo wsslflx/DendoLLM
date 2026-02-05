@@ -4,18 +4,25 @@ import sys
 from rag_cli import RAG
 
 TAG_RE = re.compile(r"\[source:\s*(?P<doc_id>[^|]+)\|chunk:(?P<chunk>\d+)\]")
+RAW_RE = re.compile(r"(?P<doc_id>[^|]+)\|chunk:(?P<chunk>\d+)")
 
 
 def parse_tag(tag: str) -> tuple[str, int]:
-    match = TAG_RE.fullmatch(tag.strip())
+    cleaned = tag.strip()
+    match = TAG_RE.fullmatch(cleaned) or RAW_RE.fullmatch(cleaned)
     if not match:
-        raise ValueError("Expected tag format: [source: <doc_id>|chunk:<int>]")
+        raise ValueError(
+            "Expected tag format: [source: <doc_id>|chunk:<int>] or <doc_id>|chunk:<int>"
+        )
     return match.group("doc_id"), int(match.group("chunk"))
 
 
 def main() -> None: 
     if len(sys.argv) != 2:
-        print("Usage: python checkChunk.py \"[source: <doc_id>|chunk:<int>]\"")
+        print(
+            "Usage: python checkChunk.py \"[source: <doc_id>|chunk:<int>]\" "
+            "or \"<doc_id>|chunk:<int>\""
+        )
         raise SystemExit(2)
 
     doc_id, chunk_idx = parse_tag(sys.argv[1])

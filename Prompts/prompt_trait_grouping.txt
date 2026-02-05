@@ -1,0 +1,25 @@
+You are grouping biological trait phrases that mean the same underlying condition.
+
+Input traits are provided with observed counts. Your job is to output strict JSON with:
+{{
+  "groups": [
+    {{
+      "canonical": "<one of the input traits>",
+      "members": ["<input trait 1>", "<input trait 2>", ...]
+    }}
+  ]
+}}
+
+Rules:
+- Only group when meaning is essentially identical (true synonyms / rephrasings).
+- If unsure, keep the trait in its own group.
+- Do NOT merge different abstraction levels (behavior vs lifestyle vs morphology vs physiology).
+- Do NOT merge a specific behavior (e.g., "digging behavior") into a broader ecological category
+  (e.g., "subterranean lifestyle") unless the phrases explicitly indicate the same scope.
+- Every input trait must appear exactly once in exactly one group's members list.
+- The canonical must be one of its members.
+- Prefer the canonical with the highest count; if tie, use the shortest phrase.
+- Output JSON only (no markdown fences, no extra commentary).
+
+TRAITS (one per line):
+{trait_list}

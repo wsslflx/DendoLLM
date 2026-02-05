@@ -1,0 +1,509 @@
+{
+  "n_runs": 10,
+  "trait_frequency": [
+    [
+      "eel-like body shape",
+      10
+    ],
+    [
+      "distinctive coloration patterns",
+      9
+    ],
+    [
+      "habitat in moist forests",
+      5
+    ],
+    [
+      "nocturnal activity patterns",
+      5
+    ],
+    [
+      "nocturnal behavior",
+      5
+    ],
+    [
+      "seasonal migration patterns",
+      5
+    ],
+    [
+      "distinctive vocalizations",
+      4
+    ],
+    [
+      "migratory behavior",
+      3
+    ],
+    [
+      "social foraging behavior",
+      3
+    ],
+    [
+      "habitat in forests or wetlands",
+      2
+    ],
+    [
+      "seasonal behavioral patterns",
+      2
+    ],
+    [
+      "associates with large mammals",
+      1
+    ],
+    [
+      "foraging behavior",
+      1
+    ],
+    [
+      "foraging behavior includes specialized techniques",
+      1
+    ],
+    [
+      "foraging behavior includes specific feeding strategies",
+      1
+    ],
+    [
+      "habitat in moist or tropical forests",
+      1
+    ],
+    [
+      "presence in high-altitude environments",
+      1
+    ],
+    [
+      "presence in moist forest habitats",
+      1
+    ],
+    [
+      "presence in specific habitats",
+      1
+    ],
+    [
+      "presence of distinctive vocalizations",
+      1
+    ],
+    [
+      "social behavior in groups",
+      1
+    ],
+    [
+      "social behavior patterns",
+      1
+    ]
+  ],
+  "citation_drift": {
+    "eel-like body shape": {
+      "runs_present": 10,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 0.867,
+      "mean_vs_union_jaccard": 0.667,
+      "citation_union": [
+        "wiki:en:petromyzon marinus",
+        "wiki:en:petromyzon marinus|chunk:1",
+        "wiki:en:pholidichthys leucotaenia|chunk:0"
+      ],
+      "citation_counts": {
+        "wiki:en:petromyzon marinus": 9,
+        "wiki:en:petromyzon marinus|chunk:1": 1,
+        "wiki:en:pholidichthys leucotaenia|chunk:0": 10
+      }
+    },
+    "distinctive coloration patterns": {
+      "runs_present": 9,
+      "citation_union_size": 15,
+      "mean_pairwise_jaccard": 0.391,
+      "mean_vs_union_jaccard": 0.415,
+      "citation_union": [
+        "wiki:en:alca torda|chunk:0",
+        "wiki:en:alca torda|chunk:5",
+        "wiki:en:asarcornis scutulata|chunk:1",
+        "wiki:en:bos mutus",
+        "wiki:en:bos mutus|chunk:1",
+        "wiki:en:bos mutus|chunk:2",
+        "wiki:en:buphagus erythrorhynchus",
+        "wiki:en:capra_hircus|chunk:12",
+        "wiki:en:cheirogaleus medius|chunk:4",
+        "wiki:en:eospalax fontanierii|chunk:0",
+        "wiki:en:eschrichtius robustus|chunk:9",
+        "wiki:en:larus smithsonianus|chunk:5",
+        "wiki:en:penelope pileata|chunk:0",
+        "wiki:en:petromyzon marinus",
+        "wiki:en:pholidichthys leucotaenia|chunk:0"
+      ],
+      "citation_counts": {
+        "wiki:en:alca torda|chunk:0": 7,
+        "wiki:en:alca torda|chunk:5": 2,
+        "wiki:en:asarcornis scutulata|chunk:1": 5,
+        "wiki:en:bos mutus": 1,
+        "wiki:en:bos mutus|chunk:1": 1,
+        "wiki:en:bos mutus|chunk:2": 3,
+        "wiki:en:buphagus erythrorhynchus": 1,
+        "wiki:en:capra_hircus|chunk:12": 1,
+        "wiki:en:cheirogaleus medius|chunk:4": 2,
+        "wiki:en:eospalax fontanierii|chunk:0": 1,
+        "wiki:en:eschrichtius robustus|chunk:9": 5,
+        "wiki:en:larus smithsonianus|chunk:5": 7,
+        "wiki:en:penelope pileata|chunk:0": 8,
+        "wiki:en:petromyzon marinus": 5,
+        "wiki:en:pholidichthys leucotaenia|chunk:0": 7
+      }
+    },
+    "social foraging behavior": {
+      "runs_present": 3,
+      "citation_union_size": 6,
+      "mean_pairwise_jaccard": 0.2,
+      "mean_vs_union_jaccard": 0.5,
+      "citation_union": [
+        "pmc:12512274",
+        "pmc:12679288|chunk:67",
+        "pmc:12818247|chunk:49",
+        "wiki:en:buphagus erythrorhynchus|chunk:3",
+        "wiki:en:larus smithsonianus|chunk:11",
+        "wiki:en:pholidichthys leucotaenia|chunk:1"
+      ],
+      "citation_counts": {
+        "pmc:12512274": 2,
+        "pmc:12679288|chunk:67": 1,
+        "pmc:12818247|chunk:49": 1,
+        "wiki:en:buphagus erythrorhynchus|chunk:3": 1,
+        "wiki:en:larus smithsonianus|chunk:11": 2,
+        "wiki:en:pholidichthys leucotaenia|chunk:1": 2
+      }
+    },
+    "nocturnal activity patterns": {
+      "runs_present": 5,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 0.733,
+      "mean_vs_union_jaccard": 0.667,
+      "citation_union": [
+        "doi:https://doi.org/10.5194/pb-11-13-2024|chunk:6",
+        "wiki:en:asarcornis scutulata|chunk:2",
+        "wiki:en:cheirogaleus medius|chunk:5"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.5194/pb-11-13-2024|chunk:6": 4,
+        "wiki:en:asarcornis scutulata|chunk:2": 1,
+        "wiki:en:cheirogaleus medius|chunk:5": 5
+      }
+    },
+    "habitat in moist forests": {
+      "runs_present": 5,
+      "citation_union_size": 5,
+      "mean_pairwise_jaccard": 0.77,
+      "mean_vs_union_jaccard": 0.72,
+      "citation_union": [
+        "wiki:en:asarcornis scutulata|chunk:2",
+        "wiki:en:erpornis zantholeuca|chunk:0",
+        "wiki:en:odontophorus gujanensis|chunk:0",
+        "wiki:en:penelope pileata|chunk:0",
+        "wiki:en:pteruthius melanotis|chunk:0"
+      ],
+      "citation_counts": {
+        "wiki:en:asarcornis scutulata|chunk:2": 1,
+        "wiki:en:erpornis zantholeuca|chunk:0": 5,
+        "wiki:en:odontophorus gujanensis|chunk:0": 5,
+        "wiki:en:penelope pileata|chunk:0": 5,
+        "wiki:en:pteruthius melanotis|chunk:0": 2
+      }
+    },
+    "migratory behavior": {
+      "runs_present": 3,
+      "citation_union_size": 8,
+      "mean_pairwise_jaccard": 0.214,
+      "mean_vs_union_jaccard": 0.458,
+      "citation_union": [
+        "doi:https://doi.org/10.1007/s11160-016-9440-3|chunk:105",
+        "doi:https://doi.org/10.1017/s0030605317001673",
+        "doi:https://doi.org/10.1186/s12983-015-0126-9|chunk:0",
+        "doi:https://doi.org/10.1186/s12983-015-0126-9|chunk:3",
+        "doi:https://doi.org/10.5483/bmbrep.2007.40.3.426|chunk:17",
+        "pmc:12797313|chunk:49",
+        "pmc:12811628|chunk:18",
+        "wiki:en:alca torda|chunk:13"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1007/s11160-016-9440-3|chunk:105": 1,
+        "doi:https://doi.org/10.1017/s0030605317001673": 1,
+        "doi:https://doi.org/10.1186/s12983-015-0126-9|chunk:0": 2,
+        "doi:https://doi.org/10.1186/s12983-015-0126-9|chunk:3": 1,
+        "doi:https://doi.org/10.5483/bmbrep.2007.40.3.426|chunk:17": 1,
+        "pmc:12797313|chunk:49": 2,
+        "pmc:12811628|chunk:18": 2,
+        "wiki:en:alca torda|chunk:13": 1
+      }
+    },
+    "nocturnal behavior": {
+      "runs_present": 5,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 0.6,
+      "mean_vs_union_jaccard": 0.667,
+      "citation_union": [
+        "doi:https://doi.org/10.5194/pb-11-13-2024|chunk:6",
+        "wiki:en:asarcornis scutulata|chunk:2",
+        "wiki:en:cheirogaleus medius|chunk:5"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.5194/pb-11-13-2024|chunk:6": 2,
+        "wiki:en:asarcornis scutulata|chunk:2": 3,
+        "wiki:en:cheirogaleus medius|chunk:5": 5
+      }
+    },
+    "foraging behavior includes specific feeding strategies": {
+      "runs_present": 1,
+      "citation_union_size": 4,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.5194/pb-11-13-2024|chunk:6",
+        "wiki:en:asarcornis scutulata|chunk:2",
+        "wiki:en:erpornis zantholeuca|chunk:2",
+        "wiki:en:larus smithsonianus|chunk:11"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.5194/pb-11-13-2024|chunk:6": 1,
+        "wiki:en:asarcornis scutulata|chunk:2": 1,
+        "wiki:en:erpornis zantholeuca|chunk:2": 1,
+        "wiki:en:larus smithsonianus|chunk:11": 1
+      }
+    },
+    "habitat in moist or tropical forests": {
+      "runs_present": 1,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:erpornis zantholeuca|chunk:0",
+        "wiki:en:odontophorus gujanensis|chunk:0",
+        "wiki:en:penelope pileata|chunk:0"
+      ],
+      "citation_counts": {
+        "wiki:en:erpornis zantholeuca|chunk:0": 1,
+        "wiki:en:odontophorus gujanensis|chunk:0": 1,
+        "wiki:en:penelope pileata|chunk:0": 1
+      }
+    },
+    "seasonal behavioral patterns": {
+      "runs_present": 2,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 0.333,
+      "mean_vs_union_jaccard": 0.667,
+      "citation_union": [
+        "doi:https://doi.org/10.1017/s0030605315001155|chunk:34",
+        "doi:https://doi.org/10.1017/s0031182013000644|chunk:40",
+        "pmc:12570625|chunk:4"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1017/s0030605315001155|chunk:34": 1,
+        "doi:https://doi.org/10.1017/s0031182013000644|chunk:40": 1,
+        "pmc:12570625|chunk:4": 2
+      }
+    },
+    "distinctive vocalizations": {
+      "runs_present": 4,
+      "citation_union_size": 4,
+      "mean_pairwise_jaccard": 0.542,
+      "mean_vs_union_jaccard": 0.562,
+      "citation_union": [
+        "doi:https://doi.org/10.17352/gje.000069",
+        "pmc:12512274",
+        "pmc:12512274|chunk:3",
+        "wiki:en:penelope pileata|chunk:0"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.17352/gje.000069": 1,
+        "pmc:12512274": 3,
+        "pmc:12512274|chunk:3": 1,
+        "wiki:en:penelope pileata|chunk:0": 4
+      }
+    },
+    "seasonal migration patterns": {
+      "runs_present": 5,
+      "citation_union_size": 6,
+      "mean_pairwise_jaccard": 0.225,
+      "mean_vs_union_jaccard": 0.367,
+      "citation_union": [
+        "doi:https://doi.org/10.1017/s0030605315001155",
+        "doi:https://doi.org/10.1017/s0030605317001673",
+        "doi:https://doi.org/10.1017/s0030605317001673|chunk:2",
+        "doi:https://doi.org/10.5483/bmbrep.2007.40.3.426",
+        "pmc:12797313|chunk:49",
+        "pmc:12811628|chunk:18"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1017/s0030605315001155": 1,
+        "doi:https://doi.org/10.1017/s0030605317001673": 2,
+        "doi:https://doi.org/10.1017/s0030605317001673|chunk:2": 2,
+        "doi:https://doi.org/10.5483/bmbrep.2007.40.3.426": 2,
+        "pmc:12797313|chunk:49": 1,
+        "pmc:12811628|chunk:18": 3
+      }
+    },
+    "presence in specific habitats": {
+      "runs_present": 1,
+      "citation_union_size": 4,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:asarcornis scutulata|chunk:2",
+        "wiki:en:erpornis zantholeuca|chunk:0",
+        "wiki:en:odontophorus gujanensis|chunk:0",
+        "wiki:en:penelope pileata|chunk:0"
+      ],
+      "citation_counts": {
+        "wiki:en:asarcornis scutulata|chunk:2": 1,
+        "wiki:en:erpornis zantholeuca|chunk:0": 1,
+        "wiki:en:odontophorus gujanensis|chunk:0": 1,
+        "wiki:en:penelope pileata|chunk:0": 1
+      }
+    },
+    "social behavior patterns": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "pmc:12803774",
+        "pmc:12818247|chunk:42"
+      ],
+      "citation_counts": {
+        "pmc:12803774": 1,
+        "pmc:12818247|chunk:42": 1
+      }
+    },
+    "presence of distinctive vocalizations": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "pmc:12512274",
+        "wiki:en:penelope pileata|chunk:0"
+      ],
+      "citation_counts": {
+        "pmc:12512274": 1,
+        "wiki:en:penelope pileata|chunk:0": 1
+      }
+    },
+    "habitat in forests or wetlands": {
+      "runs_present": 2,
+      "citation_union_size": 5,
+      "mean_pairwise_jaccard": 0.6,
+      "mean_vs_union_jaccard": 0.8,
+      "citation_union": [
+        "wiki:en:asarcornis scutulata|chunk:2",
+        "wiki:en:eospalax fontanierii|chunk:0",
+        "wiki:en:erpornis zantholeuca|chunk:0",
+        "wiki:en:odontophorus gujanensis|chunk:0",
+        "wiki:en:penelope pileata|chunk:0"
+      ],
+      "citation_counts": {
+        "wiki:en:asarcornis scutulata|chunk:2": 2,
+        "wiki:en:eospalax fontanierii|chunk:0": 1,
+        "wiki:en:erpornis zantholeuca|chunk:0": 2,
+        "wiki:en:odontophorus gujanensis|chunk:0": 2,
+        "wiki:en:penelope pileata|chunk:0": 1
+      }
+    },
+    "associates with large mammals": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.17352/gje.000069",
+        "pmc:12512274"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.17352/gje.000069": 1,
+        "pmc:12512274": 1
+      }
+    },
+    "presence in moist forest habitats": {
+      "runs_present": 1,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:erpornis zantholeuca|chunk:0",
+        "wiki:en:odontophorus gujanensis|chunk:0",
+        "wiki:en:penelope pileata|chunk:0"
+      ],
+      "citation_counts": {
+        "wiki:en:erpornis zantholeuca|chunk:0": 1,
+        "wiki:en:odontophorus gujanensis|chunk:0": 1,
+        "wiki:en:penelope pileata|chunk:0": 1
+      }
+    },
+    "presence in high-altitude environments": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1017/s0030605317001673|chunk:2",
+        "wiki:en:bos mutus"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1017/s0030605317001673|chunk:2": 1,
+        "wiki:en:bos mutus": 1
+      }
+    },
+    "foraging behavior": {
+      "runs_present": 1,
+      "citation_union_size": 6,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1186/s12983-015-0126-9|chunk:0",
+        "pmc:12512274",
+        "pmc:12818247",
+        "wiki:en:cheirogaleus medius|chunk:5",
+        "wiki:en:erpornis zantholeuca|chunk:2",
+        "wiki:en:larus smithsonianus|chunk:11"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1186/s12983-015-0126-9|chunk:0": 1,
+        "pmc:12512274": 1,
+        "pmc:12818247": 1,
+        "wiki:en:cheirogaleus medius|chunk:5": 1,
+        "wiki:en:erpornis zantholeuca|chunk:2": 1,
+        "wiki:en:larus smithsonianus|chunk:11": 1
+      }
+    },
+    "social behavior in groups": {
+      "runs_present": 1,
+      "citation_union_size": 4,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "pmc:12512274",
+        "pmc:12818247|chunk:42",
+        "wiki:en:alca torda|chunk:14",
+        "wiki:en:pholidichthys leucotaenia|chunk:1"
+      ],
+      "citation_counts": {
+        "pmc:12512274": 1,
+        "pmc:12818247|chunk:42": 1,
+        "wiki:en:alca torda|chunk:14": 1,
+        "wiki:en:pholidichthys leucotaenia|chunk:1": 1
+      }
+    },
+    "foraging behavior includes specialized techniques": {
+      "runs_present": 1,
+      "citation_union_size": 4,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1017/s0030605312000488|chunk:8",
+        "wiki:en:alca torda|chunk:0",
+        "wiki:en:erpornis zantholeuca|chunk:2",
+        "wiki:en:larus smithsonianus|chunk:11"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1017/s0030605312000488|chunk:8": 1,
+        "wiki:en:alca torda|chunk:0": 1,
+        "wiki:en:erpornis zantholeuca|chunk:2": 1,
+        "wiki:en:larus smithsonianus|chunk:11": 1
+      }
+    }
+  }
+}
