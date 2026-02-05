@@ -1,0 +1,251 @@
+{
+  "n_runs": 10,
+  "trait_frequency": [
+    [
+      "poor visual acuity",
+      9
+    ],
+    [
+      "subterranean lifestyle",
+      9
+    ],
+    [
+      "digging behavior",
+      8
+    ],
+    [
+      "colonial living",
+      7
+    ],
+    [
+      "active both day and night",
+      1
+    ],
+    [
+      "adaptations for underground living",
+      1
+    ],
+    [
+      "adapted for underground living",
+      1
+    ],
+    [
+      "colonial social structure",
+      1
+    ],
+    [
+      "cylindrically shaped body",
+      1
+    ],
+    [
+      "highly sensitive tactile receptors",
+      1
+    ],
+    [
+      "reduced or absent vision",
+      1
+    ],
+    [
+      "social behavior in colonies",
+      1
+    ]
+  ],
+  "citation_drift": {
+    "subterranean lifestyle": {
+      "runs_present": 9,
+      "citation_union_size": 6,
+      "mean_pairwise_jaccard": 0.649,
+      "mean_vs_union_jaccard": 0.63,
+      "citation_union": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2",
+        "doi:https://doi.org/10.3906/zoo-1304-9",
+        "wiki:en:chrysochloris asiatica|chunk:0",
+        "wiki:en:heterocephalus glaber|chunk:0",
+        "wiki:en:heterocephalus glaber|chunk:15",
+        "wiki:en:heterocephalus glaber|chunk:2"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1186/2193-1801-2-2": 9,
+        "doi:https://doi.org/10.3906/zoo-1304-9": 7,
+        "wiki:en:chrysochloris asiatica|chunk:0": 9,
+        "wiki:en:heterocephalus glaber|chunk:0": 4,
+        "wiki:en:heterocephalus glaber|chunk:15": 4,
+        "wiki:en:heterocephalus glaber|chunk:2": 1
+      }
+    },
+    "poor visual acuity": {
+      "runs_present": 9,
+      "citation_union_size": 5,
+      "mean_pairwise_jaccard": 0.537,
+      "mean_vs_union_jaccard": 0.489,
+      "citation_union": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2",
+        "doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:24",
+        "doi:https://doi.org/10.3906/zoo-1304-9",
+        "wiki:en:heterocephalus glaber|chunk:2"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1186/2193-1801-2-2": 8,
+        "doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4": 1,
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:24": 2,
+        "doi:https://doi.org/10.3906/zoo-1304-9": 4,
+        "wiki:en:heterocephalus glaber|chunk:2": 7
+      }
+    },
+    "digging behavior": {
+      "runs_present": 8,
+      "citation_union_size": 5,
+      "mean_pairwise_jaccard": 0.54,
+      "mean_vs_union_jaccard": 0.65,
+      "citation_union": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2",
+        "doi:https://doi.org/10.30897/ijegeo.945101",
+        "doi:https://doi.org/10.3906/zoo-1304-9",
+        "wiki:en:chrysochloris asiatica|chunk:0",
+        "wiki:en:heterocephalus glaber|chunk:2"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1186/2193-1801-2-2": 5,
+        "doi:https://doi.org/10.30897/ijegeo.945101": 3,
+        "doi:https://doi.org/10.3906/zoo-1304-9": 5,
+        "wiki:en:chrysochloris asiatica|chunk:0": 5,
+        "wiki:en:heterocephalus glaber|chunk:2": 8
+      }
+    },
+    "colonial social structure": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:condylura cristata|chunk:5",
+        "wiki:en:heterocephalus glaber|chunk:15"
+      ],
+      "citation_counts": {
+        "wiki:en:condylura cristata|chunk:5": 1,
+        "wiki:en:heterocephalus glaber|chunk:15": 1
+      }
+    },
+    "colonial living": {
+      "runs_present": 7,
+      "citation_union_size": 5,
+      "mean_pairwise_jaccard": 0.365,
+      "mean_vs_union_jaccard": 0.4,
+      "citation_union": [
+        "pmc:12821419|chunk:27",
+        "pmc:12821419|chunk:32",
+        "wiki:en:condylura cristata|chunk:5",
+        "wiki:en:heterocephalus glaber|chunk:15",
+        "wiki:en:heterocephalus glaber|chunk:27"
+      ],
+      "citation_counts": {
+        "pmc:12821419|chunk:27": 1,
+        "pmc:12821419|chunk:32": 1,
+        "wiki:en:condylura cristata|chunk:5": 3,
+        "wiki:en:heterocephalus glaber|chunk:15": 6,
+        "wiki:en:heterocephalus glaber|chunk:27": 3
+      }
+    },
+    "social behavior in colonies": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:condylura cristata|chunk:5",
+        "wiki:en:heterocephalus glaber|chunk:15"
+      ],
+      "citation_counts": {
+        "wiki:en:condylura cristata|chunk:5": 1,
+        "wiki:en:heterocephalus glaber|chunk:15": 1
+      }
+    },
+    "adapted for underground living": {
+      "runs_present": 1,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.3906/zoo-1304-9|chunk:5",
+        "wiki:en:chrysochloris asiatica|chunk:0",
+        "wiki:en:heterocephalus glaber|chunk:2"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.3906/zoo-1304-9|chunk:5": 1,
+        "wiki:en:chrysochloris asiatica|chunk:0": 1,
+        "wiki:en:heterocephalus glaber|chunk:2": 1
+      }
+    },
+    "highly sensitive tactile receptors": {
+      "runs_present": 1,
+      "citation_union_size": 1,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:condylura cristata|chunk:0"
+      ],
+      "citation_counts": {
+        "wiki:en:condylura cristata|chunk:0": 1
+      }
+    },
+    "cylindrically shaped body": {
+      "runs_present": 1,
+      "citation_union_size": 1,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.3906/zoo-1304-9|chunk:4"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.3906/zoo-1304-9|chunk:4": 1
+      }
+    },
+    "active both day and night": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:condylura cristata|chunk:5",
+        "wiki:en:heterocephalus glaber|chunk:14"
+      ],
+      "citation_counts": {
+        "wiki:en:condylura cristata|chunk:5": 1,
+        "wiki:en:heterocephalus glaber|chunk:14": 1
+      }
+    },
+    "reduced or absent vision": {
+      "runs_present": 1,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:9",
+        "doi:https://doi.org/10.3906/zoo-1304-9"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1186/2193-1801-2-2": 1,
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:9": 1,
+        "doi:https://doi.org/10.3906/zoo-1304-9": 1
+      }
+    },
+    "adaptations for underground living": {
+      "runs_present": 1,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:9",
+        "doi:https://doi.org/10.3906/zoo-1304-9",
+        "wiki:en:chrysochloris asiatica|chunk:0"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:9": 1,
+        "doi:https://doi.org/10.3906/zoo-1304-9": 1,
+        "wiki:en:chrysochloris asiatica|chunk:0": 1
+      }
+    }
+  }
+}

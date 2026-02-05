@@ -1,0 +1,41 @@
+```json
+[
+    {
+        "trait": "subterranean lifestyle",
+        "sources": [
+            "doi:https://doi.org/10.1186/2193-1801-2-2",
+            "doi:https://doi.org/10.3906/zoo-1304-9",
+            "wiki:en:chrysochloris asiatica|chunk:0",
+            "wiki:en:heterocephalus glaber|chunk:15"
+        ],
+        "confidence": 1.0
+    },
+    {
+        "trait": "poor visual acuity",
+        "sources": [
+            "doi:https://doi.org/10.1186/2193-1801-2-2",
+            "doi:https://doi.org/10.3906/zoo-1304-9",
+            "wiki:en:heterocephalus glaber|chunk:2"
+        ],
+        "confidence": 1.0
+    },
+    {
+        "trait": "digging behavior",
+        "sources": [
+            "doi:https://doi.org/10.1186/2193-1801-2-2",
+            "doi:https://doi.org/10.3906/zoo-1304-9",
+            "wiki:en:chrysochloris asiatica|chunk:0",
+            "wiki:en:heterocephalus glaber|chunk:2"
+        ],
+        "confidence": 1.0
+    },
+    {
+        "trait": "colonial social structure",
+        "sources": [
+            "wiki:en:heterocephalus glaber|chunk:15",
+            "wiki:en:condylura cristata|chunk:5"
+        ],
+        "confidence": 0.7
+    }
+]
+```

@@ -1,0 +1,62 @@
+{
+  "groups": [
+    {
+      "canonical": "ability to change color",
+      "members": [
+        "ability to change color",
+        "ability to change color for camouflage"
+      ],
+      "count": 10
+    },
+    {
+      "canonical": "robust body structure",
+      "members": [
+        "robust body structure"
+      ],
+      "count": 7
+    },
+    {
+      "canonical": "arboreal habitat preference",
+      "members": [
+        "arboreal habitat preference"
+      ],
+      "count": 4
+    },
+    {
+      "canonical": "presence of limbs for movement",
+      "members": [
+        "presence of limbs for movement",
+        "presence of limbs or appendages"
+      ],
+      "count": 4
+    },
+    {
+      "canonical": "presence of specialized limbs",
+      "members": [
+        "presence of specialized limbs"
+      ],
+      "count": 2
+    },
+    {
+      "canonical": "habitat associated with aquatic environments",
+      "members": [
+        "habitat associated with aquatic environments"
+      ],
+      "count": 1
+    },
+    {
+      "canonical": "large body size",
+      "members": [
+        "large body size"
+      ],
+      "count": 1
+    },
+    {
+      "canonical": "presence of complex behaviors",
+      "members": [
+        "presence of complex behaviors"
+      ],
+      "count": 1
+    }
+  ]
+}
