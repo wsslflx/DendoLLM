@@ -166,6 +166,7 @@ def run_inventory(
     log_runs: bool = False,
     reuse_traits: bool = False,
     log_root: pathlib.Path | None = None,
+    skip_ingest: bool = False,
 ) -> list[dict]:
     traits_dir = pathlib.Path("traits")
     traits_dir.mkdir(parents=True, exist_ok=True)
@@ -177,7 +178,8 @@ def run_inventory(
         return traits if isinstance(traits, list) else []
 
     rag = RAG(log_runs=log_runs)
-    ingest_species(rag, canonical=specie, aliases=aliases)
+    if not skip_ingest:
+        ingest_species(rag, canonical=specie, aliases=aliases)
 
     specie_norm = specie.lower().strip()
     query1 = f"{specie} morphology behavior ecology sensory phenotype"
@@ -306,6 +308,11 @@ def main():
         action="store_true",
         help="Reuse existing traits/<species>.json if present (skip ingestion and prompting).",
     )
+    parser.add_argument(
+        "--skip-ingest",
+        action="store_true",
+        help="Skip ingestion/download; use existing vectorstore content only.",
+    )
     args = parser.parse_args()
 
     run_log_dir = None
@@ -326,6 +333,7 @@ def main():
                     log_runs=args.log_run,
                     reuse_traits=args.reuse_traits,
                     log_root=run_log_dir,
+                    skip_ingest=args.skip_ingest,
                 )
         if inventories:
             run_synthesis(inventories, log_runs=args.log_run, log_root=run_log_dir)
@@ -338,6 +346,7 @@ def main():
         log_runs=args.log_run,
         reuse_traits=args.reuse_traits,
         log_root=run_log_dir,
+        skip_ingest=args.skip_ingest,
     )
 
 
