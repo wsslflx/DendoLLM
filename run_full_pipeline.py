@@ -8,6 +8,8 @@ import subprocess
 import sys
 from datetime import datetime
 
+from build_testcase_json import build_entries, parse_species_arg
+
 
 def list_log_dirs() -> set[pathlib.Path]:
     base = pathlib.Path("logs")
@@ -68,11 +70,138 @@ def write_run_list(run_dirs: list[pathlib.Path], out_path: pathlib.Path) -> None
     out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _is_wiki_source(value: str | None) -> bool:
+    if not value:
+        return False
+    return value.startswith("wiki:") or value.startswith("wikipedia:")
+
+
+def aggregate_source_stats(run_dirs: list[pathlib.Path]) -> dict:
+    per_run: list[dict] = []
+    total_papers_fetched: set[str] = set()
+    total_papers_used: set[str] = set()
+    total_wiki_fetched: set[str] = set()
+    total_wiki_used: set[str] = set()
+
+    for run_dir in run_dirs:
+        papers_fetched: set[str] = set()
+        papers_used: set[str] = set()
+        wiki_fetched: set[str] = set()
+        wiki_used: set[str] = set()
+
+        for species_dir in run_dir.iterdir():
+            if not species_dir.is_dir() or species_dir.name == "synthesis":
+                continue
+
+            ingested_path = species_dir / "ingested_docs.json"
+            if ingested_path.exists():
+                try:
+                    ingested_docs = json.loads(ingested_path.read_text(encoding="utf-8"))
+                except Exception:
+                    ingested_docs = []
+                if isinstance(ingested_docs, list):
+                    for entry in ingested_docs:
+                        if not isinstance(entry, str):
+                            continue
+                        if _is_wiki_source(entry):
+                            wiki_fetched.add(entry)
+                        else:
+                            papers_fetched.add(entry)
+
+            used_path = species_dir / "used_chunks.json"
+            if used_path.exists():
+                try:
+                    used_chunks = json.loads(used_path.read_text(encoding="utf-8"))
+                except Exception:
+                    used_chunks = []
+                if isinstance(used_chunks, list):
+                    for chunk in used_chunks:
+                        if not isinstance(chunk, dict):
+                            continue
+                        source_path = chunk.get("source_path")
+                        doc_id = chunk.get("doc_id")
+                        source_key = (
+                            str(doc_id)
+                            if isinstance(doc_id, str) and doc_id
+                            else (str(source_path) if isinstance(source_path, str) else "")
+                        )
+                        if not source_key:
+                            continue
+                        if _is_wiki_source(source_key) or _is_wiki_source(
+                            str(source_path) if isinstance(source_path, str) else ""
+                        ):
+                            wiki_used.add(source_key)
+                        else:
+                            papers_used.add(source_key)
+
+        total_papers_fetched.update(papers_fetched)
+        total_papers_used.update(papers_used)
+        total_wiki_fetched.update(wiki_fetched)
+        total_wiki_used.update(wiki_used)
+
+        per_run.append(
+            {
+                "run_dir": str(run_dir),
+                "papers_fetched": len(papers_fetched),
+                "papers_used": len(papers_used),
+                "wiki_fetched": len(wiki_fetched),
+                "wiki_used": len(wiki_used),
+            }
+        )
+
+    return {
+        "overall": {
+            "papers_fetched": len(total_papers_fetched),
+            "papers_used": len(total_papers_used),
+            "wiki_fetched": len(total_wiki_fetched),
+            "wiki_used": len(total_wiki_used),
+        },
+        "per_run": per_run,
+    }
+
+
+def resolve_species_file(
+    species_file_arg: str | None,
+    species_list_arg: str | None,
+    generated_species_file_arg: str | None,
+    timestamp: str,
+) -> tuple[pathlib.Path, str]:
+    if species_file_arg:
+        species_file = pathlib.Path(species_file_arg)
+        if not species_file.exists():
+            raise SystemExit(f"Species file not found: {species_file}")
+        return species_file, "file"
+
+    species_list = parse_species_arg(species_list_arg or "")
+    if not species_list:
+        raise SystemExit("No species provided in --species-list.")
+
+    if generated_species_file_arg:
+        out_path = pathlib.Path(generated_species_file_arg)
+    else:
+        out_path = pathlib.Path("group_reports") / f"generated_species_{timestamp}.json"
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    entries = build_entries(species_list)
+    out_path.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"Generated species file: {out_path}")
+    return out_path, "list"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Run inventory, analyze runs, then group traits via LLM."
     )
-    parser.add_argument("--species-file", required=True, help="Path to species JSON file.")
+    species_group = parser.add_mutually_exclusive_group(required=True)
+    species_group.add_argument("--species-file", help="Path to species JSON file.")
+    species_group.add_argument(
+        "--species-list",
+        help="Comma-separated scientific names (space or underscore style).",
+    )
+    parser.add_argument(
+        "--generated-species-file",
+        help="Output path for generated species JSON when using --species-list.",
+    )
     parser.add_argument("--runs", type=int, default=1, help="Number of inventory runs.")
     parser.add_argument(
         "--reuse-traits",
@@ -106,9 +235,13 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    species_file = pathlib.Path(args.species_file)
-    if not species_file.exists():
-        raise SystemExit(f"Species file not found: {species_file}")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    species_file, species_input_mode = resolve_species_file(
+        args.species_file,
+        args.species_list,
+        args.generated_species_file,
+        timestamp,
+    )
 
     run_dirs = run_inventory(
         species_file,
@@ -116,8 +249,8 @@ def main() -> None:
         args.reuse_traits,
         args.skip_ingest_after_first,
     )
+    source_stats = aggregate_source_stats(run_dirs)
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     bundle_dir = pathlib.Path("group_reports") / f"{timestamp}-{slugify(species_file.stem)}"
     bundle_dir.mkdir(parents=True, exist_ok=True)
 
@@ -161,6 +294,8 @@ def main() -> None:
 
     meta = {
         "species_file": str(species_file),
+        "species_input_mode": species_input_mode,
+        "species_list": args.species_list if args.species_list else None,
         "runs": args.runs,
         "reuse_traits": args.reuse_traits,
         "skip_ingest_after_first": args.skip_ingest_after_first,
@@ -172,6 +307,7 @@ def main() -> None:
         "model": args.model,
         "temperature": args.temperature,
         "timestamp": timestamp,
+        "source_stats": source_stats,
     }
     (bundle_dir / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
