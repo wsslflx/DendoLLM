@@ -377,7 +377,7 @@ class RAG:
         """Detect whether a PDF has extractable text before triggering OCR."""
         try:
             reader = PdfReader(pdf_path)
-        except (PdfReadError, FileNotFoundError) as exc:
+        except (PdfReadError, FileNotFoundError, ValueError, OSError) as exc:
             print(f"Unable to read PDF {pdf_path}: {exc}")
             return False
         word_count = 0
@@ -391,6 +391,17 @@ class RAG:
                 if word_count >= min_words:
                     return True
         return False
+
+    @staticmethod
+    def is_valid_pdf(pdf_path: str) -> bool:
+        """Quick validation to avoid crashing on malformed cached downloads."""
+        try:
+            reader = PdfReader(pdf_path)
+            _ = len(reader.pages)
+            return True
+        except (PdfReadError, FileNotFoundError, ValueError, OSError) as exc:
+            print(f"Skipping invalid PDF {pdf_path}: {exc}")
+            return False
 
     def _already_ingested(self, doc_id: Optional[str]) -> bool:
         """Check vector store for an existing doc_id."""
@@ -421,13 +432,24 @@ class RAG:
                 continue
 
             if pdf_path.exists():
-                downloaded_entries.append({"pdf_path": pdf_path, "paper": paper, "doc_id": doc_id})
-                continue
+                if not self.is_valid_pdf(str(pdf_path)):
+                    try:
+                        pdf_path.unlink()
+                    except OSError:
+                        pass
+                else:
+                    downloaded_entries.append({"pdf_path": pdf_path, "paper": paper, "doc_id": doc_id})
+                    continue
 
             try:
                 downloaded = get_pdf(paper, location)
-                if downloaded:
+                if downloaded and self.is_valid_pdf(str(downloaded)):
                     downloaded_entries.append({"pdf_path": downloaded, "paper": paper, "doc_id": doc_id})
+                elif downloaded:
+                    try:
+                        pathlib.Path(downloaded).unlink()
+                    except OSError:
+                        pass
             except Exception as exc:
                 print(f"Failed to download PDF for paper {paper['id']}: {exc}")
                 continue
@@ -441,6 +463,9 @@ class RAG:
         self, pdf_path: str, puppy: str | None = None, paper_meta: Optional[dict] = None
     ) -> list:
         """Load a PDF (with OCR fallback), chunk it, and push metadata to Chroma."""
+        if not self.is_valid_pdf(pdf_path):
+            return []
+
         # short-circuit if this PDF is already in the vector store
         existing = self.vectorstore.get(where={"source_path": str(pdf_path)})
         if existing.get("ids"):
@@ -453,7 +478,11 @@ class RAG:
             print("No text detected. Using OCR.")
             loader = UnstructuredPDFLoader(pdf_path, strategy="ocr_only")
 
-        docs = loader.load()
+        try:
+            docs = loader.load()
+        except Exception as exc:
+            print(f"Skipping unreadable PDF during load: {pdf_path} ({exc})")
+            return []
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         splits = splitter.split_documents(docs)
 

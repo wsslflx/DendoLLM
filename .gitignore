@@ -2,6 +2,9 @@
 pdfs/
 chroma_store/
 logs/
+logs_v2
+logs_v3
 traits/
+specs
 analyze_report/
 group_reports/

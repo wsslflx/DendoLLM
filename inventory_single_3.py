@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-Run a single per-species inventory prompt and print JSON traits to stdout.
-Uses prompt_inventory_json_cited.txt and the existing RAG ingestion/retrieval utilities.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -15,13 +10,12 @@ from datetime import datetime
 
 import numpy as np
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from langchain_core.runnables import RunnableLambda
 from langchain_openai import ChatOpenAI
 
 from rag_cli import RAG, maximal_marginal_relevance
 
-PROMPT_FILE = "Prompts/prompt_inventory_5.txt"
-SYNTHESIS_PROMPT_FILE = "Prompts/prompt_synthesis_5.txt"
+PROMPT_FILE = "Prompts/prompt_inventory_v3.txt"
 
 
 def slugify(name: str) -> str:
@@ -29,27 +23,31 @@ def slugify(name: str) -> str:
 
 
 def init_log_dir(
-    log_runs: bool, log_root: pathlib.Path | None = None, subdir: str | None = None
+    log_runs: bool,
+    log_root: pathlib.Path | None = None,
+    subdir: str | None = None,
 ) -> pathlib.Path | None:
     if not log_runs:
         return None
     base = pathlib.Path(log_root) if log_root else pathlib.Path("logs")
-    log_dir = base / subdir if subdir else base
-    log_dir.mkdir(parents=True, exist_ok=True)
-    return log_dir
+    path = base / subdir if subdir else base
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
-def init_run_log_dir(log_runs: bool, run_label: str) -> pathlib.Path | None:
+def init_run_log_dir(log_runs: bool, run_label: str, explicit_log_dir: pathlib.Path | None = None) -> pathlib.Path | None:
     if not log_runs:
         return None
+    if explicit_log_dir is not None:
+        explicit_log_dir.mkdir(parents=True, exist_ok=True)
+        return explicit_log_dir
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = pathlib.Path("logs") / f"{timestamp}-{slugify(run_label)}"
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir
 
 
-def per_species_retrieve(rag: RAG, query1: str, query2: str, specie: str):
-    """Retrieve diversified chunks for a single species."""
+def per_species_retrieve(rag: RAG, query1: str, query2: str, specie: str) -> list:
     candidates_q1 = rag.vectorstore.similarity_search_with_score(
         query1, k=rag.per_species_fetch_k, filter={"specie": specie}
     )
@@ -74,15 +72,14 @@ def per_species_retrieve(rag: RAG, query1: str, query2: str, specie: str):
     seen: dict[tuple, tuple] = {}
     for doc, score in candidates_q1 + candidates_q2:
         key = dedupe_key(doc)
-        if key in seen:
-            if score < seen[key][1]:
-                seen[key] = (doc, score)
-            continue
-        seen[key] = (doc, score)
+        current = seen.get(key)
+        if current is None or score < current[1]:
+            seen[key] = (doc, score)
 
     candidates = list(seen.values())
     if not candidates:
         return []
+
     try:
         concat_query = f"{query1} {query2}".strip()
         query_embedding = np.array(
@@ -102,20 +99,23 @@ def per_species_retrieve(rag: RAG, query1: str, query2: str, specie: str):
         )
     except Exception:
         mmr_indices = list(range(min(rag.per_species_final_k, len(candidates))))
+
     selected = [candidates[idx] for idx in mmr_indices]
     sorted_by_score = sorted(selected, key=lambda t: t[1])
     keep_n = max(1, math.ceil(rag.per_species_keep_percentile * len(sorted_by_score)))
     kept = sorted_by_score[:keep_n]
+
     docs = []
     per_doc_counts: dict[str, int] = {}
     for doc, score in kept:
-        if rag.threshold is None or score <= rag.threshold:
-            meta = doc.metadata or {}
-            doc_key = str(meta.get("doc_id") or meta.get("source_path") or "unknown")
-            if per_doc_counts.get(doc_key, 0) >= 10:
-                continue
-            per_doc_counts[doc_key] = per_doc_counts.get(doc_key, 0) + 1
-            docs.append(doc)
+        if rag.threshold is not None and score > rag.threshold:
+            continue
+        meta = doc.metadata or {}
+        doc_key = str(meta.get("doc_id") or meta.get("source_path") or "unknown")
+        if per_doc_counts.get(doc_key, 0) >= 10:
+            continue
+        per_doc_counts[doc_key] = per_doc_counts.get(doc_key, 0) + 1
+        docs.append(doc)
     return docs
 
 
@@ -132,11 +132,9 @@ def format_docs(docs: list) -> str:
 
 
 def ingest_species(rag: RAG, canonical: str, aliases: list[str]) -> None:
-    """Ingest Wikipedia, PMC, and OpenAlex for one species and its aliases."""
     search_terms = [canonical] + [a for a in aliases if a]
     canonical_norm = canonical.lower().strip()
 
-    # Wikipedia
     wiki_ingested = rag.ingest_wikipedia(title=canonical, specie_norm=canonical_norm)
     if not wiki_ingested:
         for term in search_terms:
@@ -145,10 +143,8 @@ def ingest_species(rag: RAG, canonical: str, aliases: list[str]) -> None:
             if rag.ingest_wikipedia(title=term, specie_norm=canonical_norm):
                 break
 
-    # PMC
     rag.ingest_pmc_texts(query=canonical, specie_norm=canonical_norm)
 
-    # OpenAlex PDFs/OA
     for term in search_terms:
         papers = rag.fetch_and_prepare(query=term, specie_norm=canonical_norm)
         for paper_entry in papers:
@@ -158,6 +154,14 @@ def ingest_species(rag: RAG, canonical: str, aliases: list[str]) -> None:
                 paper_meta["doc_id"] = paper_entry.get("doc_id")
             rag.load_ocr(pdf_path=str(pdf_path), puppy=canonical_norm, paper_meta=paper_meta)
             rag.ingested_per_species[canonical_norm].add(str(pdf_path))
+
+
+def load_species_file(path: str) -> list[dict]:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, list):
+        raise ValueError("Species file must contain a list of mappings")
+    return data
 
 
 def run_inventory(
@@ -174,6 +178,10 @@ def run_inventory(
     if reuse_traits and out_path.exists():
         with open(out_path, "r", encoding="utf-8") as f:
             traits = json.load(f)
+        log_dir = init_log_dir(log_runs, log_root=log_root, subdir=slugify(specie))
+        if log_dir:
+            with open(log_dir / "answer.txt", "w", encoding="utf-8") as f:
+                f.write(json.dumps(traits, ensure_ascii=False, indent=2))
         print(json.dumps(traits, ensure_ascii=False, indent=2))
         return traits if isinstance(traits, list) else []
 
@@ -189,22 +197,14 @@ def run_inventory(
     )
     docs = per_species_retrieve(rag, query1, query2, specie_norm)
     ingested_docs = sorted(rag.ingested_per_species.get(specie_norm, set()))
-    ingested = len(ingested_docs)
-    print(f"[Inventory] {specie}: {ingested} ingested / {len(docs)} used")
+    print(f"[Inventory] {specie}: {len(ingested_docs)} ingested / {len(docs)} used")
     if not docs:
         print("No relevant documents found.")
         return []
 
     log_dir = init_log_dir(log_runs, log_root=log_root, subdir=slugify(specie))
     context_text = format_docs(docs)
-    wiki_ingested = [s for s in ingested_docs if str(s).startswith("wikipedia:")]
-    papers_ingested = [s for s in ingested_docs if not str(s).startswith("wikipedia:")]
-    wiki_used = [doc for doc in docs if str((doc.metadata or {}).get("source_path", "")).startswith("wikipedia:")]
-    print(
-        f"[Wiki] {specie}: ingested={'yes' if wiki_ingested else 'no'} "
-        f"used={'yes' if wiki_used else 'no'} "
-        f"(papers ingested={len(papers_ingested)}; chunks used={len(docs)}; wiki chunks used={len(wiki_used)})"
-    )
+
     if log_dir:
         with open(log_dir / "ingested_docs.json", "w", encoding="utf-8") as f:
             json.dump(ingested_docs, f, ensure_ascii=False, indent=2)
@@ -220,13 +220,7 @@ def run_inventory(
             )
         with open(log_dir / "used_chunks.json", "w", encoding="utf-8") as f:
             json.dump(used_chunks, f, ensure_ascii=False, indent=2)
-        with open(log_dir / "source_usage.txt", "w", encoding="utf-8") as f:
-            f.write(f"Species: {specie}\n")
-            f.write(f"Wikipedia ingested: {'yes' if wiki_ingested else 'no'}\n")
-            f.write(f"Wikipedia used: {'yes' if wiki_used else 'no'}\n")
-            f.write(f"Papers ingested: {len(papers_ingested)}\n")
-            f.write(f"Chunks used: {len(docs)}\n")
-            f.write(f"Wikipedia chunks used: {len(wiki_used)}\n")
+
     prompt = PromptTemplate(
         input_variables=["context", "species_name"],
         template=pathlib.Path(PROMPT_FILE).read_text(encoding="utf-8"),
@@ -235,6 +229,7 @@ def run_inventory(
     if log_dir:
         with open(log_dir / "prompt.txt", "w", encoding="utf-8") as f:
             f.write(formatted_prompt)
+
     llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.0)
     chain = (
         {
@@ -249,94 +244,60 @@ def run_inventory(
     if log_dir:
         with open(log_dir / "answer.txt", "w", encoding="utf-8") as f:
             f.write(str(payload))
+
     try:
         text_payload = str(payload).strip()
         if text_payload.startswith("```"):
             import re as _re
 
-            m = _re.search(r"```(?:json)?\s*(.*?)```", text_payload, _re.DOTALL)
-            if m:
-                text_payload = m.group(1).strip()
+            match = _re.search(r"```(?:json)?\s*(.*?)```", text_payload, _re.DOTALL)
+            if match:
+                text_payload = match.group(1).strip()
         data = json.loads(text_payload)
         traits = data if isinstance(data, list) else []
     except Exception:
         print("Debug: no valid JSON in model output")
         traits = []
+
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(traits, f, ensure_ascii=False, indent=2)
     print(json.dumps(traits, ensure_ascii=False, indent=2))
     return traits
 
 
-def load_species_file(path: str) -> list[dict]:
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    if not isinstance(data, list):
-        raise ValueError("Species file must contain a list of mappings")
-    return data
-
-
-def run_synthesis(
-    inventories: dict[str, list[dict]], log_runs: bool = False, log_root: pathlib.Path | None = None
-) -> None:
-    prompt = PromptTemplate(
-        input_variables=["extracted_species_lists"],
-        template=pathlib.Path(SYNTHESIS_PROMPT_FILE).read_text(encoding="utf-8"),
-    )
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.0)
-    chain = {"extracted_species_lists": RunnablePassthrough()} | prompt | llm
-    payload = chain.invoke(json.dumps(inventories, ensure_ascii=False, indent=2))
-    content = payload.content if hasattr(payload, "content") else payload
-    log_dir = init_log_dir(log_runs, log_root=log_root, subdir="synthesis")
-    if log_dir:
-        with open(log_dir / "synthesis_prompt.txt", "w", encoding="utf-8") as f:
-            f.write(prompt.format(extracted_species_lists=json.dumps(inventories, ensure_ascii=False, indent=2)))
-        with open(log_dir / "synthesis_answer.txt", "w", encoding="utf-8") as f:
-            f.write(str(content))
-    print(content)
-
-
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Run per-species inventory prompt and print JSON traits.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--species", help="Canonical species name to process.")
     group.add_argument("--species-file", help="Path to JSON file with canonical/aliases mappings.")
     parser.add_argument("--aliases", help="Comma-separated aliases to use for ingestion/search.")
-    parser.add_argument("--log-run", action="store_true", help="Log prompt and answer to logs/<timestamp>/.")
-    parser.add_argument(
-        "--reuse-traits",
-        action="store_true",
-        help="Reuse existing traits/<species>.json if present (skip ingestion and prompting).",
-    )
-    parser.add_argument(
-        "--skip-ingest",
-        action="store_true",
-        help="Skip ingestion/download; use existing vectorstore content only.",
-    )
+    parser.add_argument("--log-run", action="store_true", help="Write logs for each species.")
+    parser.add_argument("--log-dir", help="Explicit directory for the run log root.")
+    parser.add_argument("--reuse-traits", action="store_true", help="Reuse existing traits/<species>.json if present.")
+    parser.add_argument("--skip-ingest", action="store_true", help="Skip ingestion/download and reuse vectorstore.")
     args = parser.parse_args()
 
+    explicit_log_dir = pathlib.Path(args.log_dir) if args.log_dir else None
     run_log_dir = None
     if args.log_run:
         run_label = pathlib.Path(args.species_file).stem if args.species_file else args.species.strip()
-        run_log_dir = init_run_log_dir(True, run_label)
+        run_log_dir = init_run_log_dir(True, run_label, explicit_log_dir=explicit_log_dir)
 
     if args.species_file:
         species_groups = load_species_file(args.species_file)
-        inventories: dict[str, list[dict]] = {}
         for entry in species_groups:
             canonical = (entry.get("canonical") or "").strip()
             aliases = [a.strip() for a in entry.get("aliases", []) if a.strip()]
-            if canonical:
-                inventories[canonical] = run_inventory(
-                    canonical,
-                    aliases,
-                    log_runs=args.log_run,
-                    reuse_traits=args.reuse_traits,
-                    log_root=run_log_dir,
-                    skip_ingest=args.skip_ingest,
-                )
-        if inventories:
-            run_synthesis(inventories, log_runs=args.log_run, log_root=run_log_dir)
+            if not canonical:
+                continue
+            run_inventory(
+                canonical,
+                aliases,
+                log_runs=args.log_run,
+                reuse_traits=args.reuse_traits,
+                log_root=run_log_dir,
+                skip_ingest=args.skip_ingest,
+            )
         return
 
     aliases = [a.strip() for a in (args.aliases or "").split(",") if a.strip()]
