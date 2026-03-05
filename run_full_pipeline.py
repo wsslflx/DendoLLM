@@ -7,61 +7,54 @@ import pathlib
 import subprocess
 import sys
 from datetime import datetime
+from uuid import uuid4
 
 from build_testcase_json import build_entries, parse_species_arg
-
-
-def list_log_dirs() -> set[pathlib.Path]:
-    base = pathlib.Path("logs")
-    if not base.exists():
-        return set()
-    return {p for p in base.iterdir() if p.is_dir()}
 
 
 def slugify(name: str) -> str:
     return "".join(c if c.isalnum() else "_" for c in name.lower()).strip("_")
 
 
-def newest_report(report_dir: pathlib.Path, prefix: str) -> pathlib.Path | None:
-    if not report_dir.exists():
-        return None
-    candidates = [p for p in report_dir.iterdir() if p.is_file() and p.name.startswith(prefix)]
-    if not candidates:
-        return None
-    return max(candidates, key=lambda p: p.stat().st_mtime)
-
-
 def run_inventory(
     species_file: pathlib.Path,
+    bundle_dir: pathlib.Path,
     runs: int,
     reuse_traits: bool,
     skip_ingest_after_first: bool,
+    traits_dir: pathlib.Path,
+    pdf_dir: pathlib.Path,
+    chroma_dir: pathlib.Path,
 ) -> list[pathlib.Path]:
-    created: list[pathlib.Path] = []
-    run_label = slugify(species_file.stem)
+    run_dirs: list[pathlib.Path] = []
+    runs_root = bundle_dir / "runs"
+    runs_root.mkdir(parents=True, exist_ok=True)
     for i in range(runs):
-        before = list_log_dirs()
-        cmd = [sys.executable, "inventory_single_2.py", "--species-file", str(species_file), "--log-run"]
+        run_dir = runs_root / f"run_{i + 1:02d}"
+        run_dir.mkdir(parents=True, exist_ok=True)
+        cmd = [
+            sys.executable,
+            "inventory_single_2.py",
+            "--species-file",
+            str(species_file),
+            "--log-run",
+            "--log-dir",
+            str(run_dir),
+            "--traits-dir",
+            str(traits_dir),
+            "--pdf-dir",
+            str(pdf_dir),
+            "--chroma-dir",
+            str(chroma_dir),
+        ]
         if reuse_traits:
             cmd.append("--reuse-traits")
         if skip_ingest_after_first and i > 0:
             cmd.append("--skip-ingest")
         print(f"Run {i + 1}/{runs}: {' '.join(cmd)}")
         subprocess.run(cmd, check=True)
-        after = list_log_dirs()
-        new_dirs = sorted(after - before)
-        if len(new_dirs) == 1:
-            created.append(new_dirs[0])
-            continue
-        # fallback: pick newest dir matching label
-        label_dirs = [p for p in after if p.name.endswith(f"-{run_label}")]
-        if label_dirs:
-            newest = max(label_dirs, key=lambda p: p.stat().st_mtime)
-            created.append(newest)
-        else:
-            newest = max(after, key=lambda p: p.stat().st_mtime)
-            created.append(newest)
-    return created
+        run_dirs.append(run_dir)
+    return run_dirs
 
 
 def write_run_list(run_dirs: list[pathlib.Path], out_path: pathlib.Path) -> None:
@@ -164,7 +157,7 @@ def resolve_species_file(
     species_file_arg: str | None,
     species_list_arg: str | None,
     generated_species_file_arg: str | None,
-    timestamp: str,
+    default_generated_out: pathlib.Path,
 ) -> tuple[pathlib.Path, str]:
     if species_file_arg:
         species_file = pathlib.Path(species_file_arg)
@@ -179,7 +172,7 @@ def resolve_species_file(
     if generated_species_file_arg:
         out_path = pathlib.Path(generated_species_file_arg)
     else:
-        out_path = pathlib.Path("group_reports") / f"generated_species_{timestamp}.json"
+        out_path = default_generated_out
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     entries = build_entries(species_list)
@@ -216,11 +209,36 @@ def main() -> None:
     )
     parser.add_argument(
         "--run-list-out",
-        help="Where to write run list (default: group_reports/run_list_<timestamp>.txt)",
+        help="Where to write run list (default: <bundle>/run_list.txt).",
+    )
+    parser.add_argument(
+        "--analyze-out",
+        help="Where to write analyze report JSON (default: <bundle>/summary/analyze_report.json).",
     )
     parser.add_argument(
         "--group-out",
         help="Where to write grouped traits JSON (passed to group_traits_llm.py --out).",
+    )
+    parser.add_argument(
+        "--bundle-root",
+        default="logs_v1",
+        help="Base directory for one-folder-per-command bundles (default: logs_v1).",
+    )
+    parser.add_argument(
+        "--run-label",
+        help="Optional label used in bundle directory name (e.g., gene symbol).",
+    )
+    parser.add_argument(
+        "--traits-dir",
+        help="Directory for per-species trait cache files (default: <bundle>/traits).",
+    )
+    parser.add_argument(
+        "--pdf-dir",
+        help="Directory for downloaded PDFs (default: <bundle>/cache/pdfs).",
+    )
+    parser.add_argument(
+        "--chroma-dir",
+        help="Directory for Chroma persistence (default: <bundle>/cache/chroma_store).",
     )
     parser.add_argument(
         "--model",
@@ -236,23 +254,44 @@ def main() -> None:
     args = parser.parse_args()
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    if args.run_label:
+        label = slugify(args.run_label)
+    elif args.species_file:
+        label = slugify(pathlib.Path(args.species_file).stem)
+    else:
+        label = "generated_species"
+    bundle_dir = pathlib.Path(args.bundle_root) / f"{timestamp}-{label}-{uuid4().hex[:8]}"
+    summary_dir = bundle_dir / "summary"
+    bundle_dir.mkdir(parents=True, exist_ok=True)
+    summary_dir.mkdir(parents=True, exist_ok=True)
+
+    traits_dir = pathlib.Path(args.traits_dir) if args.traits_dir else bundle_dir / "traits"
+    pdf_dir = pathlib.Path(args.pdf_dir) if args.pdf_dir else bundle_dir / "cache" / "pdfs"
+    chroma_dir = pathlib.Path(args.chroma_dir) if args.chroma_dir else bundle_dir / "cache" / "chroma_store"
+    traits_dir.mkdir(parents=True, exist_ok=True)
+    pdf_dir.mkdir(parents=True, exist_ok=True)
+    chroma_dir.mkdir(parents=True, exist_ok=True)
+
     species_file, species_input_mode = resolve_species_file(
         args.species_file,
         args.species_list,
         args.generated_species_file,
-        timestamp,
+        bundle_dir / "species_input.json",
     )
+    species_snapshot = bundle_dir / "species_input.json"
+    species_snapshot.write_text(species_file.read_text(encoding="utf-8"), encoding="utf-8")
 
     run_dirs = run_inventory(
-        species_file,
-        args.runs,
-        args.reuse_traits,
-        args.skip_ingest_after_first,
+        species_file=species_file,
+        bundle_dir=bundle_dir,
+        runs=args.runs,
+        reuse_traits=args.reuse_traits,
+        skip_ingest_after_first=args.skip_ingest_after_first,
+        traits_dir=traits_dir,
+        pdf_dir=pdf_dir,
+        chroma_dir=chroma_dir,
     )
     source_stats = aggregate_source_stats(run_dirs)
-
-    bundle_dir = pathlib.Path("group_reports") / f"{timestamp}-{slugify(species_file.stem)}"
-    bundle_dir.mkdir(parents=True, exist_ok=True)
 
     if args.run_list_out:
         run_list_path = pathlib.Path(args.run_list_out)
@@ -261,26 +300,26 @@ def main() -> None:
     write_run_list(run_dirs, run_list_path)
     print(f"Run list written to: {run_list_path}")
 
-    before_report = newest_report(pathlib.Path("analyze_report"), "trait_variance_report_")
+    analyze_out = pathlib.Path(args.analyze_out) if args.analyze_out else summary_dir / "analyze_report.json"
     subprocess.run(
-        [sys.executable, "analyze_runs.py", "--run-list", str(run_list_path)],
+        [
+            sys.executable,
+            "analyze_runs.py",
+            "--run-list",
+            str(run_list_path),
+            "--out",
+            str(analyze_out),
+        ],
         check=True,
     )
-    after_report = newest_report(pathlib.Path("analyze_report"), "trait_variance_report_")
-    report_path = after_report if after_report and after_report != before_report else after_report
-    if not report_path:
-        raise SystemExit("No analyze_report/trait_variance_report_*.json found after analysis.")
-
-    # copy/rename report into bundle for traceability
-    bundled_report = bundle_dir / "analyze_report.json"
-    bundled_report.write_text(report_path.read_text(encoding="utf-8"), encoding="utf-8")
-    print(f"Using report: {report_path}")
-    print(f"Bundled report: {bundled_report}")
+    if not analyze_out.exists():
+        raise SystemExit(f"Missing analyze report after analysis: {analyze_out}")
+    print(f"Analyze report: {analyze_out}")
 
     group_cmd = [
         sys.executable,
         "group_traits_llm.py",
-        str(bundled_report),
+        str(analyze_out),
         "--model",
         args.model,
         "--temperature",
@@ -289,27 +328,33 @@ def main() -> None:
     if args.group_out:
         group_cmd += ["--out", args.group_out]
     else:
-        group_cmd += ["--out", str(bundle_dir / "trait_groups.json")]
+        group_cmd += ["--out", str(summary_dir / "trait_groups.json")]
     subprocess.run(group_cmd, check=True)
+    group_out = pathlib.Path(args.group_out) if args.group_out else summary_dir / "trait_groups.json"
 
     meta = {
+        "bundle_dir": str(bundle_dir),
+        "run_label": args.run_label if args.run_label else label,
         "species_file": str(species_file),
+        "species_snapshot": str(species_snapshot),
         "species_input_mode": species_input_mode,
         "species_list": args.species_list if args.species_list else None,
         "runs": args.runs,
         "reuse_traits": args.reuse_traits,
         "skip_ingest_after_first": args.skip_ingest_after_first,
+        "traits_dir": str(traits_dir),
+        "pdf_dir": str(pdf_dir),
+        "chroma_dir": str(chroma_dir),
         "run_list": str(run_list_path),
-        "analyze_report": str(bundled_report),
-        "group_report": str(bundle_dir / "trait_groups.json")
-        if not args.group_out
-        else str(args.group_out),
+        "analyze_report": str(analyze_out),
+        "group_report": str(group_out),
         "model": args.model,
         "temperature": args.temperature,
         "timestamp": timestamp,
         "source_stats": source_stats,
+        "run_dirs_v1": [str(p) for p in run_dirs],
     }
-    (bundle_dir / "meta.json").write_text(
+    (summary_dir / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 

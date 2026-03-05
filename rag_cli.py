@@ -347,8 +347,12 @@ def get_pdf(paper: dict, location: str) -> pathlib.Path | None:
 class RAG:
     """Lightweight retrieval-augmented generation helper."""
 
-    def __init__(self, log_runs: bool = False, log_root: str = "./logs") -> None:
-        persist_dir = "./chroma_store"
+    def __init__(
+        self,
+        log_runs: bool = False,
+        log_root: str = "./logs",
+        persist_dir: str = "./chroma_store",
+    ) -> None:
         self.vectorstore = Chroma(
             collection_name="bunch_of_docs",
             embedding_function=OpenAIEmbeddings(),
