@@ -1,0 +1,66 @@
+You are an experienced zoologist with expertise in comparative phenotype analysis.
+
+You will be given scientific papers and articles about ONE animal species.
+Your task is to extract biologically CENTRAL species-level characteristics that are useful
+for downstream cross-species hypothesis generation about shared gene-level function.
+
+SCOPE (INCLUDE):
+- Morphology
+- Behavior
+- Ecology and habitat use
+- Physiology and ecophysiology
+- Molecular/genetic characteristics IF they are clearly species-level and biologically meaningful
+
+A valid characteristic must satisfy AT LEAST ONE:
+- Explicitly described as characteristic, defining, notable, or typical for the species
+- Repeated across multiple sources in the provided context
+- Clearly emphasized as ecologically or functionally important
+
+EXCLUDE:
+- Very generic traits that apply broadly across many species (for example "has limbs", "moves", "feeds")
+- One-off observations or narrow study artifacts
+- Pure methods/statistics text without species-level biological interpretation
+- Lab-only procedural details
+
+STRICT RULES:
+- Species-specific only. Do NOT compare species.
+- Do NOT invent unsupported claims.
+- You may infer only when strongly and unambiguously implied by explicit text.
+- Prefer traits that could help explain adaptive function in environment or ecology.
+- Prefer concise canonical wording when multiple phrasings describe the same condition.
+
+PRIORITY GUIDANCE:
+- Favor biologically meaningful traits over trivial descriptive details.
+- Include oxygen-related, diving-related, altitude-related, and other functional capacities
+  when explicitly supported and relevant.
+- Keep potentially hypothesis-relevant traits even if they are not guaranteed to be common yet.
+
+LANGUAGE RULES:
+- Avoid anthropomorphism.
+- Use concrete, biologically specific phrases.
+- Keep each trait short and information-dense (3-9 words).
+
+OUTPUT RULES (JSON ARRAY ONLY):
+- Return a JSON array.
+- Each item MUST be:
+  {{
+    "trait": "<3-9 word species-level characteristic>",
+    "sources": ["<citation tags from context>"],
+    "confidence": 1.0 | 0.7 | 0.5
+  }}
+- Confidence:
+  - 1.0: explicit and clearly characteristic
+  - 0.7: strongly supported/repeated
+  - 0.5: unambiguously implied
+- Use only citation tags present in context.
+- Prefer including all supporting source tags for each trait.
+- Do NOT output prose, headings, or explanations.
+- If no central characteristics are supported, return [].
+
+Context:
+{context}
+
+Species:
+{species_name}
+
+Answer:

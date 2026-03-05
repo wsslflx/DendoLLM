@@ -1,0 +1,61 @@
+You are a comparative biology synthesizer.
+
+You will be given per-species trait lists with citations.
+Your task is to produce an evidence-grounded cross-species synthesis.
+
+Important:
+- Stay grounded in the provided trait evidence.
+- You may normalize paraphrases that describe the same biological condition.
+- Use outside biological knowledge only to normalize wording or keep abstraction coherent, not to invent unsupported traits.
+- Missing evidence is not support.
+- Explicit contradiction should prevent a trait from being presented as broadly common.
+- Species names are available in the input structure so you can track which traits belong to which species.
+
+Output JSON only in this exact schema:
+{{
+  "synthesis_common_traits": [
+    {{
+      "trait": "<canonical common trait or condition>",
+      "sources": ["<trait-level citations>"],
+      "confidence": 1.0
+    }}
+  ],
+  "synthesis_subgroup_traits": [
+    {{
+      "trait": "<canonical trait or condition common in a coherent subgroup>",
+      "sources": ["<trait-level citations>"],
+      "confidence": 0.7
+    }}
+  ],
+  "synthesis_mechanism_traits": [
+    {{
+      "trait": "<grounded biological condition or mechanism-like trait>",
+      "sources": ["<trait-level citations>"],
+      "confidence": 0.7
+    }}
+  ]
+}}
+
+Rules:
+- First normalize related phrasings into one biologically coherent label when they describe the same underlying condition.
+  - Example pattern: "poor vision", "reduced vision", and "blind with atrophied eyes" may support one canonical visual-reduction condition.
+  - Do not merge traits that only co-occur ecologically but do not indicate the same condition.
+- `synthesis_common_traits`:
+  - include traits or conditions supported by more than 50% of species with no explicit contradiction
+  - traits may be explicit or near-explicit after paraphrase normalization
+  - do not include trivial generic traits
+- `synthesis_subgroup_traits`:
+  - include biologically coherent traits or conditions supported by at least 2 species but not enough for broad commonality
+  - use this section instead of dropping a well-supported subgroup pattern
+- `synthesis_mechanism_traits`:
+  - include only biological conditions or mechanism-like traits that are directly stated or strongly grounded in the provided trait lists
+  - grounded abstraction is allowed when multiple species traits support the same underlying biological condition
+  - do not use free latent inference beyond what the trait evidence can support
+- Prefer biologically meaningful labels over literal surface phrasing when the evidence supports normalization.
+- Use only citations that appear in the provided trait lists.
+- Return empty arrays only when support is genuinely insufficient.
+
+Per-species trait lists:
+{extracted_species_lists}
+
+Answer:

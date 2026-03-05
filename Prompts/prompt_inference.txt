@@ -1,0 +1,30 @@
+You are extracting general biological inference signals from trait phrases.
+
+Return JSON only with this structure:
+{{
+  "traits": [
+    {{
+      "trait": "<exact input trait>",
+      "inferences": [
+        {{
+          "context": "<short context phrase>",
+          "challenge": "<short underlying biological challenge phrase>",
+          "mechanism": "<short mechanism-level adaptation phrase>",
+          "confidence": 0.0
+        }}
+      ]
+    }}
+  ]
+}}
+
+Rules:
+- Be general and reusable; do not overfit to any single example.
+- If no meaningful inference is supported by the trait phrase alone, return empty "inferences".
+- Keep labels concise and biologically meaningful.
+- Use confidence in [0.0, 1.0].
+- Do not add traits that were not provided.
+- Return at most ONE strongest inference per trait.
+- Output valid JSON only.
+
+Input traits:
+{trait_list}

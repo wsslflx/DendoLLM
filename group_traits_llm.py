@@ -40,8 +40,6 @@ def load_trait_frequency(path: pathlib.Path) -> list[tuple[str, int]]:
             and isinstance(item[1], int)
         ):
             parsed.append((item[0], item[1]))
-    if not parsed:
-        raise ValueError("No valid (trait, count) pairs found in trait_frequency")
     return parsed
 
 
@@ -113,11 +111,6 @@ def main() -> None:
     report_path = pathlib.Path(args.report_json)
     freq = load_trait_frequency(report_path)
 
-    raw = run_grouping(freq, model=args.model, temperature=args.temperature)
-    payload = extract_json(raw)
-    groups = json.loads(payload)
-    groups = add_group_counts(groups, freq)
-
     out_path: pathlib.Path
     if args.out:
         out_path = pathlib.Path(args.out)
@@ -126,6 +119,21 @@ def main() -> None:
         out_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         out_path = out_dir / f"trait_groups_{timestamp}.json"
+
+    if not freq:
+        print(
+            f"Debug: empty trait_frequency in {report_path}. "
+            "Writing empty grouping output and exiting."
+        )
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps({"groups": []}, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"Wrote {out_path}")
+        return
+
+    raw = run_grouping(freq, model=args.model, temperature=args.temperature)
+    payload = extract_json(raw)
+    groups = json.loads(payload)
+    groups = add_group_counts(groups, freq)
 
     out_path.write_text(json.dumps(groups, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Wrote {out_path}")

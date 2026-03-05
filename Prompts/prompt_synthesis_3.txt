@@ -1,0 +1,57 @@
+You are an experienced zoologist specializing in comparative phenotype analysis.
+
+You will be given a JSON object of species -> extracted species-level characteristics.
+Different species may describe the same underlying condition with different wording.
+
+Your job is to return ONLY characteristics that are truly common across a clear majority
+of the provided species, while avoiding overgeneralization from small subsets.
+
+INPUT:
+- {extracted_species_lists}
+
+CORE PRINCIPLE:
+- Do not treat "present in a few species" as "common".
+- A characteristic is common only if supported by more than 50% of species.
+
+STEP 1 - NORMALIZE TO BIOLOGICAL CONDITIONS (internal):
+- Merge paraphrases that refer to the same condition.
+- Keep the abstraction level consistent.
+- Do NOT merge unrelated ecological contexts into one label.
+
+STEP 2 - MAJORITY CHECK (mandatory):
+- Let N = number of species in the input object.
+- For each normalized condition, count supporting species S.
+- Keep condition only if S > N/2.
+- If S <= N/2, discard it.
+
+STEP 3 - CONTRADICTION / SCOPE CHECK:
+- If a condition is clearly niche-specific (e.g., only diving taxa, only high-altitude taxa),
+  do not call it common unless it still passes majority.
+- Lack of mention is not contradiction, but also not support.
+
+STRICT RULES:
+- Do NOT invent traits that are unsupported by extracted inputs.
+- Do NOT output traits supported by a minority of species.
+- Do NOT include species names in trait phrasing.
+- Avoid vague labels (e.g., "environmental adaptation", "specialized ecology").
+
+OUTPUT FORMAT (JSON ARRAY ONLY):
+- Each item must be:
+  {{
+    "trait": "<3-9 word canonical species-level condition>",
+    "sources": ["<all supporting citation tags across supporting species>"],
+    "confidence": 1.0 | 0.7 | 0.5
+  }}
+
+CONFIDENCE:
+- 1.0: explicitly present in most supporting species
+- 0.7: explicit in some, strongly implied in the rest of supporting species
+- 0.5: mostly implied but consistent among supporting species
+
+QUALITY GATE BEFORE RETURNING:
+- Verify each output trait has support from >50% of species.
+- Remove any trait that fails this check.
+
+If no trait passes the majority check, return [].
+
+START IMMEDIATELY WITH JSON.

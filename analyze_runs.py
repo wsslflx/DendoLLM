@@ -29,9 +29,22 @@ def load_run_file(path: Path) -> list[dict]:
     raw = path.read_text(encoding="utf-8").strip()
     payload = extract_json_from_txt(raw)
     data = json.loads(payload)
-    if not isinstance(data, list):
-        raise ValueError(f"{path}: JSON top-level must be a list")
-    return data
+    if isinstance(data, list):
+        return data
+
+    if isinstance(data, dict):
+        # Support synthesis object output by combining all configured sections.
+        combined: list[dict] = []
+        for section in ("strict_common_traits", "subgroup_common_traits", "mechanism_hypotheses"):
+            items = data.get(section, [])
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                if isinstance(item, dict):
+                    combined.append(item)
+        return combined
+
+    raise ValueError(f"{path}: JSON top-level must be a list or synthesis object")
 
 def jaccard(a: set[str], b: set[str]) -> float:
     if not a and not b:
