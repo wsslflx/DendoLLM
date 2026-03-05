@@ -39,9 +39,16 @@ def init_log_dir(
     return log_dir
 
 
-def init_run_log_dir(log_runs: bool, run_label: str) -> pathlib.Path | None:
+def init_run_log_dir(
+    log_runs: bool,
+    run_label: str,
+    explicit_log_dir: pathlib.Path | None = None,
+) -> pathlib.Path | None:
     if not log_runs:
         return None
+    if explicit_log_dir is not None:
+        explicit_log_dir.mkdir(parents=True, exist_ok=True)
+        return explicit_log_dir
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = pathlib.Path("logs") / f"{timestamp}-{slugify(run_label)}"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -131,7 +138,12 @@ def format_docs(docs: list) -> str:
     return "\n\n".join(formatted)
 
 
-def ingest_species(rag: RAG, canonical: str, aliases: list[str]) -> None:
+def ingest_species(
+    rag: RAG,
+    canonical: str,
+    aliases: list[str],
+    pdf_dir: pathlib.Path | None = None,
+) -> None:
     """Ingest Wikipedia, PMC, and OpenAlex for one species and its aliases."""
     search_terms = [canonical] + [a for a in aliases if a]
     canonical_norm = canonical.lower().strip()
@@ -149,8 +161,9 @@ def ingest_species(rag: RAG, canonical: str, aliases: list[str]) -> None:
     rag.ingest_pmc_texts(query=canonical, specie_norm=canonical_norm)
 
     # OpenAlex PDFs/OA
+    pdf_location = str(pdf_dir) if pdf_dir else "./pdfs"
     for term in search_terms:
-        papers = rag.fetch_and_prepare(query=term, specie_norm=canonical_norm)
+        papers = rag.fetch_and_prepare(query=term, specie_norm=canonical_norm, location=pdf_location)
         for paper_entry in papers:
             pdf_path = paper_entry["pdf_path"]
             paper_meta = paper_entry.get("paper") or {}
@@ -167,19 +180,25 @@ def run_inventory(
     reuse_traits: bool = False,
     log_root: pathlib.Path | None = None,
     skip_ingest: bool = False,
+    traits_dir: pathlib.Path | None = None,
+    pdf_dir: pathlib.Path | None = None,
+    chroma_dir: pathlib.Path | None = None,
 ) -> list[dict]:
-    traits_dir = pathlib.Path("traits")
-    traits_dir.mkdir(parents=True, exist_ok=True)
-    out_path = traits_dir / f"{slugify(specie)}.json"
+    traits_root = traits_dir if traits_dir else pathlib.Path("traits")
+    traits_root.mkdir(parents=True, exist_ok=True)
+    out_path = traits_root / f"{slugify(specie)}.json"
     if reuse_traits and out_path.exists():
         with open(out_path, "r", encoding="utf-8") as f:
             traits = json.load(f)
         print(json.dumps(traits, ensure_ascii=False, indent=2))
         return traits if isinstance(traits, list) else []
 
-    rag = RAG(log_runs=log_runs)
+    rag = RAG(
+        log_runs=log_runs,
+        persist_dir=str(chroma_dir) if chroma_dir else "./chroma_store",
+    )
     if not skip_ingest:
-        ingest_species(rag, canonical=specie, aliases=aliases)
+        ingest_species(rag, canonical=specie, aliases=aliases, pdf_dir=pdf_dir)
 
     specie_norm = specie.lower().strip()
     query1 = f"{specie} morphology behavior ecology sensory phenotype"
@@ -303,6 +322,10 @@ def main():
     group.add_argument("--species-file", help="Path to JSON file with canonical/aliases mappings.")
     parser.add_argument("--aliases", help="Comma-separated aliases to use for ingestion/search.")
     parser.add_argument("--log-run", action="store_true", help="Log prompt and answer to logs/<timestamp>/.")
+    parser.add_argument("--log-dir", help="Explicit directory for run logs.")
+    parser.add_argument("--traits-dir", help="Directory to write per-species traits JSON files.")
+    parser.add_argument("--pdf-dir", help="Directory to store downloaded PDFs.")
+    parser.add_argument("--chroma-dir", help="Directory for persisted Chroma vectorstore.")
     parser.add_argument(
         "--reuse-traits",
         action="store_true",
@@ -316,9 +339,13 @@ def main():
     args = parser.parse_args()
 
     run_log_dir = None
+    explicit_log_dir = pathlib.Path(args.log_dir) if args.log_dir else None
+    traits_dir = pathlib.Path(args.traits_dir) if args.traits_dir else None
+    pdf_dir = pathlib.Path(args.pdf_dir) if args.pdf_dir else None
+    chroma_dir = pathlib.Path(args.chroma_dir) if args.chroma_dir else None
     if args.log_run:
         run_label = pathlib.Path(args.species_file).stem if args.species_file else args.species.strip()
-        run_log_dir = init_run_log_dir(True, run_label)
+        run_log_dir = init_run_log_dir(True, run_label, explicit_log_dir=explicit_log_dir)
 
     if args.species_file:
         species_groups = load_species_file(args.species_file)
@@ -334,6 +361,9 @@ def main():
                     reuse_traits=args.reuse_traits,
                     log_root=run_log_dir,
                     skip_ingest=args.skip_ingest,
+                    traits_dir=traits_dir,
+                    pdf_dir=pdf_dir,
+                    chroma_dir=chroma_dir,
                 )
         if inventories:
             run_synthesis(inventories, log_runs=args.log_run, log_root=run_log_dir)
@@ -347,6 +377,9 @@ def main():
         reuse_traits=args.reuse_traits,
         log_root=run_log_dir,
         skip_ingest=args.skip_ingest,
+        traits_dir=traits_dir,
+        pdf_dir=pdf_dir,
+        chroma_dir=chroma_dir,
     )
 
 

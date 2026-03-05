@@ -150,6 +150,11 @@ if __name__ == "__main__":
         type=Path,
         help="Path to a list of run directories; each must contain synthesis/synthesis_answer.txt",
     )
+    parser.add_argument(
+        "--out",
+        type=Path,
+        help="Output JSON path (default: analyze_report/trait_variance_report_<timestamp>.json)",
+    )
     args = parser.parse_args()
 
     if args.run_list:
@@ -172,14 +177,17 @@ if __name__ == "__main__":
     # Save full report
     from datetime import datetime
 
-    out_dir = Path("analyze_report")
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    out_path = out_dir / f"trait_variance_report_{timestamp}.json"
+    if args.out:
+        out_path = args.out
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        out_dir = Path("analyze_report")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        out_path = out_dir / f"trait_variance_report_{timestamp}.json"
 
     out_path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2),
         encoding="utf-8"
     )
-    print(f"\nWrote {out_path.name}")
+    print(f"\nWrote {out_path}")
