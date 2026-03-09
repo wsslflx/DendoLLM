@@ -25,6 +25,7 @@ def run_inventory(
     traits_dir: pathlib.Path,
     pdf_dir: pathlib.Path,
     chroma_dir: pathlib.Path,
+    ingest_lock_file: pathlib.Path,
 ) -> list[pathlib.Path]:
     run_dirs: list[pathlib.Path] = []
     runs_root = bundle_dir / "runs"
@@ -46,6 +47,8 @@ def run_inventory(
             str(pdf_dir),
             "--chroma-dir",
             str(chroma_dir),
+            "--ingest-lock-file",
+            str(ingest_lock_file),
         ]
         if reuse_traits:
             cmd.append("--reuse-traits")
@@ -241,6 +244,11 @@ def main() -> None:
         help="Directory for Chroma persistence (default: <bundle>/cache/chroma_store).",
     )
     parser.add_argument(
+        "--ingest-lock-file",
+        default=".ingest.lock",
+        help="Global file lock path to serialize ingestion across parallel testcases.",
+    )
+    parser.add_argument(
         "--model",
         default="gpt-4o-mini",
         help="OpenAI model name for grouping (default: gpt-4o-mini).",
@@ -268,9 +276,11 @@ def main() -> None:
     traits_dir = pathlib.Path(args.traits_dir) if args.traits_dir else bundle_dir / "traits"
     pdf_dir = pathlib.Path(args.pdf_dir) if args.pdf_dir else bundle_dir / "cache" / "pdfs"
     chroma_dir = pathlib.Path(args.chroma_dir) if args.chroma_dir else bundle_dir / "cache" / "chroma_store"
+    ingest_lock_file = pathlib.Path(args.ingest_lock_file)
     traits_dir.mkdir(parents=True, exist_ok=True)
     pdf_dir.mkdir(parents=True, exist_ok=True)
     chroma_dir.mkdir(parents=True, exist_ok=True)
+    ingest_lock_file.parent.mkdir(parents=True, exist_ok=True)
 
     species_file, species_input_mode = resolve_species_file(
         args.species_file,
@@ -290,6 +300,7 @@ def main() -> None:
         traits_dir=traits_dir,
         pdf_dir=pdf_dir,
         chroma_dir=chroma_dir,
+        ingest_lock_file=ingest_lock_file,
     )
     source_stats = aggregate_source_stats(run_dirs)
 
@@ -345,6 +356,7 @@ def main() -> None:
         "traits_dir": str(traits_dir),
         "pdf_dir": str(pdf_dir),
         "chroma_dir": str(chroma_dir),
+        "ingest_lock_file": str(ingest_lock_file),
         "run_list": str(run_list_path),
         "analyze_report": str(analyze_out),
         "group_report": str(group_out),

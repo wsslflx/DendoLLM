@@ -13,6 +13,8 @@ import re
 import json
 import hashlib
 import argparse
+import random
+import time
 from collections import defaultdict
 from typing import Optional
 import math
@@ -55,6 +57,58 @@ MMR_QUERY_FILE = "Prompts/mmr_query.txt"
 STRICT_CITATION_FILTER = False
 
 
+def _retry_delay_seconds(response: Optional[requests.Response], attempt: int) -> float:
+    retry_after = None
+    if response is not None:
+        retry_after = response.headers.get("Retry-After")
+    if retry_after:
+        try:
+            return max(0.0, float(retry_after))
+        except ValueError:
+            pass
+    return min(30.0, 1.5 * (2 ** attempt))
+
+
+def _http_get_with_retry(
+    url: str,
+    *,
+    params: dict,
+    timeout: int,
+    headers: Optional[dict] = None,
+    max_retries: int = 6,
+    label: str = "HTTP request",
+) -> requests.Response:
+    last_exc: Optional[Exception] = None
+    for attempt in range(max_retries):
+        try:
+            resp = requests.get(url, params=params, headers=headers, timeout=timeout)
+        except requests.RequestException as exc:
+            last_exc = exc
+            if attempt >= max_retries - 1:
+                raise
+            delay = _retry_delay_seconds(None, attempt) + random.uniform(0, 0.5)
+            print(f"{label} failed ({exc}); retrying in {delay:.1f}s")
+            time.sleep(delay)
+            continue
+
+        status = resp.status_code
+        if status < 400:
+            return resp
+
+        retryable = status == 429 or 500 <= status < 600
+        if retryable and attempt < max_retries - 1:
+            delay = _retry_delay_seconds(resp, attempt) + random.uniform(0, 0.5)
+            print(f"{label} returned HTTP {status}; retrying in {delay:.1f}s")
+            time.sleep(delay)
+            continue
+
+        resp.raise_for_status()
+
+    if last_exc:
+        raise last_exc
+    raise RuntimeError(f"{label} failed after {max_retries} attempts")
+
+
 def load_mmr_query_template() -> str:
     path = pathlib.Path(MMR_QUERY_FILE)
     if path.exists():
@@ -90,8 +144,29 @@ def works_with_oa(query: str, first_n: int = 1) -> list[dict]:
         "select": "id,title,publication_year,doi,best_oa_location,primary_location,locations",
         "mailto": EMAIL,
     }
-    papers = requests.get(BASE_URL, params=params, timeout=60).json()["results"]
-    return papers
+    try:
+        resp = _http_get_with_retry(
+            BASE_URL,
+            params=params,
+            timeout=60,
+            max_retries=6,
+            label=f"OpenAlex works ({query})",
+        )
+        data = resp.json()
+    except Exception as exc:
+        print(f"OpenAlex query failed for '{query}', skipping OpenAlex retrieval: {exc}")
+        return []
+
+    if not isinstance(data, dict):
+        print(f"OpenAlex returned non-dict payload for '{query}', skipping")
+        return []
+
+    papers = data.get("results")
+    if not isinstance(papers, list):
+        error_msg = data.get("error") if isinstance(data.get("error"), str) else "missing 'results'"
+        print(f"OpenAlex payload issue for '{query}', skipping: {error_msg}")
+        return []
+    return [p for p in papers if isinstance(p, dict)]
 
 
 def pmc_search(query: str, first_n: int = 3) -> list[str]:
@@ -103,7 +178,13 @@ def pmc_search(query: str, first_n: int = 3) -> list[str]:
         "retmode": "json",
         "email": EMAIL,
     }
-    resp = requests.get(f"{NCBI_BASE}/esearch.fcgi", params=params, timeout=60)
+    resp = _http_get_with_retry(
+        f"{NCBI_BASE}/esearch.fcgi",
+        params=params,
+        timeout=60,
+        max_retries=6,
+        label=f"PMC esearch ({query})",
+    )
     resp.raise_for_status()
     data = resp.json()
     return data.get("esearchresult", {}).get("idlist", [])
@@ -116,7 +197,13 @@ def pmc_fetch_fulltext(pmcid: str) -> Optional[str]:
         "id": pmcid,
         "retmode": "xml",
     }
-    resp = requests.get(f"{NCBI_BASE}/efetch.fcgi", params=params, timeout=60)
+    resp = _http_get_with_retry(
+        f"{NCBI_BASE}/efetch.fcgi",
+        params=params,
+        timeout=60,
+        max_retries=6,
+        label=f"PMC efetch ({pmcid})",
+    )
     resp.raise_for_status()
     # basic content-type guard
     if "xml" not in resp.headers.get("Content-Type", "").lower():
@@ -526,7 +613,11 @@ class RAG:
         self, query: str, specie_norm: str, first_n: int = 3
     ) -> None:
         """Fetch PMC full text for the query and ingest as chunks."""
-        pmc_ids = pmc_search(query, first_n=first_n)
+        try:
+            pmc_ids = pmc_search(query, first_n=first_n)
+        except Exception as exc:
+            print(f"PMC search failed for '{query}', skipping PMC ingestion: {exc}")
+            return
         for pmcid in pmc_ids:
             source_path = f"pmc:{pmcid}"
             # skip if already present in the vector store
@@ -535,7 +626,11 @@ class RAG:
                 self.ingested_per_species[specie_norm].add(source_path)
                 continue
 
-            full_text = pmc_fetch_fulltext(pmcid)
+            try:
+                full_text = pmc_fetch_fulltext(pmcid)
+            except Exception as exc:
+                print(f"PMC fetch failed for {pmcid}, skipping: {exc}")
+                continue
             if not full_text:
                 print(f"No PMC full text for {pmcid}")
                 continue
