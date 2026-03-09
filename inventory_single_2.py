@@ -11,6 +11,7 @@ import hashlib
 import json
 import math
 import pathlib
+from contextlib import contextmanager, nullcontext
 from datetime import datetime
 
 import numpy as np
@@ -19,6 +20,11 @@ from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_openai import ChatOpenAI
 
 from rag_cli import RAG, maximal_marginal_relevance
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - only relevant on non-POSIX platforms
+    fcntl = None  # type: ignore[assignment]
 
 PROMPT_FILE = "Prompts/prompt_inventory_5.txt"
 SYNTHESIS_PROMPT_FILE = "Prompts/prompt_synthesis_5.txt"
@@ -53,6 +59,24 @@ def init_run_log_dir(
     run_dir = pathlib.Path("logs") / f"{timestamp}-{slugify(run_label)}"
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir
+
+
+@contextmanager
+def ingest_lock(lock_path: pathlib.Path):
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+", encoding="utf-8") as handle:
+        if fcntl is None:
+            print(f"[Ingest lock] fcntl unavailable, continuing without lock: {lock_path}")
+            yield
+            return
+        print(f"[Ingest lock] waiting: {lock_path}")
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        print(f"[Ingest lock] acquired: {lock_path}")
+        try:
+            yield
+        finally:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            print(f"[Ingest lock] released: {lock_path}")
 
 
 def per_species_retrieve(rag: RAG, query1: str, query2: str, specie: str):
@@ -183,6 +207,7 @@ def run_inventory(
     traits_dir: pathlib.Path | None = None,
     pdf_dir: pathlib.Path | None = None,
     chroma_dir: pathlib.Path | None = None,
+    ingest_lock_file: pathlib.Path | None = None,
 ) -> list[dict]:
     traits_root = traits_dir if traits_dir else pathlib.Path("traits")
     traits_root.mkdir(parents=True, exist_ok=True)
@@ -198,7 +223,9 @@ def run_inventory(
         persist_dir=str(chroma_dir) if chroma_dir else "./chroma_store",
     )
     if not skip_ingest:
-        ingest_species(rag, canonical=specie, aliases=aliases, pdf_dir=pdf_dir)
+        lock_ctx = ingest_lock(ingest_lock_file) if ingest_lock_file else nullcontext()
+        with lock_ctx:
+            ingest_species(rag, canonical=specie, aliases=aliases, pdf_dir=pdf_dir)
 
     specie_norm = specie.lower().strip()
     query1 = f"{specie} morphology behavior ecology sensory phenotype"
@@ -327,6 +354,11 @@ def main():
     parser.add_argument("--pdf-dir", help="Directory to store downloaded PDFs.")
     parser.add_argument("--chroma-dir", help="Directory for persisted Chroma vectorstore.")
     parser.add_argument(
+        "--ingest-lock-file",
+        default=".ingest.lock",
+        help="Global lock file path to serialize ingestion across parallel processes.",
+    )
+    parser.add_argument(
         "--reuse-traits",
         action="store_true",
         help="Reuse existing traits/<species>.json if present (skip ingestion and prompting).",
@@ -343,6 +375,7 @@ def main():
     traits_dir = pathlib.Path(args.traits_dir) if args.traits_dir else None
     pdf_dir = pathlib.Path(args.pdf_dir) if args.pdf_dir else None
     chroma_dir = pathlib.Path(args.chroma_dir) if args.chroma_dir else None
+    ingest_lock_file = pathlib.Path(args.ingest_lock_file) if args.ingest_lock_file else None
     if args.log_run:
         run_label = pathlib.Path(args.species_file).stem if args.species_file else args.species.strip()
         run_log_dir = init_run_log_dir(True, run_label, explicit_log_dir=explicit_log_dir)
@@ -364,6 +397,7 @@ def main():
                     traits_dir=traits_dir,
                     pdf_dir=pdf_dir,
                     chroma_dir=chroma_dir,
+                    ingest_lock_file=ingest_lock_file,
                 )
         if inventories:
             run_synthesis(inventories, log_runs=args.log_run, log_root=run_log_dir)
@@ -380,6 +414,7 @@ def main():
         traits_dir=traits_dir,
         pdf_dir=pdf_dir,
         chroma_dir=chroma_dir,
+        ingest_lock_file=ingest_lock_file,
     )
 
 
