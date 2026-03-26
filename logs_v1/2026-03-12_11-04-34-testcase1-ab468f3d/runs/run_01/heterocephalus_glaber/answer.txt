@@ -1,0 +1,52 @@
+[
+    {
+        "trait": "cold-blooded mammal",
+        "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "unique nociceptive system",
+        "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:68", "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:55"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "poor seed disperser",
+        "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:9"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "social eusociality",
+        "sources": ["wiki:en:heterocephalus glaber|chunk:28", "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "long lifespan",
+        "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "adapted to low oxygen",
+        "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:28"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "unique visual system",
+        "sources": ["doi:https://doi.org/10.1038/nature10533|chunk:25"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "unique UCP1 sequence",
+        "sources": ["doi:https://doi.org/10.1038/nature10533|chunk:25"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "unique taste receptor",
+        "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:9"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "unique circadian rhythm",
+        "sources": ["wiki:en:heterocephalus glaber|chunk:14"],
+        "confidence": 0.7
+    }
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "trait": "Solitary subterranean insectivore behavior",
+    "sources": [
+      "wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Excavates superficial burrows using conical nose shield",
+    "sources": [
+      "wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Excavates superficial burrows using highly modified forefeet",
+    "sources": [
+      "wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Dense, soft, and silky coat",
+    "sources": [
+      "wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Females smaller than males sexually dimorphic",
+    "sources": [
+      "wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Ventures onto sandy beaches to feed",
+    "sources": [
+      "wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Apolipoprotein E detected as amyloid signature protein",
+    "sources": [
+      "pmc:12712131|chunk:11"
+    ],
+    "confidence": 1.0
+  }
+]

@@ -284,7 +284,7 @@ dependencies:
       - joblib==1.5.1
       - kubernetes==33.1.0
       - langchain-core==0.3.63
-      - langchain-openai==0.3.19
+      - langchain-ollama
       - langchainhub==0.1.21
       - langdetect==1.0.9
       - lxml==6.0.0
@@ -298,7 +298,6 @@ dependencies:
       - olefile==0.47
       - onnx==1.18.0
       - onnxruntime==1.22.1
-      - openai==1.95.1
       - opencv-python==4.12.0.88
       - opentelemetry-api==1.35.0
       - opentelemetry-exporter-otlp-proto-common==1.35.0

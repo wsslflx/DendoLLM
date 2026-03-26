@@ -13,8 +13,9 @@ from datetime import datetime
 
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda
-from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
+
+from llm_backend import make_chat_llm
 
 load_dotenv()
 
@@ -48,7 +49,7 @@ def run_zero_shot(species_groups: list[dict]) -> tuple[str, str]:
         input_variables=["species_list"],
         template=pathlib.Path(PROMPT_FILE).read_text(encoding="utf-8"),
     )
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.0)
+    llm = make_chat_llm(model=None, temperature=0.0)
     formatted_prompt = prompt.format(species_list=format_species_list(species_groups))
     chain = (
         {

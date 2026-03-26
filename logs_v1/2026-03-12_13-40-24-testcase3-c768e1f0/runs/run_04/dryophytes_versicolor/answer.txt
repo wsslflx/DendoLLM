@@ -1,0 +1,92 @@
+[
+    {
+        "trait": "intermediate interfertility with D. chrysoscelis",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:28", "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "camouflage ability",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:2", "wiki:en:dryophytes versicolor|chunk:31"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "arboreal habitat generalist",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1", "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "nocturnal vocalization",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2", "wiki:en:dryophytes versicolor|chunk:2"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "tetraploid",
+        "sources": ["doi:https://doi.org/10.22215/etd/2024-16064|chunk:27", "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:8"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "variable dorsal coloration",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:2", "doi:https://doi.org/10.22215/etd/2024-16064|chunk:27"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "yellow-spotted thigh pattern",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:2", "doi:https://doi.org/10.22215/etd/2024-16064|chunk:27"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "highly variable in size",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:2"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "aposematic coloration",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:11", "Cannizzaro, J.S. IV, and Höbel, G. 2023"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "can change color",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:2", "doi:https://doi.org/10.22215/etd/2024-16064|chunk:27"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "high energy cost vocalization",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:28"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "reproductive character displacement",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:28"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "predation by spiders",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:13", "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:9"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "predation by snakes",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:13"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "predation by birds",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:13"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "predation by mesocarnivores",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:13"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "tolerant of freezing",
+        "sources": ["doi:https://doi.org/10.22215/etd/2024-16064|chunk:97"],
+        "confidence": 0.5
+    },
+    {
+        "trait": "uses glycerol as cryoprotectant",
+        "sources": ["doi:https://doi.org/10.22215/etd/2024-16064|chunk:97"],
+        "confidence": 0.5
+    }
+]

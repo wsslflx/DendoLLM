@@ -1,0 +1,50 @@
+{
+  "bundle_dir": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a",
+  "run_label": "testcase1",
+  "species_file": "testcase1.json",
+  "species_snapshot": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/species_input.json",
+  "species_input_mode": "file",
+  "species_list": null,
+  "runs": 2,
+  "reuse_traits": false,
+  "skip_ingest_after_first": true,
+  "hybrid_sim_threshold": 0.82,
+  "traits_dir": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/traits",
+  "pdf_dir": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/cache/pdfs",
+  "chroma_dir": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/cache/chroma_store_ollama",
+  "ingest_lock_file": ".ingest.lock",
+  "run_list": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/run_list.txt",
+  "analyze_report": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/summary/analyze_report.json",
+  "group_report": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/summary/trait_groups.json",
+  "model": "qwen2.5:latest",
+  "temperature": 0.0,
+  "timestamp": "2026-03-12_15-02-00",
+  "source_stats": {
+    "overall": {
+      "papers_fetched": 37,
+      "papers_used": 23,
+      "wiki_fetched": 4,
+      "wiki_used": 4
+    },
+    "per_run": [
+      {
+        "run_dir": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/runs/run_01",
+        "papers_fetched": 37,
+        "papers_used": 23,
+        "wiki_fetched": 4,
+        "wiki_used": 4
+      },
+      {
+        "run_dir": "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/runs/run_02",
+        "papers_fetched": 0,
+        "papers_used": 22,
+        "wiki_fetched": 0,
+        "wiki_used": 4
+      }
+    ]
+  },
+  "run_dirs_v4": [
+    "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/runs/run_01",
+    "logs_v4/2026-03-12_15-02-00-testcase1-0cff118a/runs/run_02"
+  ]
+}

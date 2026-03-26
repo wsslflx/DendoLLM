@@ -11,8 +11,8 @@ from datetime import datetime
 import numpy as np
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda
-from langchain_openai import ChatOpenAI
 
+from llm_backend import make_chat_llm
 from rag_cli import RAG, maximal_marginal_relevance
 
 PROMPT_FILE = "Prompts/prompt_inventory_v3.txt"
@@ -230,7 +230,7 @@ def run_inventory(
         with open(log_dir / "prompt.txt", "w", encoding="utf-8") as f:
             f.write(formatted_prompt)
 
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.0)
+    llm = make_chat_llm(model=None, temperature=0.0)
     chain = (
         {
             "context": RunnableLambda(lambda _: context_text),

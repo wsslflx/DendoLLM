@@ -1,0 +1,31 @@
+[
+  {
+    "canonical": "Octopus vulgaris",
+    "aliases": [
+      "Octopus vulgaris",
+      "Common octopus"
+    ]
+  },
+  {
+    "canonical": "Furcifer pardalis",
+    "aliases": [
+      "Furcifer pardalis",
+      "Panther chameleon"
+    ]
+  },
+  {
+    "canonical": "Dryophytes versicolor",
+    "aliases": [
+      "Dryophytes versicolor",
+      "Gray treefrog",
+      "Eastern gray treefrog"
+    ]
+  },
+  {
+    "canonical": "Panulirus cygnus",
+    "aliases": [
+      "Panulirus cygnus",
+      "Western rock lobster"
+    ]
+  }
+]

@@ -31,7 +31,6 @@ except ImportError:
 from langchain_chroma import Chroma
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.document_loaders import (
     PyPDFLoader,
     UnstructuredPDFLoader,
@@ -43,6 +42,8 @@ try:
     from langchain_community.vectorstores.utils import maximal_marginal_relevance
 except ImportError:  # fallback for older langchain versions
     from langchain.vectorstores.utils import maximal_marginal_relevance
+
+from llm_backend import make_chat_llm, make_embeddings
 
 load_dotenv()
 
@@ -438,11 +439,11 @@ class RAG:
         self,
         log_runs: bool = False,
         log_root: str = "./logs",
-        persist_dir: str = "./chroma_store",
+        persist_dir: str = "./chroma_store_ollama",
     ) -> None:
         self.vectorstore = Chroma(
             collection_name="bunch_of_docs",
-            embedding_function=OpenAIEmbeddings(),
+            embedding_function=make_embeddings(),
             persist_directory=persist_dir,  # keep embeddings/metadata across runs
         )
         self.threshold: float | None = None  # optional hard cutoff on distance
@@ -808,7 +809,7 @@ class RAG:
             template_format="jinja2",
         )
 
-        llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2)
+        llm = make_chat_llm(model=None, temperature=0.2)
 
         def inspect_prompt(inputs: dict) -> dict:
             formatted_prompt = prompt.format(

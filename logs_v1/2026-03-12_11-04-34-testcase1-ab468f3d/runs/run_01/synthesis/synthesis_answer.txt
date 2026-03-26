@@ -1,0 +1,17 @@
+{
+  "strict_common_traits": [],
+  "subgroup_common_traits": [
+    {
+      "trait": "unique cranial and dental specializations",
+      "sources": ["pmc:12719769|chunk:10", "doi:https://doi.org/10.1266/jjg.66.367|chunk:67"],
+      "confidence": 1.0
+    }
+  ],
+  "mechanism_hypotheses": [
+    {
+      "trait": "Adaptation to subterranean or specialized ecological niches",
+      "sources": ["wiki:en:nannospalax ehrenbergi|chunk:4", "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:26", "doi:https://doi.org/10.1038/srep06241|chunk:7", "doi:https://doi.org/10.1038/ncomms4966|chunk:7"],
+      "confidence": 0.7
+    }
+  ]
+}

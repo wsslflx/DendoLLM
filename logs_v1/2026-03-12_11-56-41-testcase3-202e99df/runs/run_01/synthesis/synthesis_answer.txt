@@ -1,0 +1,17 @@
+{
+  "strict_common_traits": [],
+  "subgroup_common_traits": [
+    {
+      "trait": "color change ability",
+      "sources": ["doi:10.1038/srep13196", "pmc:12912887", "wiki:en:furcifer pardalis|chunk:2", "wiki:en:furcifer pardalis|chunk:31", "wiki:en:dryophytes versicolor|chunk:2"],
+      "confidence": 1.0
+    }
+  ],
+  "mechanism_hypotheses": [
+    {
+      "trait": "camouflage and adaptive response to environmental stimuli",
+      "sources": ["doi:10.1038/srep13196", "pmc:12966949|chunk:15", "pmc:12966949|chunk:9", "pmc:12966949|chunk:12", "doi:https://doi.org/10.3389/fmars.2019.00484|chunk:39"],
+      "confidence": 0.7
+    }
+  ]
+}

@@ -17,8 +17,8 @@ import numpy as np
 
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_openai import ChatOpenAI
 
+from llm_backend import make_chat_llm
 from rag_cli import (
     RAG,
     maximal_marginal_relevance,
@@ -145,7 +145,7 @@ def run_two_stage(question: Optional[str], species_groups: Optional[list], log_r
     species_list = list(rag.ingested_per_species.keys())
     inventories: dict[str, list[dict]] = {}
 
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.0)
+    llm = make_chat_llm(model=None, temperature=0.0)
 
     traits_dir = pathlib.Path("traits")
     traits_dir.mkdir(parents=True, exist_ok=True)

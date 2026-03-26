@@ -1,0 +1,414 @@
+You are an experienced zoologist with expertise in comparative phenotype analysis.
+
+You will be given scientific papers and articles about ONE animal species.
+Your task is to extract biologically central species-level characteristics that are
+useful for downstream cross-species synthesis.
+
+SCOPE:
+- Include morphology, behavior, ecology, physiology/ecophysiology, and biologically meaningful
+  molecular/genetic characteristics when they describe species-level function.
+- Include both observable traits and functional capacities when supported by evidence.
+
+INCLUSION RULES:
+- Extract characteristics that are explicit, repeatedly supported, or strongly emphasized.
+- Prefer characteristics with ecological, functional, or evolutionary relevance.
+- When context suggests an underlying biological challenge, include the best supported
+  species-level functional trait linked to that challenge.
+
+EXCLUSION RULES:
+- Exclude trivial generic characteristics with low discriminative value.
+- Exclude one-off incidental observations and pure methods text.
+- Exclude procedural/lab setup details without species-level biological interpretation.
+
+STRICT RULES:
+- Species-specific only. Do NOT compare species.
+- Do NOT invent unsupported claims.
+- Inference is allowed only when strongly and unambiguously implied by evidence.
+
+OUTPUT RULES (JSON ARRAY ONLY):
+- Return a JSON array.
+- Each item MUST be:
+  {
+    "trait": "<3-9 word species-level characteristic>",
+    "sources": ["<citation tags from context>"],
+    "confidence": 1.0 | 0.7 | 0.5
+  }
+- Confidence:
+  - 1.0: explicit and clearly characteristic
+  - 0.7: strongly supported/repeated
+  - 0.5: unambiguously implied
+- Use only citation tags from context.
+- Include all relevant supporting tags for each trait.
+- Do NOT include prose or headings.
+- If no central characteristics are supported, return [].
+
+Context:
+[source: doi:https://doi.org/10.1038/srep06241|chunk:44]
+moles: the hairy-tailed mole (Parascalops breweri), the star-nosed mole
+(Condylura cristata), and the eastern mole (Scalopus aquaticus). J. Comp. Neurol.
+354, 150–160 (1995).
+28. Catania, K. C. Structure and innervation of the sensory organs on the snout of the
+star-nosed mole.J. Comp. Neurol.351, 536–548 (1995).
+29. Catania, K. C. Epidermal sensory organs of moles, shrew moles, and desmans: a
+study of the family talpidae with comments on the function and evolution of
+Eimer’s organ.Brain Behav. Evol.56, 146–174 (2000).
+www.nature.com/ scientificreports
+SCIENTIFIC REPORTS | 4 : 6241 | DOI: 10.1038/srep06241 6
+
+[source: doi:https://doi.org/10.1038/srep06241|chunk:51]
+sensory periphery and the brain.Brain Behav. Evol.55, 311–321 (2000).
+Acknowledgments
+We would like to thank the many people who assisted with the capture and preparation of
+specimens used in this analysis. They include Eva Sawyer, Diana Bautista, Elizabeth
+Catania, Danielle Gauthier, and Pamela Tsuruda, who all contributed in multiple capacities
+to this project. Research support was provided by a National Science Foundation Award
+(#0844743).
+Author contributions
+D.B.L. and K.C.C. prepared the manuscript. K.C.C. designed the study and analyses. D.B.L.
+performed measurements of fiber tract size and mass measurements. D.B.L. and D.K.S.
+collected tissue samples.
+Additional information
+Supplementary informationaccompanies this paper at http://www.nature.com/
+scientificreports
+Competing financial interests:The authors declare no competing financial interests.
+How to cite this article:Leitch, D.B., Sarko, D.K. & Catania, K.C. Brain Mass and Cranial
+
+[source: wiki:en:condylura cristata|chunk:4]
+The star-nosed mole lives in wet lowland areas and eats small invertebrates, such as aquatic insects (such as the larvae of caddisflies, midges, dragonflies, damselflies, crane flies, horseflies, predaceous diving beetles, and stoneflies), terrestrial insects, worms (such as earthworms, leeches, and other annelids), mollusks, and aquatic crustaceans, as well as small amphibians and small fish. Condylura cristata has also been found in dry meadows farther away from water. They have also been found in the Great Smoky Mountains as high as 1,676 m (5,499 ft). However, the star-nose mole does prefer wet, poorly drained areas and marshes. It is a good swimmer and can forage along the bottoms of streams and ponds. Like other moles, this animal digs shallow surface tunnels for foraging; often, these tunnels exit underwater. It is active day and night and remains active in winter when it has been observed tunneling through the snow and swimming in ice-covered streams. C. cristata is
+
+[source: doi:https://doi.org/10.1038/srep06241|chunk:42]
+232–242 (1998).
+18. Catania, K. C. & Remple, M. S. Somatosensory cortex dominated by the
+representation of teeth in the naked mole-rat brain.Proc. Natl. Acad. Sci. U.S.A.
+99, 5692–5697 (2002).
+19. Hetling, J. R.et al. Features of visual function in the naked mole-rat
+Heterocephalus glaber.J. Comp. Physiol. A. Neuroethol. Sense. Neural Behav.
+Physiol. 191, 317–330 (2005).
+20. Reep, R. L., Finlay, B. L. & Darlington, R. B. The limbic system in Mammalian
+brain evolution.Brain Behav. Evol.70, 57–70 (2007).
+21. Grenyer, R. & Purvis, A. A composite level phylogeny of the Insectivora
+(Mammalia: Order Lipotyphla Haeckel, 1866).J. Zool.260, 245–257 (2003).
+22. Symonds, M. R. Phylogeny and life histories of the ‘Insectivora’: controversies and
+consequences. Biol. Rev. Camb. Philos. Soc.80, 93–128 (2005).
+23. Deaner, R. O., Isler, K., Burkart, J. & van Schaik, C. Overall brain size, and not
+encephalization quotient, best predicts cognitive ability across non-human
+
+[source: doi:https://doi.org/10.1038/srep06241|chunk:4]
+whiskers (barrels) in sensory maps10,11. However, anatomical changes to the relays between the sensory or
+sensorimotor periphery and the CNS have not been examined in as great detail (see Ref. 12 for quantitative optic
+nerve comparisons among diurnal and nocturnal primates).
+In light of previous investigations of CNS adaptation found in the star-nosed mole (Condylura cristata) which
+have focused on the magnification within primary and secondary somatosensory cortex13, principal trigeminal
+nucleus14, and spinal trigeminal subnuclei15 this tactile specialist offers the chance to compare potential changes of
+overall brain size as a possible consequence of increased sensory input. For example it is possible that natural
+selection has produced a larger than expected brain corresponding to the large amount of CNS devoted to the
+nasal representation. This would be in keeping with investigations of a wide range of mammals of different niches
+
+[source: wiki:en:condylura cristata|chunk:3]
+== Ecology and behavior ==
+
+[source: doi:https://doi.org/10.1038/srep06241|chunk:43]
+23. Deaner, R. O., Isler, K., Burkart, J. & van Schaik, C. Overall brain size, and not
+encephalization quotient, best predicts cognitive ability across non-human
+primates. Brain Behav. Evol.70, 115–124 (2007).
+24. Stephan, H. & Andy, O. J. Quantitative Comparisons of Brain Structures from
+Insectivores to Primates.Am. Zool.4, 59–74 (1964).
+25. Catania, K. C. The neurobiology and behavior of the American water shrew (Sorex
+palustris). J. Comp. Physiol. A. Neuroethol. Sense. Neural Behav. Physiol.6,
+545–554 (2013).
+26. Catania, K. C., Hare, J. F. & Campbell, K. L. Water shrews detect movement, shape,
+and smell to find prey underwater.Proc. Natl. Acad. Sci. U.S.A.105, 571–576
+(2008).
+27. Catania, K. C. A comparison of the Eimer’s organs of three North American
+moles: the hairy-tailed mole (Parascalops breweri), the star-nosed mole
+(Condylura cristata), and the eastern mole (Scalopus aquaticus). J. Comp. Neurol.
+354, 150–160 (1995).
+
+[source: wiki:en:condylura cristata|chunk:5]
+often, these tunnels exit underwater. It is active day and night and remains active in winter when it has been observed tunneling through the snow and swimming in ice-covered streams. C. cristata is particularly adept at thermoregulation, maintaining a high body temperature in a wide range of external conditions relative to other Talpid moles. This explains its ability to thrive in cold aquatic environments. Little is known about the social behavior of the species, but it is suspected to be colonial.
+
+[source: doi:https://doi.org/10.1038/srep06241|chunk:46]
+Fernandez, J. M. The retina of Spalax ehrenbergi: novel histologic features
+supportive of a modified photosensory role.Invest. Ophthalmol. Vis. Sci.43,
+2374–2383 (2002).
+35. Jeon, C. J., Strettoi, E. & Masland, R. H. The major cell populations of the mouse
+retina. J. Neurosci.18, 8936–8946 (1998).
+36. Williams, R. W., Strom, R. C., Rice, D. S. & Goldowitz, D. Genetic and
+environmental control of variation in retinal ganglion cell number in mice.
+J. Neurosci.16, 7193–7205s (1996).
+37. Sorenson, M. W. Some aspects of water shrew hehavior.Am. Midl. Nat.68,
+445–462 (1962).
+38. Brecht, M.et al. The neurobiology of Etruscan shrew active touch.Philos. Trans. R.
+Soc. Lond. B. Biol. Sci.366, 3026–3036 (2011).
+39. Roth-Alpermann, C., Anjum, F., Naumann, R. & Brecht, M. Cortical organization
+in the Etruscan shrew (Suncus etruscus). J. Neurophysiol.104, 2389–2406 (2010).
+40. Leitch, D. B., Gauthier, D., Sarko, D. K. & Catania, K. C. Chemoarchitecture of
+
+[source: doi:https://doi.org/10.1038/srep06241|chunk:50]
+Nieuwenhuys, R.) 2099–2134 (Springer, 1998).
+57. Le Douarin, N. M. & Smith, J. Development of the peripheral nervous system from
+the neural crest.Annu. Rev. Cell Biol.4, 375–404 (1988).
+58. Catania, K. C. & Kaas, J. H. Somatosensory fovea in the star-nosed mole:
+behavioral use of the star in relation to innervation patterns and cortical
+representation. J. Comp. Neurol.387, 215–233 (1997).
+59. Catania, K. C., Catania, E. H., Sawyer, E. K. & Leitch, D. B. Barrelettes without
+Barrels in the American Water Shrew.PloS ONE8, e65975 (2013).
+60. Catania, K. C. & Kaas, J. H. Areal and callosal connections in the somatosensory
+cortex of the star-nosed mole.Somatosens. Mot. Res.18, 303–311 (2001).
+61. Catania, K. C. Cortical organization in insectivora: the parallel evolution of the
+sensory periphery and the brain.Brain Behav. Evol.55, 311–321 (2000).
+Acknowledgments
+We would like to thank the many people who assisted with the capture and preparation of
+
+[source: doi:https://doi.org/10.1371/journal.pone.0055001|chunk:49]
+5. Lumpkin EA, Caterina MJ (2007) Mechanisms of sensory transduction in the
+skin. Nature 445: 858–865.
+6. Lawson SN, Waddell PJ (1991) Soma neurofilament immunoreactivity is related
+to cell size and fibre conduction velocity in rat primary sensory neurons. J Physiol
+435: 41–63.
+7. Lawson SN, Crepps BA, Perl ER (1997) Relationship of substance P to afferent
+characteristics of dorsal root ganglion neurones in guinea-pig. J Physiol 505 ( Pt
+1): 177–191.
+8. Zylka MJ, Rice FL, Anderson DJ (2005) Topographically distinct epidermal
+nociceptive circuits revealed by axonal tracers targeted to Mrgprd. Neuron 45:
+17–25.
+9. Marfurt CF, Kingsley RE, Echtenkamp SE (1989) Sensory and sympathetic
+innervation of the mammalian cornea. A retrograde tracing study. Invest
+Ophthalmol Vis Sci 30: 461–472.
+10. Bautista DM, Siemens J, Glazer JM, Tsuruda PR, Basbaum AI, et al. (2007) The
+menthol receptor TRPM8 is the principal detector of environmental cold.
+Nature 448: 204–208.
+
+[source: doi:https://doi.org/10.1371/journal.pone.0055001|chunk:34]
+Finally, we identified a number of novel, uncharacterized genes
+enriched in TG and DRG that contain one or more trans-
+membrane domains and that were not previously classified as
+organellar. These genes, along with CNG channels and Piezo1,
+may participate in different aspects of transduction, acting as
+detectors, modulators and/or amplifiers of mechanical stimuli.
+Each subtype of light touch receptor has distinct mechanical
+thresholds, sensory adaptation properties and action potential
+waveforms, and it is predicted that such diversity is driven by
+a unique repertoire of force transducers. Thus, future studies will
+determine if these genes are expressed in distinct subsets of
+somatosensory neurons, and what role they play in detecting
+diverse somatosensory stimuliin vivo.
+Our results emphasize the utility of examining both traditional
+model organisms and less common species that may provide
+important clues to sensory system function. August Krogh
+
+[source: doi:https://doi.org/10.1371/journal.pone.0055001|chunk:35]
+Our results emphasize the utility of examining both traditional
+model organisms and less common species that may provide
+important clues to sensory system function. August Krogh
+articulated the principle that ‘‘for such a large number of problems
+there will be some animal of choice, or a few such animals, on
+which it can be most conveniently studied’’ [34]. In the spirit of
+this approach, we exploited the high tactile acuity of the star-nosed
+mole to identify a multitude of candidate molecules that may
+mediate innocuous and noxious somatosensory stimuli. The
+function of these molecules can now be probed in more traditional
+model organisms.
+Materials and Methods
+Animals
+Star-nosed moles were collected in Potter County, Pennsylva-
+nia, under permit COL00087. Wild type adult female mice C57/
+Bl6 (Jackson Labs) were used for sectioning, RT-PCR and qPCR.
+All procedures followed guidelines for the care and use of
+laboratory animals from the National Institutes of Health and
+
+[source: wiki:en:condylura cristata|chunk:38]
+== Snout as related to optimal foraging theory ==
+
+[source: doi:https://doi.org/10.1371/journal.pone.0022406|chunk:46]
+19. Kemplay S, Webster KE (1989) A quantitative study of the projections of the
+gracile, cuneate and trigeminal nuclei and of the medullary reticular formation
+to the thalamus in the rat. Neuroscience 32: 153–67.
+20. Carroll EW, Wong-Riley MT (1984) Quantitative light and electron microscopic
+analysis of cytochrome oxidase-rich zones in the striate cortex of the squirrel
+monkey. J Comp Neurol 222: 1–17.
+21. Fiala JC (2005) Reconstruct: a free editor for serial section microscopy. J Microsc
+218: 52–61.
+22. Killackey HP, Rhoades RW, Bennett-Clarke CA (1995) The formation of a
+cortical somatotopic map. Trends Neurosci 18: 402–407.
+23. Waite PME (2003) Trigeminal sensory system. In: Paxinos G, ed. The rat
+nervous system, third edition. San Diego: Elsevier. pp 815–852.
+24. Bates CA, Killackey HP (1985) The organization of the neonatal rat’s brainstem
+trigeminal complex and its role in the formation of central trigeminal patterns.
+J Comp Neurol 240: 265–287.
+
+[source: doi:https://doi.org/10.1038/s41467-021-27672-z|chunk:69]
+monitoring. Nano Energy 80, 105559 (2021).
+23. Catania, K. C. Early development of a somatosensory fovea: a head start in the
+cortical space race?Nat. Neurosci. 4, 353–354 (2001).
+24. Bullmore, E. & Sporns, O. Complex brain networks: graph theoretical analysis
+of structural and functional systems.Nat. Rev. Neurosci.10, 186–198 (2009).
+25. Ohyama, T. et al. A multilevel multimodal circuit enhances action selection in
+Drosophila. Nature 520, 633–639 (2015).
+26. Henschke, J. U., Noesselt, T., Scheich, H. & Budinger, E. Possible anatomical
+pathways for short-latency multisensory integration processes in primary
+sensory cortices. Brain Struct. Funct.220, 955–977 (2015).
+27. Bizley, J. K., Jones, G. P. & Town, S. M. Where are multisensory signals
+combined for perceptual decision-making?Curr. Opin. Neurobiol.40,3 1–37
+(2016).
+28. Wang, J. & Li, X. Single-side fabricated pressure sensors for IC-foundry-
+compatible, high-yield, and low-cost volume production.IEEE Electron Device
+
+[source: doi:https://doi.org/10.1038/srep06241|chunk:3]
+and body size (but see References 6 through 8). On the other hand, increased ‘‘information processing capabil-
+ities,’’ a concept that has been proposed as a correlate to intelligence8, may occur without changes to relative brain
+mass. In this case, it likely that organizational changes to the cortex and CNS underscore the increased sensory
+processing rather than more generalized changes to the absolute size of the CNS9.
+In addition to influences of body size on brain size and fiber tracts, elaboration of particular senses could be
+correlated with changes in the number of sensory inputs and perhaps brain size. A number of specialized sensory
+systems have been investigated at the level of representation in the central nervous system and sensory periphery.
+For example the number of fibers supplying rodent whiskers has been compared to the central representation of
+whiskers (barrels) in sensory maps10,11. However, anatomical changes to the relays between the sensory or
+
+[source: pmc:12994710|chunk:5]
+Scutisorex somereni  (LSUMZ 37904; bottom) compared to  Crocidura lanosa  (LSUMZ 37664; middle), and  Myosorex babaulti  (LSUMZ 37831; top). For image description, please refer to the figure legend and surrounding text. Fig. 2. Skeletal anatomy sketches comparing (a)  Crocidura olivieri  (AMNH 48497) and b)  Scutisorex somereni  (AMNH 51311). Source:  Allen et al. (1917) . For image description, please refer to the figure legend and surrounding text. Whole genomes can be sequenced and assembled quicker than ever, even in non-model taxa ( Rhie et al. 2021 ;  Paez et al. 2022 ). Genome studies have provided medical and basic biological insights, while novel analysis methods have facilitated large comparative genomics studies across taxonomic groups to understand the relationships among genome organization and variation, evolution, and natural history ( Hiller et al. 2012 ;  Claussnitzer et al. 2020 ;  Hilgers and Hiller 2025 ). Increased access to curated sets of genetic sequences
+
+[source: doi:https://doi.org/10.1038/srep06241|chunk:5]
+nasal representation. This would be in keeping with investigations of a wide range of mammals of different niches
+and brain sizes across developmental time, indicating that enlargement of the entire brain (minus the olfactory
+system) is associated with selection for particular behavioral abilities16. These findings suggest a ‘‘simple rule’’
+concerning the volume of particular areas of the brain increasing in a regular, predictable manner over develop-
+ment, with elaborations to particular areas occurring as consequence of alterations to the timing and duration of
+isocortical neurogenesis, ultimately resulting in a larger brain4,17.
+OPEN
+SUBJECT AREAS:
+ANIMAL PHYSIOLOGY
+TOUCH RECEPTORS
+Received
+9 October 2013
+Accepted
+23 July 2014
+Published
+1 September 2014
+Correspondence and
+requests for materials
+should be addressed to
+K.C.C. (ken.catania@
+vanderbilt.edu)
+SCIENTIFIC REPORTS | 4 : 6241 | DOI: 10.1038/srep06241 1
+
+[source: pmc:12994710|chunk:33]
+in non-coding regions might play in generating this phenotype. Further work examining RNA-seq data would improve the genome annotation and enable investigation of the role of gene regulation. The absence of  S. thori  (the only other species in the genus) genomic data limits our understanding the evolutionary history of the genes identified herein, and whether they facilitated phenotypic evolution in the ancestor of hero shrews. To that end, narrowing the phylogenetic scope to consider only shrews (including all recognized hero shrews) would allow investigation of finer-scale patterns of genome evolution. Conclusion Several studies have investigated morphological and biomechanical properties of the  S. somereni  axial skeleton ( Ahmed and Klima 1978 ;  Cullinane and Aleper 1998 ;  Cullinane et al. 1998 ;  Cullinane and Bertram 2000 ;  Churchfield et al. 2007 ;  Smith and Angielczyk 2020 ). While there has been a niche fascination with this trait for over 100 years, the adaptive
+
+[source: doi:https://doi.org/10.1371/journal.pone.0055001|chunk:31]
+[31,32]). These data suggest that cyclic nucleotide signaling may
+represent a new signaling pathway in touch transduction. More
+broadly, these findings suggest that transduction mechanisms may
+be conserved between divergent sensory systems. Indeed, tran-
+scriptional analysis of the Droshophila Johnston’s organ recently
+Figure 4. Expression analysis of candidate touch and pain transducers.(A) qPCR analysis of selected transcripts in TG (green) and DRG
+(grey). Results show average expression normalized to Gapdh (n = 3 samples/tissue). (B-F) Images of star-nosed mole tissue stained with antibody
+against CNGA2 (green) and NF200 (red). (B) Trigeminal ganglia (TG) show stronger staining for CNGA2 than (C) dorsal root ganglia (DRG). (D)
+Percentage of total neurons stained positive for CNGA2 in TG (green) and DRG (grey) n = 4 sections/tissue. (E) Cross section of a single Eimer’s organ
+
+[source: doi:https://doi.org/10.1371/journal.pone.0055001|chunk:26]
+star may arise at the expense of thermal and chemical sensitivity,
+as the lack of peptidergic C-fibers and nociceptive molecules (e.g.
+TRPA1 and TRPV1) may affect the ability of the star to detect
+irritants and other noxious stimuli. Consistent with this, topical
+application of capsaicin to the hindpaw elicits nocifensive
+responses similar to those reported in rodents, but application to
+the star evokes no obvious behaviors (n = 3 animals).
+The star-nosed mole has adapted a new strategy for achieving
+high tactile acuity, namely a cellular and molecular specialization
+of the trigeminal ganglia that innervate the star. We exploited this
+specialization to identify molecules enriched in the DRG and TG.
+Transcript analysis offers an unbiased approach to identify genes
+of interest, but is usually restricted to organisms for which genome
+information is widely available. Since there is no annotated
+genome data for the star-nosed mole, or any close relative, we used
+
+[source: doi:https://doi.org/10.1038/s41467-021-27672-z|chunk:12]
+sensing array, and each sensor is functionalized to be highly
+sensitive to one particular gas, resulting in a customizable cap-
+ability for speciﬁc perception of the odor of the detected object in
+a complex environment, mimicking biological olfactory receptor
+cells33–39 (see “Methods”).
+High sensitivities provided accurate sampling data for the
+following analysis (Fig.2b)28–30,34–41 (Supplementary Figs. 2 and
+3 and Supplementary Notes 1 and 4). In this work, these force
+sensors could accurately reﬂect the multiple statuses during the
+contact procedure in a typical object interaction sequence with a
+sensitivity of 0.375 mv kPa−1 over a range of 0−400 kPa (Fig.2c).
+Figure 2d indicates that the force sensor performs well in the
+identiﬁcation of objects with various elastic stiffness (Supplemen-
+tary Fig. 4 and Supplementary Notes 2 and 3). The gas sensors
+demonstrated rapid responses during contact with the detected
+gas ﬂow (response phase of ethanol gas sensor for example,
+
+[source: pmc:12994710|chunk:15]
+to which gene family size significantly changed per species varied. For instance,  Condylura cristata  had 13 expanding and 9 contracting gene families, whereas  H. sapiens  had 501 expanding and 103 contracting gene families.  Scutisorex somereni  had 53 expanding and 132 contracting gene families. By extracting the  H. sapiens  protein IDs from each significantly expanding or contracting gene family in  S. somereni , we tested for enrichment of biological process gene ontology (GO) terms. We found significant enrichment of 42 GO terms for expanding gene families and 26 for contracting gene families (FDR  P -value < 0.01). The top 20 GO terms for expanding gene families were related to sensory, immune, and metabolic pathways ( Fig. 5a ). Similarly, the top 20 GO terms for contracting gene families were related to sensory and immune pathways ( Fig. 5b ). Fig. 4. CAFE5 results showing the number of expanding and contracting gene families per species ( P -value < 0.01).  Scutisorex
+
+[source: doi:https://doi.org/10.1038/s41467-021-27672-z|chunk:26]
+ARTICLE NATURE COMMUNICATIONS | https://doi.org/10.1038/s41467-021-27672-z
+4 NATURE COMMUNICATIONS|           (2022) 13:79 | https://doi.org/10.1038/s41467-021-27672-z | www.nature.com/naturecommunications
+
+[source: doi:https://doi.org/10.1038/srep06241|chunk:48]
+twitter? Communication or simple echo-based orientation.Biol. Letters5,
+593–596 (2009).
+45. Gould, E., Negus, N. C. & Novick, A. Evidence for echolocation in shrews.J. Exp.
+Zool. 156, 19–37 (1964).
+46. Tomasi, T. E. Echolocation by the short-tailed shrew Blarina brevicauda.
+J Mammal.60, 751–759 (1979).
+47. Neuweiler, G.The Biology of Bats. (Oxford University Press, 2000).
+48. Catania, K. C., Lyon, D. C., Mock, O. B. & Kaas, J. H. Cortical organization in
+shrews: evidence from five species.J. Comp. Neurol.410, 55–72 (1999).
+49. Suga, N. & Jen, P. H. Disproportionate tonotopic representation for processing
+CF-FM sonar signals in the mustache bat auditory cortex.Science 194, 542–544
+(1976).
+50. Suga, N. & O’Neill, W. E. Neural axis representing target range in the auditory
+cortex of the mustache bat.Science 206, 351–353 (1979).
+51. Catania, K. C. & Remple, F. E. Asymptotic prey profitability drives star-nosed
+moles to the foraging speed limit.Nature 433, 519–522 (2005).
+
+[source: wiki:en:condylura cristata|chunk:13]
+Eimer's organ is a sensory structure also found in nearly all of the approximately 30 species of mole, however none contains as many as in Condylura. This large amount of specialized receptors makes the star ultrasensitive – about 6 times more sensitive than the human hand, which contains about 17,000 receptors.
+
+[source: pmc:12994710|chunk:7]
+Center for Biotechnology Information (NCBI;  www.ncbi.nlm.nih.gov : accessed January 2026;  Zoonomia Consortium 2020 ;  Christmas et al. 2023 ). The growth of genomic resources for mammals has facilitated both large-scale and clade-specific comparative genomics studies aiming to relate genetic variation with traits of interest ( Tollis et al. 2019 ;  Roycroft et al. 2021 ;  Yuan et al. 2021 ;  Chavez et al. 2022 ;  Christmas et al. 2023 ;  Cossette et al. 2024 ;  Kopania et al. 2024 ;  Morales et al. 2024 ;  Steinbinder et al. 2024 ;  Telizhenko et al. 2024 ;  Pospelova et al. 2025 ;  Zhang et al. 2025 ). Genetic variation is the raw material for evolution by natural selection, and comparing genomes among species highlights shared or distinct variation underlying target traits. In general, most observed genetic variation within and between species is neutral ( Kimura 1968 ;  King and Jukes 1969 ), but rare, advantageous mutations can facilitate the evolution of novel phenotypes.
+
+[source: doi:https://doi.org/10.1371/journal.pone.0055001|chunk:54]
+MEC-2 regulates C. elegans DEG/ENaC channels needed for mechanosensa-
+tion. Nature 415: 1039–1042.
+29. Martinez-Salgado C, Benckendorff AG, Chiang LY, Wang R, Milenkovic N, et
+al. (2007) Stomatin and sensory neuron mechanotransduction. J Neurophysiol
+98: 3802–3808.
+30. Biel M (2009) Cyclic nucleotide-regulated cation channels. J Biol Chem 284:
+9017–9021.
+31. Belluscio L, Gold GH, Nemes A, Axel R (1998) Mice deficient in G(olf) are
+anosmic. Neuron 20: 69–81.
+32. Wong ST, Trinh K, Hacker B, Chan GC, Lowe G, et al. (2000) Disruption of
+the type III adenylyl cyclase gene leads to peripheral and behavioral anosmia in
+transgenic mice. Neuron 27: 487–497.
+33. Senthilan PR, Piepenbrock D, Ovezmyradov G, Nadrowski B, Bechstedt S, et al.
+(2012) Drosophila auditory organ genes and genetic hearing defects. Cell 150:
+1042–1054.
+34. Krogh A (1929) The Progress of Physiology. Science 70: 200–204.
+35. Marioni JC, Mason CE, Mane SM, Stephens M, Gilad Y (2008) RNA-seq: an
+
+[source: doi:https://doi.org/10.1371/journal.pone.0022406|chunk:44]
+9. Malpeli JG, Baker FH (1975) The representation of the visual field in the lateral
+geniculate nucleus of Macaca mulatta. J Comp Neur 161: 569–594.
+10. Myerson J, Manis PB, Miezin FM, Allman JM (1977) Magnification in striate
+cortex and retinal ganglion cell layer of owl monkey: a quantitative comparison.
+Science 198: 855–857.
+11. Perry VH, Cowey A (1985) The ganglion cell and cone distributions in the
+monkey’s retina: implications for central magnification factors. Vision Res 25:
+1795–1810.
+12. Silveira LCL, Picanco-Dinz CW, Sampaio LFS, Oswaldo-Cruz E (1989) Retinal
+ganglion cell distribution in the cebus monkey: a comparison with the cortical
+magnification factors. Vision Res 29: 1471–1483.
+13. Azzopardi P, Cowey A (1993) Preferential representation of the fovea in primary
+visual cortex. Nature 361: 719–721.
+14. Catania KC, Remple FE (2004) Tactile foveation in the star-nosed mole. Brain
+Behav Evol 63: 1–12.
+
+Species:
+condylura cristata
+
+Answer:

@@ -1,0 +1,6 @@
+Species: Furcifer pardalis
+Wikipedia ingested: yes
+Wikipedia used: yes
+Papers ingested: 10
+Chunks used: 25
+Wikipedia chunks used: 3

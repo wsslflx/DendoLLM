@@ -15,7 +15,8 @@ from build_testcase_json import build_entries, parse_species_arg
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+from llm_backend import DEFAULT_CHAT_MODEL, make_chat_llm, make_embeddings
 
 load_dotenv()
 
@@ -294,7 +295,7 @@ def build_trait_records(
     return out
 
 
-def llm_invoke_json(llm: ChatOpenAI, template_text: str, variables: dict[str, Any]) -> Any:
+def llm_invoke_json(llm: Any, template_text: str, variables: dict[str, Any]) -> Any:
     prompt = PromptTemplate(input_variables=list(variables.keys()), template=template_text)
     rendered = prompt.format(**variables)
     raw = llm.invoke(rendered)
@@ -725,7 +726,7 @@ def main() -> None:
         help="Only ingest/download on the first run; subsequent runs skip ingestion (default: on).",
     )
     parser.add_argument("--skip-ingest-all", action="store_true", help="Skip ingestion/download for all runs.")
-    parser.add_argument("--model", default="gpt-4o-mini", help="OpenAI model name for v3 layers.")
+    parser.add_argument("--model", default=DEFAULT_CHAT_MODEL, help="Chat model name for v3 layers.")
     parser.add_argument("--temperature", type=float, default=0.0, help="LLM temperature.")
     parser.add_argument(
         "--inference-temperature",
@@ -772,15 +773,15 @@ def main() -> None:
     inference_raw_per_run: list[dict[str, Any]] = []
     inference_verified_per_run: list[dict[str, Any]] = []
 
-    llm = ChatOpenAI(model_name=args.model, temperature=args.temperature)
-    llm_inference = ChatOpenAI(model_name=args.model, temperature=args.inference_temperature)
+    llm = make_chat_llm(model=args.model, temperature=args.temperature)
+    llm_inference = make_chat_llm(model=args.model, temperature=args.inference_temperature)
     synthesis_prompt = load_prompt(SYNTHESIS_PROMPT_FILE)
     inference_prompt = load_prompt(INFERENCE_PROMPT_FILE)
     verifier_prompt = load_prompt(VERIFIER_PROMPT_FILE)
     vectorstore = Chroma(
         collection_name="bunch_of_docs",
-        embedding_function=OpenAIEmbeddings(),
-        persist_directory="./chroma_store",
+        embedding_function=make_embeddings(),
+        persist_directory="./chroma_store_ollama",
     )
 
     for run_dir in run_dirs:

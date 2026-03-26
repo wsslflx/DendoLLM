@@ -1,0 +1,6 @@
+Species: chrysochloris asiatica
+Wikipedia ingested: no
+Wikipedia used: yes
+Papers ingested: 0
+Chunks used: 21
+Wikipedia chunks used: 1

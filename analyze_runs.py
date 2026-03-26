@@ -54,8 +54,17 @@ def jaccard(a: set[str], b: set[str]) -> float:
     return len(a & b) / len(a | b)
 
 def analyze_runs(run_files: list[Path]) -> dict:
-    runs: list[list[dict]] = [load_run_file(p) for p in run_files]
+    runs: list[list[dict]] = []
+    skipped_files: list[dict[str, str]] = []
+    for path in run_files:
+        try:
+            runs.append(load_run_file(path))
+        except Exception as exc:
+            skipped_files.append({"file": str(path), "error": str(exc)})
+            print(f"Warning: skipping malformed run file {path}: {exc}")
     n = len(runs)
+    if n == 0:
+        raise SystemExit("No valid run files could be parsed. Check synthesis JSON outputs.")
 
     # Presence: trait -> set(run_idx)
     present: dict[str, set[int]] = defaultdict(set)
@@ -124,6 +133,9 @@ def analyze_runs(run_files: list[Path]) -> dict:
 
     return {
         "n_runs": n,
+        "n_runs_requested": len(run_files),
+        "n_runs_skipped": len(skipped_files),
+        "skipped_run_files": skipped_files,
         "trait_frequency": freq,   # list of (trait, count)
         "citation_drift": drift,   # dict keyed by trait
     }

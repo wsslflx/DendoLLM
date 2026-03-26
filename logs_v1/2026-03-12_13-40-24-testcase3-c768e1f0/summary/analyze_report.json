@@ -1,0 +1,254 @@
+{
+  "n_runs": 5,
+  "n_runs_requested": 5,
+  "n_runs_skipped": 0,
+  "skipped_run_files": [],
+  "trait_frequency": [
+    [
+      "color change ability",
+      4
+    ],
+    [
+      "camouflage and adaptive coloration",
+      2
+    ],
+    [
+      "arboreal lifestyle",
+      1
+    ],
+    [
+      "camouflage and visual predator avoidance",
+      1
+    ],
+    [
+      "camouflage as a defense mechanism",
+      1
+    ],
+    [
+      "camouflage as a survival strategy",
+      1
+    ],
+    [
+      "color-changing ability",
+      1
+    ],
+    [
+      "highly adaptable to various habitats",
+      1
+    ],
+    [
+      "large size",
+      1
+    ]
+  ],
+  "citation_drift": {
+    "color change ability": {
+      "runs_present": 4,
+      "citation_union_size": 20,
+      "mean_pairwise_jaccard": 0.199,
+      "mean_vs_union_jaccard": 0.338,
+      "citation_union": [
+        "doi:10.1038/ncomms7368",
+        "doi:10.1038/srep13196",
+        "doi:https://doi.org/10.11646/mr.31.1.2|chunk:2",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2",
+        "pmc:12912887",
+        "pmc:12966949|chunk:12",
+        "pmc:12966949|chunk:15",
+        "pmc:12966949|chunk:17",
+        "pmc:12966949|chunk:7",
+        "pmc:12966949|chunk:9",
+        "wiki:en:dryophytes versicolor",
+        "wiki:en:dryophytes versicolor|chunk:2",
+        "wiki:en:dryophytes versicolor|chunk:28",
+        "wiki:en:dryophytes versicolor|chunk:6",
+        "wiki:en:furcifer pardalis",
+        "wiki:en:furcifer pardalis|chunk:2",
+        "wiki:en:furcifer pardalis|chunk:31",
+        "wiki:en:octopus vulgaris|chunk:1"
+      ],
+      "citation_counts": {
+        "doi:10.1038/ncomms7368": 2,
+        "doi:10.1038/srep13196": 4,
+        "doi:https://doi.org/10.11646/mr.31.1.2|chunk:2": 1,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040": 1,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1": 1,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2": 1,
+        "pmc:12912887": 4,
+        "pmc:12966949|chunk:12": 1,
+        "pmc:12966949|chunk:15": 1,
+        "pmc:12966949|chunk:17": 1,
+        "pmc:12966949|chunk:7": 1,
+        "pmc:12966949|chunk:9": 1,
+        "wiki:en:dryophytes versicolor": 1,
+        "wiki:en:dryophytes versicolor|chunk:2": 1,
+        "wiki:en:dryophytes versicolor|chunk:28": 1,
+        "wiki:en:dryophytes versicolor|chunk:6": 1,
+        "wiki:en:furcifer pardalis": 1,
+        "wiki:en:furcifer pardalis|chunk:2": 1,
+        "wiki:en:furcifer pardalis|chunk:31": 1,
+        "wiki:en:octopus vulgaris|chunk:1": 1
+      }
+    },
+    "camouflage and adaptive coloration": {
+      "runs_present": 2,
+      "citation_union_size": 6,
+      "mean_pairwise_jaccard": 0.667,
+      "mean_vs_union_jaccard": 0.833,
+      "citation_union": [
+        "doi:10.1038/srep13196",
+        "doi:https://doi.org/10.3389/fmars.2019.00484|chunk:39",
+        "doi:https://doi.org/10.3389/fmars.2019.00484|chunk:81",
+        "pmc:12966949|chunk:15",
+        "pmc:12966949|chunk:17",
+        "pmc:12966949|chunk:9"
+      ],
+      "citation_counts": {
+        "doi:10.1038/srep13196": 2,
+        "doi:https://doi.org/10.3389/fmars.2019.00484|chunk:39": 1,
+        "doi:https://doi.org/10.3389/fmars.2019.00484|chunk:81": 1,
+        "pmc:12966949|chunk:15": 2,
+        "pmc:12966949|chunk:17": 2,
+        "pmc:12966949|chunk:9": 2
+      }
+    },
+    "camouflage as a defense mechanism": {
+      "runs_present": 1,
+      "citation_union_size": 5,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:10.1038/srep13196",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040",
+        "pmc:12912887",
+        "wiki:en:dryophytes versicolor",
+        "wiki:en:furcifer pardalis"
+      ],
+      "citation_counts": {
+        "doi:10.1038/srep13196": 1,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040": 1,
+        "pmc:12912887": 1,
+        "wiki:en:dryophytes versicolor": 1,
+        "wiki:en:furcifer pardalis": 1
+      }
+    },
+    "color-changing ability": {
+      "runs_present": 1,
+      "citation_union_size": 4,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:10.1038/srep13196",
+        "pmc:12912887",
+        "wiki:en:dryophytes versicolor|chunk:28",
+        "wiki:en:furcifer pardalis"
+      ],
+      "citation_counts": {
+        "doi:10.1038/srep13196": 1,
+        "pmc:12912887": 1,
+        "wiki:en:dryophytes versicolor|chunk:28": 1,
+        "wiki:en:furcifer pardalis": 1
+      }
+    },
+    "large size": {
+      "runs_present": 1,
+      "citation_union_size": 1,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:panulirus cygnus|chunk:1"
+      ],
+      "citation_counts": {
+        "wiki:en:panulirus cygnus|chunk:1": 1
+      }
+    },
+    "arboreal lifestyle": {
+      "runs_present": 1,
+      "citation_union_size": 1,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:furcifer pardalis"
+      ],
+      "citation_counts": {
+        "wiki:en:furcifer pardalis": 1
+      }
+    },
+    "highly adaptable to various habitats": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.11646/mr.31.1.2|chunk:2",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.11646/mr.31.1.2|chunk:2": 1,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1": 1
+      }
+    },
+    "camouflage as a survival strategy": {
+      "runs_present": 1,
+      "citation_union_size": 11,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:10.1038/ncomms7368",
+        "doi:10.1038/srep13196",
+        "doi:https://doi.org/10.11646/mr.31.1.2|chunk:2",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2",
+        "pmc:12912887",
+        "pmc:12966949|chunk:12",
+        "pmc:12966949|chunk:15",
+        "pmc:12966949|chunk:17",
+        "pmc:12966949|chunk:7",
+        "pmc:12966949|chunk:9",
+        "wiki:en:octopus vulgaris|chunk:1"
+      ],
+      "citation_counts": {
+        "doi:10.1038/ncomms7368": 1,
+        "doi:10.1038/srep13196": 1,
+        "doi:https://doi.org/10.11646/mr.31.1.2|chunk:2": 1,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2": 1,
+        "pmc:12912887": 1,
+        "pmc:12966949|chunk:12": 1,
+        "pmc:12966949|chunk:15": 1,
+        "pmc:12966949|chunk:17": 1,
+        "pmc:12966949|chunk:7": 1,
+        "pmc:12966949|chunk:9": 1,
+        "wiki:en:octopus vulgaris|chunk:1": 1
+      }
+    },
+    "camouflage and visual predator avoidance": {
+      "runs_present": 1,
+      "citation_union_size": 9,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:10.1038/ncomms7368",
+        "doi:10.1038/srep13196",
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1",
+        "pmc:12912887",
+        "pmc:12966949|chunk:15",
+        "pmc:12966949|chunk:17",
+        "pmc:12966949|chunk:9",
+        "wiki:en:dryophytes versicolor|chunk:28",
+        "wiki:en:dryophytes versicolor|chunk:6"
+      ],
+      "citation_counts": {
+        "doi:10.1038/ncomms7368": 1,
+        "doi:10.1038/srep13196": 1,
+        "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1": 1,
+        "pmc:12912887": 1,
+        "pmc:12966949|chunk:15": 1,
+        "pmc:12966949|chunk:17": 1,
+        "pmc:12966949|chunk:9": 1,
+        "wiki:en:dryophytes versicolor|chunk:28": 1,
+        "wiki:en:dryophytes versicolor|chunk:6": 1
+      }
+    }
+  }
+}

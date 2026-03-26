@@ -1,0 +1,73 @@
+{
+  "bundle_dir": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0",
+  "run_label": "testcase3",
+  "species_file": "testcase3.json",
+  "species_snapshot": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/species_input.json",
+  "species_input_mode": "file",
+  "species_list": null,
+  "runs": 5,
+  "reuse_traits": false,
+  "skip_ingest_after_first": true,
+  "traits_dir": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/traits",
+  "pdf_dir": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/cache/pdfs",
+  "chroma_dir": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/cache/chroma_store_ollama",
+  "ingest_lock_file": ".ingest.lock",
+  "run_list": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/run_list.txt",
+  "analyze_report": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/summary/analyze_report.json",
+  "group_report": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/summary/trait_groups.json",
+  "model": "qwen2.5:latest",
+  "temperature": 0.0,
+  "timestamp": "2026-03-12_13-40-24",
+  "source_stats": {
+    "overall": {
+      "papers_fetched": 31,
+      "papers_used": 20,
+      "wiki_fetched": 4,
+      "wiki_used": 4
+    },
+    "per_run": [
+      {
+        "run_dir": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_01",
+        "papers_fetched": 31,
+        "papers_used": 20,
+        "wiki_fetched": 4,
+        "wiki_used": 4
+      },
+      {
+        "run_dir": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_02",
+        "papers_fetched": 0,
+        "papers_used": 20,
+        "wiki_fetched": 0,
+        "wiki_used": 4
+      },
+      {
+        "run_dir": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_03",
+        "papers_fetched": 0,
+        "papers_used": 20,
+        "wiki_fetched": 0,
+        "wiki_used": 4
+      },
+      {
+        "run_dir": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_04",
+        "papers_fetched": 0,
+        "papers_used": 20,
+        "wiki_fetched": 0,
+        "wiki_used": 4
+      },
+      {
+        "run_dir": "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_05",
+        "papers_fetched": 0,
+        "papers_used": 20,
+        "wiki_fetched": 0,
+        "wiki_used": 4
+      }
+    ]
+  },
+  "run_dirs_v1": [
+    "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_01",
+    "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_02",
+    "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_03",
+    "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_04",
+    "logs_v1/2026-03-12_13-40-24-testcase3-c768e1f0/runs/run_05"
+  ]
+}

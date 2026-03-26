@@ -1,0 +1,326 @@
+{
+  "n_runs": 2,
+  "n_runs_requested": 2,
+  "n_runs_skipped": 0,
+  "skipped_run_files": [],
+  "trait_frequency": [
+    [
+      "eusocial behavior",
+      2
+    ],
+    [
+      "subterranean lifestyle",
+      2
+    ],
+    [
+      "adapted for aquatic and terrestrial foraging",
+      1
+    ],
+    [
+      "adapted to low oxygen environments",
+      1
+    ],
+    [
+      "aggressive social behavior",
+      1
+    ],
+    [
+      "colonial social behavior",
+      1
+    ],
+    [
+      "distinct visual capabilities",
+      1
+    ],
+    [
+      "large brain volume",
+      1
+    ],
+    [
+      "resistance to cancer",
+      1
+    ],
+    [
+      "social behavior and thermoregulation",
+      1
+    ],
+    [
+      "specialized sensory capabilities",
+      1
+    ],
+    [
+      "subterranean adaptation",
+      1
+    ],
+    [
+      "unique pain insensitivity",
+      1
+    ],
+    [
+      "unique physical features",
+      1
+    ],
+    [
+      "unique sensory adaptations",
+      1
+    ],
+    [
+      "unusual physiological adaptations",
+      1
+    ]
+  ],
+  "citation_drift": {
+    "subterranean lifestyle": {
+      "runs_present": 2,
+      "citation_union_size": 6,
+      "mean_pairwise_jaccard": 0.833,
+      "mean_vs_union_jaccard": 0.917,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5",
+        "pmc:12719769|chunk:10",
+        "pmc:12719769|chunk:35",
+        "wiki:en:nannospalax ehrenbergi|chunk:4"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43": 2,
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67": 2,
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5": 1,
+        "pmc:12719769|chunk:10": 2,
+        "pmc:12719769|chunk:35": 2,
+        "wiki:en:nannospalax ehrenbergi|chunk:4": 2
+      }
+    },
+    "eusocial behavior": {
+      "runs_present": 2,
+      "citation_union_size": 4,
+      "mean_pairwise_jaccard": 0.25,
+      "mean_vs_union_jaccard": 0.625,
+      "citation_union": [
+        "wiki:en:heterocephalus glaber|chunk:13",
+        "wiki:en:heterocephalus glaber|chunk:14",
+        "wiki:en:heterocephalus glaber|chunk:28",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "citation_counts": {
+        "wiki:en:heterocephalus glaber|chunk:13": 1,
+        "wiki:en:heterocephalus glaber|chunk:14": 1,
+        "wiki:en:heterocephalus glaber|chunk:28": 2,
+        "wiki:en:nannospalax ehrenbergi|chunk:1": 1
+      }
+    },
+    "unique physical features": {
+      "runs_present": 1,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/s41467-021-27672-z|chunk:4",
+        "wiki:en:condylura cristata|chunk:0",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/s41467-021-27672-z|chunk:4": 1,
+        "wiki:en:condylura cristata|chunk:0": 1,
+        "wiki:en:nannospalax ehrenbergi|chunk:1": 1
+      }
+    },
+    "specialized sensory capabilities": {
+      "runs_present": 1,
+      "citation_union_size": 5,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/s41467-021-27672-z|chunk:4",
+        "doi:https://doi.org/10.1038/srep06241|chunk:7",
+        "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:26",
+        "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:31",
+        "wiki:en:condylura cristata|chunk:0"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/s41467-021-27672-z|chunk:4": 1,
+        "doi:https://doi.org/10.1038/srep06241|chunk:7": 1,
+        "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:26": 1,
+        "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:31": 1,
+        "wiki:en:condylura cristata|chunk:0": 1
+      }
+    },
+    "unique sensory adaptations": {
+      "runs_present": 1,
+      "citation_union_size": 3,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7": 1,
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67": 1,
+        "pmc:12719769|chunk:10": 1
+      }
+    },
+    "aggressive social behavior": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "pmc:12719769|chunk:24",
+        "pmc:12719769|chunk:33"
+      ],
+      "citation_counts": {
+        "pmc:12719769|chunk:24": 1,
+        "pmc:12719769|chunk:33": 1
+      }
+    },
+    "large brain volume": {
+      "runs_present": 1,
+      "citation_union_size": 1,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7": 1
+      }
+    },
+    "resistance to cancer": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:46",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:46": 1,
+        "wiki:en:nannospalax ehrenbergi|chunk:1": 1
+      }
+    },
+    "adapted for aquatic and terrestrial foraging": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:condylura cristata|chunk:4",
+        "wiki:en:condylura cristata|chunk:5"
+      ],
+      "citation_counts": {
+        "wiki:en:condylura cristata|chunk:4": 1,
+        "wiki:en:condylura cristata|chunk:5": 1
+      }
+    },
+    "colonial social behavior": {
+      "runs_present": 1,
+      "citation_union_size": 1,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:condylura cristata|chunk:5"
+      ],
+      "citation_counts": {
+        "wiki:en:condylura cristata|chunk:5": 1
+      }
+    },
+    "unique pain insensitivity": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:55",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:62"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:55": 1,
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:62": 1
+      }
+    },
+    "adapted to low oxygen environments": {
+      "runs_present": 1,
+      "citation_union_size": 2,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:68",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:90"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:68": 1,
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:90": 1
+      }
+    },
+    "subterranean adaptation": {
+      "runs_present": 1,
+      "citation_union_size": 6,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43",
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10",
+        "pmc:12719769|chunk:35",
+        "wiki:en:nannospalax ehrenbergi|chunk:4"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43": 1,
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7": 1,
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67": 1,
+        "pmc:12719769|chunk:10": 1,
+        "pmc:12719769|chunk:35": 1,
+        "wiki:en:nannospalax ehrenbergi|chunk:4": 1
+      }
+    },
+    "social behavior and thermoregulation": {
+      "runs_present": 1,
+      "citation_union_size": 1,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "wiki:en:condylura cristata|chunk:5"
+      ],
+      "citation_counts": {
+        "wiki:en:condylura cristata|chunk:5": 1
+      }
+    },
+    "unusual physiological adaptations": {
+      "runs_present": 1,
+      "citation_union_size": 5,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:55",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:62",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:68",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:90"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5": 1,
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:55": 1,
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:62": 1,
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:68": 1,
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:90": 1
+      }
+    },
+    "distinct visual capabilities": {
+      "runs_present": 1,
+      "citation_union_size": 1,
+      "mean_pairwise_jaccard": 1.0,
+      "mean_vs_union_jaccard": 1.0,
+      "citation_union": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:25"
+      ],
+      "citation_counts": {
+        "doi:https://doi.org/10.1038/nature10533|chunk:25": 1
+      }
+    }
+  }
+}

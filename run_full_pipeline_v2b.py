@@ -15,7 +15,8 @@ import numpy as np
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+from llm_backend import DEFAULT_CHAT_MODEL, make_chat_llm, make_embeddings
 
 load_dotenv()
 
@@ -148,7 +149,7 @@ def token_jaccard(a: str, b: str) -> float:
 
 
 def llm_invoke_json(
-    llm: ChatOpenAI,
+    llm: Any,
     template_text: str,
     variables: dict[str, Any],
 ) -> Any:
@@ -889,7 +890,7 @@ def cluster_mechanisms(
     mapping: dict[str, str] = {}
 
     try:
-        embedder = OpenAIEmbeddings()
+        embedder = make_embeddings()
         vectors = embedder.embed_documents(unique)
         arr = {label: np.array(vec, dtype=float) for label, vec in zip(unique, vectors)}
     except Exception:
@@ -1087,7 +1088,7 @@ def match_track_b_to_track_a(
     vectors: dict[str, np.ndarray] = {}
     all_labels = [x for x in a_labels + b_labels if x]
     try:
-        embedder = OpenAIEmbeddings()
+        embedder = make_embeddings()
         embs = embedder.embed_documents(all_labels)
         vectors = {label: np.array(vec, dtype=float) for label, vec in zip(all_labels, embs)}
     except Exception:
@@ -1211,7 +1212,7 @@ def run_track_b(bundle_dir: pathlib.Path, args: argparse.Namespace) -> dict[str,
     proposer_prompt = load_prompt(args.track_b_proposer_prompt)
     verifier_prompt = load_prompt(args.track_b_verifier_prompt)
 
-    llm = ChatOpenAI(model_name=args.model, temperature=args.temperature)
+    llm = make_chat_llm(model=args.model, temperature=args.temperature)
 
     run_dirs = read_run_dirs(bundle_dir)
     if not run_dirs:
@@ -1534,7 +1535,7 @@ def parse_args() -> argparse.Namespace:
         help="Pass through to Track A (default on).",
     )
     parser.add_argument("--skip-ingest-all", action="store_true")
-    parser.add_argument("--model", default="gpt-4o-mini")
+    parser.add_argument("--model", default=DEFAULT_CHAT_MODEL)
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--group-traits", action="store_true")
     parser.add_argument("--min-species-support", type=int, default=2)

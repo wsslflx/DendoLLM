@@ -1,0 +1,273 @@
+{
+  "open_traits": [
+    {
+      "trait": "Eusocial colony structure with reproductive queen",
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:39",
+        "wiki:en:heterocephalus glaber|chunk:26"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Low basal metabolic rate and body temperature",
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:28",
+        "doi:https://doi.org/10.1038/nature10533|chunk:39"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Adapted to hypoxic and hypercapnic burrow environments",
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:28"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Nociceptors lack ability to detect acid stimuli",
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:11"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Behavioral insensitivity to capsaicin and inflammatory pain",
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:0",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:11"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Hairless phenotype with poor visual function",
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:27",
+        "doi:https://doi.org/10.1038/nature10533|chunk:28"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Exceptional longevity and cancer resistance phenotype",
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pone.0026729|chunk:37"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Fibroblasts resistant to multiple forms of cell injury",
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pone.0026729|chunk:60"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Reduced bitter taste receptor repertoire",
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:28"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Defective GPx1 expression affecting selenium utilization",
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pone.0026729|chunk:58"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Cooperative foraging with odor trail communication",
+      "sources": [
+        "wiki:en:heterocephalus glaber|chunk:23"
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "normalized_tags": [
+    {
+      "tag": "Adapted to hypoxic and hypercapnic burrow environments",
+      "members": [
+        "Adapted to hypoxic and hypercapnic burrow environments"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:28"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Behavioral insensitivity to capsaicin and inflammatory pain",
+      "members": [
+        "Behavioral insensitivity to capsaicin and inflammatory pain"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:0",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:11"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Cooperative foraging with odor trail communication",
+      "members": [
+        "Cooperative foraging with odor trail communication"
+      ],
+      "sources": [
+        "wiki:en:heterocephalus glaber|chunk:23"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Defective GPx1 expression affecting selenium utilization",
+      "members": [
+        "Defective GPx1 expression affecting selenium utilization"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pone.0026729|chunk:58"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Eusocial colony structure with reproductive queen",
+      "members": [
+        "Eusocial colony structure with reproductive queen"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:39",
+        "wiki:en:heterocephalus glaber|chunk:26"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Exceptional longevity and cancer resistance phenotype",
+      "members": [
+        "Exceptional longevity and cancer resistance phenotype"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pone.0026729|chunk:37"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Fibroblasts resistant to multiple forms of cell injury",
+      "members": [
+        "Fibroblasts resistant to multiple forms of cell injury"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pone.0026729|chunk:60"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Hairless phenotype with poor visual function",
+      "members": [
+        "Hairless phenotype with poor visual function"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:27",
+        "doi:https://doi.org/10.1038/nature10533|chunk:28"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Low basal metabolic rate and body temperature",
+      "members": [
+        "Low basal metabolic rate and body temperature"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:28",
+        "doi:https://doi.org/10.1038/nature10533|chunk:39"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Nociceptors lack ability to detect acid stimuli",
+      "members": [
+        "Nociceptors lack ability to detect acid stimuli"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:11"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Reduced bitter taste receptor repertoire",
+      "members": [
+        "Reduced bitter taste receptor repertoire"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:28"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    }
+  ],
+  "latent_factors": [
+    {
+      "factor": "Sensory and Morphological Adaptations",
+      "supporting_traits": [
+        "Behavioral insensitivity to capsaicin and inflammatory pain",
+        "Hairless phenotype with poor visual function",
+        "Nociceptors lack ability to detect acid stimuli",
+        "Reduced bitter taste receptor repertoire"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:27",
+        "doi:https://doi.org/10.1038/nature10533|chunk:28",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:0",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:11"
+      ],
+      "support_count": 4,
+      "confidence": 0.95
+    },
+    {
+      "factor": "Cellular Stress Resistance and Longevity",
+      "supporting_traits": [
+        "Defective GPx1 expression affecting selenium utilization",
+        "Exceptional longevity and cancer resistance phenotype",
+        "Fibroblasts resistant to multiple forms of cell injury"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pone.0026729|chunk:37",
+        "doi:https://doi.org/10.1371/journal.pone.0026729|chunk:58",
+        "doi:https://doi.org/10.1371/journal.pone.0026729|chunk:60"
+      ],
+      "support_count": 3,
+      "confidence": 0.95
+    },
+    {
+      "factor": "Subterranean Physiological Homeostasis",
+      "supporting_traits": [
+        "Adapted to hypoxic and hypercapnic burrow environments",
+        "Low basal metabolic rate and body temperature"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:28",
+        "doi:https://doi.org/10.1038/nature10533|chunk:39"
+      ],
+      "support_count": 2,
+      "confidence": 0.95
+    },
+    {
+      "factor": "Eusocial Colony Organization",
+      "supporting_traits": [
+        "Cooperative foraging with odor trail communication",
+        "Eusocial colony structure with reproductive queen"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:39",
+        "wiki:en:heterocephalus glaber|chunk:23",
+        "wiki:en:heterocephalus glaber|chunk:26"
+      ],
+      "support_count": 2,
+      "confidence": 0.95
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "strict_common_traits": [],
+  "subgroup_common_traits": [
+    {
+      "trait": "unique sensory adaptations",
+      "sources": [
+        "doi:https://doi.org/10.1038/srep06241|chunk:7",
+        "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:31",
+        "wiki:en:condylura cristata|chunk:0"
+      ],
+      "confidence": 0.7
+    }
+  ],
+  "mechanism_hypotheses": [
+    {
+      "trait": "Adaptation to subterranean or low oxygen environments",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:28"
+      ],
+      "confidence": 1.0
+    }
+  ]
+}

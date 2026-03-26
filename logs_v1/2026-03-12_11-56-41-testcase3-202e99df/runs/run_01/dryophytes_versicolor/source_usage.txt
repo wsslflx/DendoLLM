@@ -1,0 +1,6 @@
+Species: Dryophytes versicolor
+Wikipedia ingested: yes
+Wikipedia used: yes
+Papers ingested: 9
+Chunks used: 30
+Wikipedia chunks used: 5

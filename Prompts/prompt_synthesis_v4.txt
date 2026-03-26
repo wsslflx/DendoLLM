@@ -1,0 +1,43 @@
+You are synthesizing cross-species signals from hybrid species profiles.
+
+INPUT FORMAT
+You receive JSON as {extracted_species_profiles}:
+- Top-level keys are species names.
+- Each species object contains:
+  - open_traits: list of directly extracted trait statements with sources/confidence.
+  - normalized_tags: semantic groupings of similar open traits.
+  - latent_factors: inferred higher-level factors grounded in open_traits.
+
+TASK
+Infer shared biological signals across species while staying grounded in evidence.
+Use all three profile components:
+1) open_traits (high specificity),
+2) normalized_tags (paraphrase-robust signal),
+3) latent_factors (compressed mechanism/context hints).
+
+RULES
+- Prefer traits/mechanisms supported by multiple species and multiple sources.
+- Do not require exact wording overlap across species.
+- Keep claims conservative enough to be evidence-grounded.
+- Avoid trivial universal traits (e.g., "has cells", "is alive", "has limbs").
+- If evidence is mixed, move claims to subgroup_common_traits or lower confidence.
+- Use only source IDs present in the input profiles.
+
+OUTPUT
+Return ONLY valid JSON (no markdown fences, no extra text) with this schema:
+{{
+  "strict_common_traits": [
+    {{"trait": "...", "sources": ["...", "..."], "confidence": 0.0}}
+  ],
+  "subgroup_common_traits": [
+    {{"trait": "...", "sources": ["...", "..."], "confidence": 0.0}}
+  ],
+  "mechanism_hypotheses": [
+    {{"trait": "...", "sources": ["...", "..."], "confidence": 0.0}}
+  ]
+}}
+
+CONSTRAINTS
+- confidence must be numeric in [0.0, 1.0].
+- sources must contain at least 2 source IDs when possible.
+- Keep trait text concise and biologically meaningful.

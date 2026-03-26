@@ -1,0 +1,52 @@
+[
+    {
+        "trait": "large nervous system",
+        "sources": ["doi:https://doi.org/10.1038/s41597-019-0017-6", "wiki:en:octopus vulgaris"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "ammonotelic metabolism",
+        "sources": ["wiki:en:octopus vulgaris"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "temperature conformer",
+        "sources": ["wiki:en:octopus vulgaris"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "exploratory and opportunistic behavior",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "solitary and non-aggressive",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "gonochoric with sexual dimorphism",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "uses hectocotylus for mating",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "capable of behavioral plasticity",
+        "sources": ["wiki:en:octopus vulgaris"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "has specialized suckers",
+        "sources": ["doi:https://doi.org/10.12782/sd.21.1.031"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "oxygen consumption varies with temperature",
+        "sources": ["wiki:en:octopus vulgaris"],
+        "confidence": 1.0
+    }
+]

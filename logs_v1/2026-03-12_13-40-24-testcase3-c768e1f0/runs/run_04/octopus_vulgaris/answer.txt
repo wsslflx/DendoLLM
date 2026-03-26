@@ -1,0 +1,67 @@
+[
+    {
+        "trait": "ammonotelic metabolism",
+        "sources": ["wiki:en:octopus vulgaris|chunk:33", "pmc:12965858|chunk:37"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "large nervous system",
+        "sources": ["wiki:en:octopus vulgaris|chunk:2", "doi:https://doi.org/10.1038/s41597-019-0017-6|chunk:3"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "temperature conformer",
+        "sources": ["wiki:en:octopus vulgaris|chunk:36", "doi:https://doi.org/10.12681/mms.38|chunk:71"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "exploratory and opportunistic",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2|chunk:2"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "solitary and non-aggressive",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2|chunk:2"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "gonochoric with sexual dimorphism",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2|chunk:2"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "uses hectocotylus for mating",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2|chunk:2"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "intelligent and capable of complex behaviors",
+        "sources": ["wiki:en:octopus vulgaris|chunk:2", "doi:https://doi.org/10.1038/s41597-019-0017-6|chunk:3"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "can change color for camouflage",
+        "sources": ["wiki:en:octopus vulgaris|chunk:1"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "predominantly nocturnal",
+        "sources": ["wiki:en:octopus vulgaris|chunk:1"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "highly adaptable to various habitats",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2|chunk:2"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "has specialized suckers for arm and sucker development",
+        "sources": ["doi:https://doi.org/10.12681/mms.38|chunk:66", "pmc:12965858|chunk:42"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "can exhibit multiple paternity",
+        "sources": ["doi:https://doi.org/10.11646/mr.31.1.2|chunk:15"],
+        "confidence": 0.7
+    }
+]

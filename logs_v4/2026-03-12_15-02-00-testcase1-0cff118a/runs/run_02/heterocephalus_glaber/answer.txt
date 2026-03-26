@@ -1,0 +1,32 @@
+[
+  {
+    "trait": "cold-blooded mammal",
+    "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5"],
+    "confidence": 1.0
+  },
+  {
+    "trait": "unique pain insensitivity",
+    "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:62", "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:55"],
+    "confidence": 1.0
+  },
+  {
+    "trait": "eusocial behavior",
+    "sources": ["wiki:en:heterocephalus glaber|chunk:28", "wiki:en:heterocephalus glaber|chunk:13"],
+    "confidence": 1.0
+  },
+  {
+    "trait": "long lifespans",
+    "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5"],
+    "confidence": 0.7
+  },
+  {
+    "trait": "adapted to low oxygen environments",
+    "sources": ["doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:68", "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:90"],
+    "confidence": 1.0
+  },
+  {
+    "trait": "unique visual system",
+    "sources": ["doi:https://doi.org/10.1038/nature10533|chunk:25"],
+    "confidence": 0.7
+  }
+]

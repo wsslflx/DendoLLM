@@ -16,7 +16,8 @@ from analyze_runs import analyze_runs as analyze_run_files
 from build_testcase_json import build_entries, parse_species_arg
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+
+from llm_backend import DEFAULT_CHAT_MODEL, make_chat_llm
 
 FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
 
@@ -395,7 +396,7 @@ def infer_trait_semantics_with_llm(
     if not traits:
         return {}
 
-    llm = ChatOpenAI(model_name=model, temperature=temperature)
+    llm = make_chat_llm(model=model, temperature=temperature)
     prompt = PromptTemplate(
         input_variables=["trait_list"],
         template=load_inference_prompt(),
@@ -917,7 +918,7 @@ def main() -> None:
         action="store_true",
         help="Skip ingestion/download for all runs, including the first run.",
     )
-    parser.add_argument("--model", default="gpt-4o-mini", help="OpenAI model name for grouping.")
+    parser.add_argument("--model", default=DEFAULT_CHAT_MODEL, help="Chat model name for inference/grouping.")
     parser.add_argument("--temperature", type=float, default=0.0, help="LLM temperature for grouping.")
     parser.add_argument(
         "--group-traits",

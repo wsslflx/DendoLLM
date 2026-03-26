@@ -1,0 +1,61 @@
+{
+  "open_traits": [],
+  "normalized_tags": [],
+  "fixed_axes": {
+    "aquatic_or_semiaquatic": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "fossorial_or_subterranean": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "high_altitude_or_hypoxia": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "arboreal": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "aerial_or_flight": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "nocturnal": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "diurnal": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "color_change": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "vision_reduction": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "cold_adaptation": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "arid_drought_adaptation": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    }
+  }
+}

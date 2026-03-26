@@ -1,0 +1,49 @@
+{
+  "strict_common_traits": [
+    {
+      "trait": "subterranean lifestyle",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5",
+        "pmc:12719769|chunk:10",
+        "pmc:12719769|chunk:35",
+        "wiki:en:nannospalax ehrenbergi|chunk:4"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "trait": "eusocial behavior",
+      "sources": [
+        "wiki:en:heterocephalus glaber|chunk:14",
+        "wiki:en:heterocephalus glaber|chunk:28",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "confidence": 0.6
+    }
+  ],
+  "subgroup_common_traits": [
+    {
+      "trait": "unique physical features",
+      "sources": [
+        "doi:https://doi.org/10.1038/s41467-021-27672-z|chunk:4",
+        "wiki:en:condylura cristata|chunk:0",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "confidence": 0.5
+    }
+  ],
+  "mechanism_hypotheses": [
+    {
+      "trait": "specialized sensory capabilities",
+      "sources": [
+        "doi:https://doi.org/10.1038/s41467-021-27672-z|chunk:4",
+        "doi:https://doi.org/10.1038/srep06241|chunk:7",
+        "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:26",
+        "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:31",
+        "wiki:en:condylura cristata|chunk:0"
+      ],
+      "confidence": 0.8
+    }
+  ]
+}
