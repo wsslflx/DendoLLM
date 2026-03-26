@@ -15,12 +15,11 @@ dependencies:
   - tesseract
   - poppler
   - pip:
-      - openai
       - tiktoken
       - chromadb
       - langchain
       - langchain-core
-      - langchain-openai
+      - langchain-ollama
       - langchain-community
       - langchain-text-splitters
       - langchain-chroma

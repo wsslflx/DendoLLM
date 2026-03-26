@@ -1,0 +1,17 @@
+[
+    {
+        "trait": "commercially valuable",
+        "sources": ["wiki:en:panulirus cygnus|chunk:0", "doi:https://doi.org/10.3389/fmars.2019.00484|chunk:81"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "camouflage through color change",
+        "sources": ["pmc:12966949|chunk:15", "pmc:12966949|chunk:9", "pmc:12966949|chunk:17"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "grows in an S-shaped curve",
+        "sources": ["doi:https://doi.org/10.3389/fmars.2019.00484|chunk:39"],
+        "confidence": 0.7
+    }
+]

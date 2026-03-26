@@ -1,0 +1,361 @@
+{
+  "open_traits": [
+    {
+      "trait": "Cylindrically shaped body with no external ear",
+      "sources": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Completely blind with subcutaneous minute degenerated eye",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Completely subterranean lifestyle spending entire life in tunnels",
+      "sources": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4",
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:5"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Feeds on roots rhizomes bulbs and tubers",
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:5"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Flattened head used for digging soil bulldozer",
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:5"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Hypertrophied masseter muscles surrounding the jaw",
+      "sources": [
+        "pmc:12719769|chunk:11"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Solitary social behavior with seismic communication",
+      "sources": [
+        "pmc:12719769|chunk:14",
+        "pmc:12719769|chunk:28"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Reliance on chemosensory cues for underground communication",
+      "sources": [
+        "pmc:12719769|chunk:11"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Enlarged harderian gland secretes aggression-dampening pheromones",
+      "sources": [
+        "pmc:12719769|chunk:11"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Adaptation to hypoxic and hypercapnic underground conditions",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Resistance to acidosis pain via Nav1.7 motif",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Cancer resistance relying predominantly on necrotic cell death",
+      "sources": [
+        "doi:https://doi.org/10.1007/s42991-025-00549-0|chunk:127"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Chromosomal variation indicating cryptic species complex",
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:16",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Larger brain volume with expanded neocortex",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Circadian rhythm regulation via MTNR1A genetic variations",
+      "sources": [
+        "doi:https://doi.org/10.21597/jist.1517654|chunk:0"
+      ],
+      "confidence": 0.7
+    }
+  ],
+  "normalized_tags": [
+    {
+      "tag": "Adaptation to hypoxic and hypercapnic underground conditions",
+      "members": [
+        "Adaptation to hypoxic and hypercapnic underground conditions"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Cancer resistance relying predominantly on necrotic cell death",
+      "members": [
+        "Cancer resistance relying predominantly on necrotic cell death"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1007/s42991-025-00549-0|chunk:127"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Chromosomal variation indicating cryptic species complex",
+      "members": [
+        "Chromosomal variation indicating cryptic species complex"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:16",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Circadian rhythm regulation via MTNR1A genetic variations",
+      "members": [
+        "Circadian rhythm regulation via MTNR1A genetic variations"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.21597/jist.1517654|chunk:0"
+      ],
+      "support_count": 1,
+      "mean_confidence": 0.7
+    },
+    {
+      "tag": "Completely blind with subcutaneous minute degenerated eye",
+      "members": [
+        "Completely blind with subcutaneous minute degenerated eye"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Completely subterranean lifestyle spending entire life in tunnels",
+      "members": [
+        "Completely subterranean lifestyle spending entire life in tunnels"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4",
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:5"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Cylindrically shaped body with no external ear",
+      "members": [
+        "Cylindrically shaped body with no external ear"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Enlarged harderian gland secretes aggression-dampening pheromones",
+      "members": [
+        "Enlarged harderian gland secretes aggression-dampening pheromones"
+      ],
+      "sources": [
+        "pmc:12719769|chunk:11"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Feeds on roots rhizomes bulbs and tubers",
+      "members": [
+        "Feeds on roots rhizomes bulbs and tubers"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:5"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Flattened head used for digging soil bulldozer",
+      "members": [
+        "Flattened head used for digging soil bulldozer"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:5"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Hypertrophied masseter muscles surrounding the jaw",
+      "members": [
+        "Hypertrophied masseter muscles surrounding the jaw"
+      ],
+      "sources": [
+        "pmc:12719769|chunk:11"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Larger brain volume with expanded neocortex",
+      "members": [
+        "Larger brain volume with expanded neocortex"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Reliance on chemosensory cues for underground communication",
+      "members": [
+        "Reliance on chemosensory cues for underground communication"
+      ],
+      "sources": [
+        "pmc:12719769|chunk:11"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Resistance to acidosis pain via Nav1.7 motif",
+      "members": [
+        "Resistance to acidosis pain via Nav1.7 motif"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Solitary social behavior with seismic communication",
+      "members": [
+        "Solitary social behavior with seismic communication"
+      ],
+      "sources": [
+        "pmc:12719769|chunk:14",
+        "pmc:12719769|chunk:28"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    }
+  ],
+  "latent_factors": [
+    {
+      "factor": "Fossorial Morphological Specialization",
+      "supporting_traits": [
+        "Completely blind with subcutaneous minute degenerated eye",
+        "Completely subterranean lifestyle spending entire life in tunnels",
+        "Cylindrically shaped body with no external ear"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4",
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:5"
+      ],
+      "support_count": 3,
+      "confidence": 1.0
+    },
+    {
+      "factor": "Subterranean Feeding and Digging Mechanics",
+      "supporting_traits": [
+        "Feeds on roots rhizomes bulbs and tubers",
+        "Flattened head used for digging soil bulldozer",
+        "Hypertrophied masseter muscles surrounding the jaw"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:5",
+        "pmc:12719769|chunk:11"
+      ],
+      "support_count": 3,
+      "confidence": 1.0
+    },
+    {
+      "factor": "Hypoxic and Pathological Stress Resistance",
+      "supporting_traits": [
+        "Adaptation to hypoxic and hypercapnic underground conditions",
+        "Cancer resistance relying predominantly on necrotic cell death",
+        "Resistance to acidosis pain via Nav1.7 motif"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1007/s42991-025-00549-0|chunk:127",
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43",
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7"
+      ],
+      "support_count": 3,
+      "confidence": 1.0
+    },
+    {
+      "factor": "Non-Visual Sensory and Social Communication",
+      "supporting_traits": [
+        "Enlarged harderian gland secretes aggression-dampening pheromones",
+        "Reliance on chemosensory cues for underground communication",
+        "Solitary social behavior with seismic communication"
+      ],
+      "sources": [
+        "pmc:12719769|chunk:11",
+        "pmc:12719769|chunk:14",
+        "pmc:12719769|chunk:28"
+      ],
+      "support_count": 3,
+      "confidence": 1.0
+    },
+    {
+      "factor": "Neurological and Genetic Complexity",
+      "supporting_traits": [
+        "Chromosomal variation indicating cryptic species complex",
+        "Circadian rhythm regulation via MTNR1A genetic variations",
+        "Larger brain volume with expanded neocortex"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.21597/jist.1517654|chunk:0",
+        "doi:https://doi.org/10.30897/ijegeo.945101|chunk:16",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "support_count": 3,
+      "confidence": 1.0
+    }
+  ]
+}

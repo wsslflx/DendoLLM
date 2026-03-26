@@ -1,0 +1,43 @@
+{
+  "groups": [
+    {
+      "canonical": "color change ability",
+      "members": [
+        "color change ability",
+        "color-changing ability"
+      ],
+      "count": 5
+    },
+    {
+      "canonical": "camouflage and adaptive coloration",
+      "members": [
+        "camouflage and adaptive coloration",
+        "camouflage and visual predator avoidance",
+        "camouflage as a defense mechanism",
+        "camouflage as a survival strategy"
+      ],
+      "count": 5
+    },
+    {
+      "canonical": "arboreal lifestyle",
+      "members": [
+        "arboreal lifestyle"
+      ],
+      "count": 1
+    },
+    {
+      "canonical": "highly adaptable to various habitats",
+      "members": [
+        "highly adaptable to various habitats"
+      ],
+      "count": 1
+    },
+    {
+      "canonical": "large size",
+      "members": [
+        "large size"
+      ],
+      "count": 1
+    }
+  ]
+}

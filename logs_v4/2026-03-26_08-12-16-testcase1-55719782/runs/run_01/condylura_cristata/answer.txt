@@ -1,0 +1,76 @@
+[
+  {
+    "trait": "High density of Eimer's organs on snout",
+    "sources": [
+      "wiki:en:condylura cristata|chunk:13"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Ultrasensitive tactile reception on snout",
+    "sources": [
+      "wiki:en:condylura cristata|chunk:13",
+      "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:26"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Magnified somatosensory cortex representation of snout",
+    "sources": [
+      "doi:https://doi.org/10.1038/srep06241|chunk:4",
+      "doi:https://doi.org/10.1371/journal.pone.0022406|chunk:44"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Maintains high body temperature in cold aquatic environments",
+    "sources": [
+      "wiki:en:condylura cristata|chunk:4",
+      "wiki:en:condylura cristata|chunk:5"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Active foraging in ice-covered aquatic environments",
+    "sources": [
+      "wiki:en:condylura cristata|chunk:4"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Reduced nociceptive sensitivity on the snout star",
+    "sources": [
+      "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:26"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Cellular specialization of trigeminal ganglia for touch",
+    "sources": [
+      "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:26",
+      "doi:https://doi.org/10.1371/journal.pone.0055001|chunk:31"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Thirteen expanding and nine contracting gene families",
+    "sources": [
+      "pmc:12994710|chunk:15"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Digs shallow surface tunnels often exiting underwater",
+    "sources": [
+      "wiki:en:condylura cristata|chunk:4"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Diet includes aquatic invertebrates and small vertebrates",
+    "sources": [
+      "wiki:en:condylura cristata|chunk:4"
+    ],
+    "confidence": 1.0
+  }
+]

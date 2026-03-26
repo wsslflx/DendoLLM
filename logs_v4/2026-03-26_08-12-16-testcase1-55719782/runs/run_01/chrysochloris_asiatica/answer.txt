@@ -1,0 +1,51 @@
+[
+  {
+    "trait": "Solitary subterranean insectivore",
+    "sources": [
+      "source: wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Excavates superficial burrows using conical nose shield",
+    "sources": [
+      "source: wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Highly modified forefeet for excavation",
+    "sources": [
+      "source: wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Dense soft and silky coats",
+    "sources": [
+      "source: wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Females smaller than males",
+    "sources": [
+      "source: wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Confined to coastal regions of South Africa",
+    "sources": [
+      "source: wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "trait": "Ventures onto sandy beaches to feed",
+    "sources": [
+      "source: wiki:en:chrysochloris asiatica|chunk:0"
+    ],
+    "confidence": 1.0
+  }
+]

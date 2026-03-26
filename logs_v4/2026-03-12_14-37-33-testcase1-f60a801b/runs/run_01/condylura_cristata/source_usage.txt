@@ -1,0 +1,6 @@
+Species: condylura cristata
+Wikipedia ingested: yes
+Wikipedia used: yes
+Papers ingested: 8
+Chunks used: 30
+Wikipedia chunks used: 9

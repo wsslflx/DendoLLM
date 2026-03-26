@@ -1,0 +1,177 @@
+{
+  "open_traits": [
+    {
+      "trait": "subterranean lifestyle",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10",
+        "pmc:12719769|chunk:35",
+        "wiki:en:nannospalax ehrenbergi|chunk:4"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "resistance to cancer",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:46",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "large brain volume",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "unique sensory adaptations",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "aggressive social behavior",
+      "sources": [
+        "pmc:12719769|chunk:24",
+        "pmc:12719769|chunk:33"
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "normalized_tags": [
+    {
+      "tag": "aggressive social behavior",
+      "members": [
+        "aggressive social behavior"
+      ],
+      "sources": [
+        "pmc:12719769|chunk:24",
+        "pmc:12719769|chunk:33"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "large brain volume",
+      "members": [
+        "large brain volume"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "resistance to cancer",
+      "members": [
+        "resistance to cancer"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:46",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "subterranean lifestyle",
+      "members": [
+        "subterranean lifestyle"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10",
+        "pmc:12719769|chunk:35",
+        "wiki:en:nannospalax ehrenbergi|chunk:4"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "unique sensory adaptations",
+      "members": [
+        "unique sensory adaptations"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    }
+  ],
+  "fixed_axes": {
+    "aquatic_or_semiaquatic": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "fossorial_or_subterranean": {
+      "value": true,
+      "evidence_traits": [
+        "subterranean lifestyle"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10",
+        "pmc:12719769|chunk:35",
+        "wiki:en:nannospalax ehrenbergi|chunk:4"
+      ]
+    },
+    "high_altitude_or_hypoxia": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "arboreal": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "aerial_or_flight": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "nocturnal": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "diurnal": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "color_change": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "vision_reduction": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "cold_adaptation": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    },
+    "arid_drought_adaptation": {
+      "value": false,
+      "evidence_traits": [],
+      "sources": []
+    }
+  }
+}

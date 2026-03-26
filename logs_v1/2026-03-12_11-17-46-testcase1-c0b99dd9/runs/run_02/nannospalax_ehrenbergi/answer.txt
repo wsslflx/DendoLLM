@@ -1,0 +1,27 @@
+[
+    {
+        "trait": "subterranean lifestyle",
+        "sources": ["wiki:en:nannospalax ehrenbergi|chunk:4", "doi:https://doi.org/10.1038/ncomms4966|chunk:43", "pmc:12719769|chunk:10", "doi:https://doi.org/10.1266/jjg.66.367|chunk:67", "pmc:12719769|chunk:35"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "resistance to cancer",
+        "sources": ["wiki:en:nannospalax ehrenbergi|chunk:1", "doi:https://doi.org/10.1038/ncomms4966|chunk:46"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "large brain volume",
+        "sources": ["doi:https://doi.org/10.1038/ncomms4966|chunk:7"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "unique sensory adaptations",
+        "sources": ["doi:https://doi.org/10.1038/ncomms4966|chunk:7", "pmc:12719769|chunk:10", "doi:https://doi.org/10.1266/jjg.66.367|chunk:67", "pmc:12719769|chunk:35"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "social behavior",
+        "sources": ["pmc:12719769|chunk:24", "pmc:12719769|chunk:15", "pmc:12719769|chunk:14"],
+        "confidence": 1.0
+    }
+]

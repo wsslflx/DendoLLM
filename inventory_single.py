@@ -10,17 +10,64 @@ import argparse
 import json
 import math
 import pathlib
+import re
 from datetime import datetime
 
 import numpy as np
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_openai import ChatOpenAI
 
+from llm_backend import make_chat_llm
 from rag_cli import RAG, maximal_marginal_relevance
 
 PROMPT_FILE = "Prompts/prompt_inventory_json_cited.txt"
 SYNTHESIS_PROMPT_FILE = "Prompts/prompt_synthesis_common.txt"
+MAX_SYNTHESIS_RETRIES = 3
+
+
+def _extract_json_text(payload: object) -> str:
+    text_payload = str(payload).strip()
+    if text_payload.startswith("```"):
+        match = re.search(r"```(?:json)?\s*(.*?)```", text_payload, re.DOTALL | re.IGNORECASE)
+        if match:
+            text_payload = match.group(1).strip()
+    return text_payload
+
+
+def _validate_synthesis_json(data: object) -> dict:
+    if not isinstance(data, dict):
+        raise ValueError("Synthesis output must be a JSON object")
+    required = ("strict_common_traits", "subgroup_common_traits", "mechanism_hypotheses")
+    out: dict[str, list[dict]] = {}
+    for key in required:
+        value = data.get(key)
+        if not isinstance(value, list):
+            raise ValueError(f"Synthesis output field '{key}' must be a list")
+        cleaned: list[dict] = []
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            trait = item.get("trait")
+            sources = item.get("sources")
+            confidence = item.get("confidence")
+            if not isinstance(trait, str) or not trait.strip():
+                continue
+            if not isinstance(sources, list):
+                sources = []
+            clean_sources = [str(s) for s in sources if isinstance(s, str) and s.strip()]
+            try:
+                conf = float(confidence)
+            except Exception:
+                conf = 0.0
+            cleaned.append(
+                {
+                    "trait": trait.strip(),
+                    "sources": clean_sources,
+                    "confidence": max(0.0, min(1.0, conf)),
+                }
+            )
+        out[key] = cleaned
+    return out
 
 
 def slugify(name: str) -> str:
@@ -143,7 +190,7 @@ def run_inventory(specie: str, aliases: list[str], log_runs: bool = False, reuse
     if log_dir:
         with open(log_dir / "prompt.txt", "w", encoding="utf-8") as f:
             f.write(formatted_prompt)
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.0)
+    llm = make_chat_llm(model=None, temperature=0.0)
     chain = (
         {
             "context": RunnableLambda(lambda _: context_text),
@@ -188,17 +235,35 @@ def run_synthesis(inventories: dict[str, list[dict]], log_runs: bool = False) ->
         input_variables=["extracted_species_lists"],
         template=pathlib.Path(SYNTHESIS_PROMPT_FILE).read_text(encoding="utf-8"),
     )
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.0)
+    llm = make_chat_llm(model=None, temperature=0.0, format="json")
     chain = {"extracted_species_lists": RunnablePassthrough()} | prompt | llm
-    payload = chain.invoke(json.dumps(inventories, ensure_ascii=False, indent=2))
-    content = payload.content if hasattr(payload, "content") else payload
+    inventories_json = json.dumps(inventories, ensure_ascii=False, indent=2)
+    parsed_output: dict | None = None
+    raw_attempts: list[str] = []
+    for attempt in range(1, MAX_SYNTHESIS_RETRIES + 1):
+        payload = chain.invoke(inventories_json)
+        content = payload.content if hasattr(payload, "content") else payload
+        raw_text = str(content)
+        raw_attempts.append(raw_text)
+        try:
+            parsed = json.loads(_extract_json_text(content))
+            parsed_output = _validate_synthesis_json(parsed)
+            break
+        except Exception as exc:
+            print(f"Debug: invalid synthesis JSON on attempt {attempt}/{MAX_SYNTHESIS_RETRIES}: {exc}")
+            if attempt == MAX_SYNTHESIS_RETRIES:
+                raise RuntimeError("Synthesis failed: model did not return valid JSON after retries") from exc
+    assert parsed_output is not None
+    content = json.dumps(parsed_output, ensure_ascii=False, indent=2)
     if log_runs:
         log_dir = init_log_dir(log_runs)
         if log_dir:
             with open(log_dir / "synthesis_prompt.txt", "w", encoding="utf-8") as f:
-                f.write(prompt.format(extracted_species_lists=json.dumps(inventories, ensure_ascii=False, indent=2)))
+                f.write(prompt.format(extracted_species_lists=inventories_json))
             with open(log_dir / "synthesis_answer.txt", "w", encoding="utf-8") as f:
-                f.write(str(content))
+                f.write(content)
+            with open(log_dir / "synthesis_raw_attempts.txt", "w", encoding="utf-8") as f:
+                f.write("\n\n--- attempt ---\n\n".join(raw_attempts))
     print(content)
 
 

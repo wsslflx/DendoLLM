@@ -1,0 +1,6 @@
+Species: heterocephalus glaber
+Wikipedia ingested: no
+Wikipedia used: yes
+Papers ingested: 0
+Chunks used: 29
+Wikipedia chunks used: 8

@@ -1,0 +1,37 @@
+[
+    {
+        "trait": "color-changing ability",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:28", "wiki:en:dryophytes versicolor|chunk:6"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "arboreal habitat",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1", "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:8", "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:9"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "nocturnal mating behavior",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:28"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "tadpole with red tail",
+        "sources": ["doi:https://doi.org/10.22215/etd/2024-16064|chunk:45"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "tetraploid species",
+        "sources": ["doi:https://doi.org/10.22215/etd/2024-16064|chunk:27"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "chemically defended against predators",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:11"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "tolerant of freezing",
+        "sources": ["doi:https://doi.org/10.22215/etd/2024-16064|chunk:97"],
+        "confidence": 0.7
+    }
+]

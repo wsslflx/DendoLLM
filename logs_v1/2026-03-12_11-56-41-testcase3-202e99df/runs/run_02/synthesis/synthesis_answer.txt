@@ -1,0 +1,42 @@
+{
+  "strict_common_traits": [
+    {
+      {
+        "trait": "color change ability",
+        "sources": [
+          "doi:10.1038/srep13196",
+          "pmc:12912887",
+          "wiki:en:furcifer pardalis|chunk:28",
+          "wiki:en:dryophytes versicolor|chunk:28"
+        ],
+        "confidence": 1.0
+      }
+    ]
+  },
+  "subgroup_common_traits": [
+    {
+      "trait": "temperature regulation",
+      "sources": [
+        "doi:https://doi.org/10.1038/s41597-019-0017-6",
+        "wiki:en:octopus vulgaris",
+        "wiki:en:furcifer pardalis",
+        "wiki:en:dryophytes versicolor"
+      ],
+      "confidence": 0.7
+    }
+  ],
+  "mechanism_hypotheses": [
+    {
+      "trait": "response to environmental stressors",
+      "sources": [
+        "doi:10.1038/s41597-019-0017-6",
+        "doi:10.1038/srep13196",
+        "pmc:12912887",
+        "wiki:en:octopus vulgaris",
+        "wiki:en:furcifer pardalis",
+        "wiki:en:dryophytes versicolor"
+      ],
+      "confidence": 0.7
+    }
+  ]
+}

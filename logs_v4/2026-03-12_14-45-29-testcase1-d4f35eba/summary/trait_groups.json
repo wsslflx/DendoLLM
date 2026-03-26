@@ -1,0 +1,33 @@
+{
+  "groups": [
+    {
+      "canonical": "subterranean lifestyle",
+      "members": [
+        "subterranean lifestyle",
+        "adapted to low oxygen conditions"
+      ],
+      "count": 3
+    },
+    {
+      "canonical": "behavioral insensitivity to capsaicin",
+      "members": [
+        "behavioral insensitivity to capsaicin"
+      ],
+      "count": 1
+    },
+    {
+      "canonical": "cold adaptation",
+      "members": [
+        "cold adaptation"
+      ],
+      "count": 1
+    },
+    {
+      "canonical": "unique sensory adaptations",
+      "members": [
+        "unique sensory adaptations"
+      ],
+      "count": 1
+    }
+  ]
+}

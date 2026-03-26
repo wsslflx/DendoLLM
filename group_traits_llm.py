@@ -10,7 +10,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda
-from langchain_openai import ChatOpenAI
+
+from llm_backend import DEFAULT_CHAT_MODEL, make_chat_llm
 
 load_dotenv()
 
@@ -57,7 +58,7 @@ def run_grouping(
         input_variables=["trait_list"],
         template=pathlib.Path(PROMPT_FILE).read_text(encoding="utf-8"),
     )
-    llm = ChatOpenAI(model_name=model, temperature=temperature)
+    llm = make_chat_llm(model=model, temperature=temperature)
     chain = (
         {"trait_list": RunnableLambda(lambda _: format_trait_list(freq))}
         | prompt
@@ -93,8 +94,8 @@ def main() -> None:
     parser.add_argument("report_json", help="Path to analyze_report/trait_variance_report_*.json")
     parser.add_argument(
         "--model",
-        default="gpt-4o-mini",
-        help="OpenAI model name (default: gpt-4o-mini)",
+        default=DEFAULT_CHAT_MODEL,
+        help="Chat model name served by Ollama backend.",
     )
     parser.add_argument(
         "--temperature",

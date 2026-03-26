@@ -1,0 +1,258 @@
+{
+  "open_traits": [
+    {
+      "trait": "Subterranean lifestyle with tunnel system construction",
+      "sources": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2",
+        "doi:https://doi.org/10.30897/ijegeo.945101"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Complete blindness with degenerated subcutaneous eyes",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966",
+        "doi:https://doi.org/10.1186/2193-1801-2-2"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Cylindrical body shape with vestigial tail",
+      "sources": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Diet consisting of underground plant parts",
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Digging behavior using incisors and flattened head",
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "High chromosomal variability indicating cryptic species complex",
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101",
+        "wiki:en:nannospalax ehrenbergi"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Cancer resistance mediated by necrotic cell death",
+      "sources": [
+        "doi:https://doi.org/10.1007/s42991-025-00549-0"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Physiological adaptation to hypoxic and hypercapnic environments",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "trait": "Resistance to acidosis pain via sodium channel",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "trait": "Well-developed tympanic bulla in skull",
+      "sources": [
+        "doi:https://doi.org/10.2478/macvetrev-2022-0025"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "Variable presence of palatal spike process",
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101"
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "normalized_tags": [
+    {
+      "tag": "Cancer resistance mediated by necrotic cell death",
+      "members": [
+        "Cancer resistance mediated by necrotic cell death"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1007/s42991-025-00549-0"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Complete blindness with degenerated subcutaneous eyes",
+      "members": [
+        "Complete blindness with degenerated subcutaneous eyes"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966",
+        "doi:https://doi.org/10.1186/2193-1801-2-2"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Cylindrical body shape with vestigial tail",
+      "members": [
+        "Cylindrical body shape with vestigial tail"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Diet consisting of underground plant parts",
+      "members": [
+        "Diet consisting of underground plant parts"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Digging behavior using incisors and flattened head",
+      "members": [
+        "Digging behavior using incisors and flattened head"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "High chromosomal variability indicating cryptic species complex",
+      "members": [
+        "High chromosomal variability indicating cryptic species complex"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101",
+        "wiki:en:nannospalax ehrenbergi"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Physiological adaptation to hypoxic and hypercapnic environments",
+      "members": [
+        "Physiological adaptation to hypoxic and hypercapnic environments"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966"
+      ],
+      "support_count": 1,
+      "mean_confidence": 0.7
+    },
+    {
+      "tag": "Resistance to acidosis pain via sodium channel",
+      "members": [
+        "Resistance to acidosis pain via sodium channel"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966"
+      ],
+      "support_count": 1,
+      "mean_confidence": 0.7
+    },
+    {
+      "tag": "Subterranean lifestyle with tunnel system construction",
+      "members": [
+        "Subterranean lifestyle with tunnel system construction"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2",
+        "doi:https://doi.org/10.30897/ijegeo.945101"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Variable presence of palatal spike process",
+      "members": [
+        "Variable presence of palatal spike process"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    },
+    {
+      "tag": "Well-developed tympanic bulla in skull",
+      "members": [
+        "Well-developed tympanic bulla in skull"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.2478/macvetrev-2022-0025"
+      ],
+      "support_count": 1,
+      "mean_confidence": 1.0
+    }
+  ],
+  "latent_factors": [
+    {
+      "factor": "Physiological and Sensory Adaptation",
+      "supporting_traits": [
+        "Cancer resistance mediated by necrotic cell death",
+        "Complete blindness with degenerated subcutaneous eyes",
+        "Physiological adaptation to hypoxic and hypercapnic environments",
+        "Resistance to acidosis pain via sodium channel",
+        "Well-developed tympanic bulla in skull"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1007/s42991-025-00549-0",
+        "doi:https://doi.org/10.1038/ncomms4966",
+        "doi:https://doi.org/10.1186/2193-1801-2-2",
+        "doi:https://doi.org/10.2478/macvetrev-2022-0025"
+      ],
+      "support_count": 5,
+      "confidence": 0.8
+    },
+    {
+      "factor": "Fossorial Morphology and Behavior",
+      "supporting_traits": [
+        "Cylindrical body shape with vestigial tail",
+        "Diet consisting of underground plant parts",
+        "Digging behavior using incisors and flattened head",
+        "Subterranean lifestyle with tunnel system construction"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.1186/2193-1801-2-2",
+        "doi:https://doi.org/10.30897/ijegeo.945101"
+      ],
+      "support_count": 4,
+      "confidence": 1.0
+    },
+    {
+      "factor": "Genetic and Skeletal Variability",
+      "supporting_traits": [
+        "High chromosomal variability indicating cryptic species complex",
+        "Variable presence of palatal spike process"
+      ],
+      "sources": [
+        "doi:https://doi.org/10.30897/ijegeo.945101",
+        "wiki:en:nannospalax ehrenbergi"
+      ],
+      "support_count": 2,
+      "confidence": 1.0
+    }
+  ]
+}

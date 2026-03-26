@@ -1,0 +1,32 @@
+[
+    {
+        "trait": "color-changing ability",
+        "sources": ["wiki:en:dryophytes versicolor|chunk:28", "wiki:en:dryophytes versicolor|chunk:6", "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "arboreal habitat use",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:1", "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:8", "doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:9"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "nocturnal mating behavior",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:28"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "tadpole chemical defense",
+        "sources": ["doi:https://doi.org/10.17161/randa.v31i1.20040|chunk:2"],
+        "confidence": 0.7
+    },
+    {
+        "trait": "tetraploid genome",
+        "sources": ["doi:https://doi.org/10.22215/etd/2024-16064|chunk:27"],
+        "confidence": 1.0
+    },
+    {
+        "trait": "cold tolerance",
+        "sources": ["doi:https://doi.org/10.22215/etd/2024-16064|chunk:97"],
+        "confidence": 0.7
+    }
+]

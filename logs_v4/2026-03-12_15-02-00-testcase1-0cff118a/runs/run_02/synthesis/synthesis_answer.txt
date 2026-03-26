@@ -1,0 +1,127 @@
+{
+  "strict_common_traits": [
+    {
+      "trait": "subterranean lifestyle",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10",
+        "pmc:12719769|chunk:35",
+        "wiki:en:nannospalax ehrenbergi|chunk:4"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "unique sensory adaptations",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10"
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "subgroup_common_traits": [
+    {
+      "trait": "aggressive social behavior",
+      "sources": [
+        "pmc:12719769|chunk:24",
+        "pmc:12719769|chunk:33"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "large brain volume",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "resistance to cancer",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:46",
+        "wiki:en:nannospalax ehrenbergi|chunk:1"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "adapted for aquatic and terrestrial foraging",
+      "sources": [
+        "wiki:en:condylura cristata|chunk:4",
+        "wiki:en:condylura cristata|chunk:5"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "trait": "colonial social behavior",
+      "sources": [
+        "wiki:en:condylura cristata|chunk:5"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "trait": "unique pain insensitivity",
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:55",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:62"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "eusocial behavior",
+      "sources": [
+        "wiki:en:heterocephalus glaber|chunk:13",
+        "wiki:en:heterocephalus glaber|chunk:28"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "trait": "adapted to low oxygen environments",
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:68",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:90"
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "mechanism_hypotheses": [
+    {
+      "trait": "subterranean adaptation",
+      "sources": [
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:43",
+        "doi:https://doi.org/10.1038/ncomms4966|chunk:7",
+        "doi:https://doi.org/10.1266/jjg.66.367|chunk:67",
+        "pmc:12719769|chunk:10",
+        "pmc:12719769|chunk:35",
+        "wiki:en:nannospalax ehrenbergi|chunk:4"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "trait": "social behavior and thermoregulation",
+      "sources": [
+        "wiki:en:condylura cristata|chunk:5"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "trait": "unusual physiological adaptations",
+      "sources": [
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:5",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:55",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:62",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:68",
+        "doi:https://doi.org/10.1371/journal.pbio.0060013|chunk:90"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "trait": "distinct visual capabilities",
+      "sources": [
+        "doi:https://doi.org/10.1038/nature10533|chunk:25"
+      ],
+      "confidence": 0.7
+    }
+  ]
+}

@@ -10,6 +10,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from build_testcase_json import build_entries, parse_species_arg
+from llm_backend import DEFAULT_CHAT_MODEL
 
 
 def slugify(name: str) -> str:
@@ -241,7 +242,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--chroma-dir",
-        help="Directory for Chroma persistence (default: <bundle>/cache/chroma_store).",
+        help="Directory for Chroma persistence (default: <bundle>/cache/chroma_store_ollama).",
     )
     parser.add_argument(
         "--ingest-lock-file",
@@ -250,8 +251,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--model",
-        default="gpt-4o-mini",
-        help="OpenAI model name for grouping (default: gpt-4o-mini).",
+        default=DEFAULT_CHAT_MODEL,
+        help="Chat model name for grouping.",
     )
     parser.add_argument(
         "--temperature",
@@ -275,7 +276,7 @@ def main() -> None:
 
     traits_dir = pathlib.Path(args.traits_dir) if args.traits_dir else bundle_dir / "traits"
     pdf_dir = pathlib.Path(args.pdf_dir) if args.pdf_dir else bundle_dir / "cache" / "pdfs"
-    chroma_dir = pathlib.Path(args.chroma_dir) if args.chroma_dir else bundle_dir / "cache" / "chroma_store"
+    chroma_dir = pathlib.Path(args.chroma_dir) if args.chroma_dir else bundle_dir / "cache" / "chroma_store_ollama"
     ingest_lock_file = pathlib.Path(args.ingest_lock_file)
     traits_dir.mkdir(parents=True, exist_ok=True)
     pdf_dir.mkdir(parents=True, exist_ok=True)

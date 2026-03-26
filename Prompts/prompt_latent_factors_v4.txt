@@ -1,0 +1,29 @@
+You are given one species' extracted trait list.
+Infer a small set of latent biological factors that summarize recurring trait patterns.
+
+INPUT
+{open_traits_json}
+
+RULES
+- Use only the provided trait list.
+- Do not introduce external facts.
+- Prefer factors that summarize multiple listed traits.
+- Keep factors biologically meaningful and concise.
+- Avoid generic statements (e.g. "adaptation", "survival").
+- Return 2 to 7 factors when possible.
+
+OUTPUT
+Return JSON only:
+{{
+  "latent_factors": [
+    {{
+      "factor": "<concise factor>",
+      "supporting_traits": ["<exact trait text from input>", "..."],
+      "confidence": 0.0
+    }}
+  ]
+}}
+
+CONSTRAINTS
+- "supporting_traits" entries must exactly match strings from input "trait" fields.
+- confidence must be numeric in [0.0, 1.0].
