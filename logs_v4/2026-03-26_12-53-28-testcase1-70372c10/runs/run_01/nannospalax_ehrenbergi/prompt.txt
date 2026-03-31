@@ -1,0 +1,615 @@
+You are an experienced zoologist with expertise in comparative phenotype analysis.
+
+You will be given scientific papers and articles about ONE animal species.
+Your task is to extract biologically central species-level characteristics that are
+useful for downstream cross-species synthesis.
+
+SCOPE:
+- Include morphology, behavior, ecology, physiology/ecophysiology, and biologically meaningful
+  molecular/genetic characteristics when they describe species-level function.
+- Include both observable traits and functional capacities when supported by evidence.
+
+INCLUSION RULES:
+- Extract characteristics that are explicit, repeatedly supported, or strongly emphasized.
+- Prefer characteristics with ecological, functional, or evolutionary relevance.
+- When context suggests an underlying biological challenge, include the best supported
+  species-level functional trait linked to that challenge.
+
+EXCLUSION RULES:
+- Exclude trivial generic characteristics with low discriminative value.
+- Exclude one-off incidental observations and pure methods text.
+- Exclude procedural/lab setup details without species-level biological interpretation.
+
+STRICT RULES:
+- Species-specific only. Do NOT compare species.
+- Do NOT invent unsupported claims.
+- Inference is allowed only when strongly and unambiguously implied by evidence.
+
+OUTPUT RULES (JSON ARRAY ONLY):
+- Return a JSON array.
+- Each item MUST be:
+  {
+    "trait": "<3-9 word species-level characteristic>",
+    "sources": ["<citation tags from context>"],
+    "confidence": 1.0 | 0.7 | 0.5
+  }
+- Confidence:
+  - 1.0: explicit and clearly characteristic
+  - 0.7: strongly supported/repeated
+  - 0.5: unambiguously implied
+- Use only citation tags from context.
+- Include all relevant supporting tags for each trait.
+- Do NOT include prose or headings.
+- If no central characteristics are supported, return [].
+
+Context:
+[source: doi:https://doi.org/10.2478/macvetrev-2022-0025|chunk:7]
+skull, thirteen metric parameters were determined, 
+and the mean value and standard deviation were 
+calculated for each parameter. The morphological 
+analysis was performed on the following bones: 
+occipital, temporal, inter-parietal, parietal, 
+nasal, jugal, basioccipital, pterygoid, squamosal, 
+maxillary, incisive, nasal bone, and mandible 
+with its processes. For Latin terminology, we used 
+Nomina Anatomica Veterinaria, sixth edition, 
+2017 (8).  
+RESULTS
+The results are listed in Table 1 and compared 
+with two other Nannospalax species – Nannospalax 
+nehringi and Nannospalax ehrenbergi . 
+Craniometric characteristics are shown on Fig. 1  
+and Fig. 2.
+On the occipital bone (Fig. 3), above both sides 
+of the occipital condyles, all five individuals had 
+a very small foramen supracondyloideum, which 
+transmits hypoglossal nerve. The ventral surface 
+of the basilar part of the occipital bone was 
+rounded. Paracondylar processes were short, sharp,
+
+[source: doi:https://doi.org/10.2478/macvetrev-2022-0025|chunk:26]
+PMid:19183350
+4. Coşkun, Y. (2003). A study on the morphology and 
+karyology of Nannospalax nehringi (Satunin, 1898) 
+(Rodentia: Spalacidae) from Northeast Anatolia, 
+Turkey. Turk J Zool. 27, 171-176.
+5. Coşkun, Y. (2004). Morphological and karyological 
+characteristics of Nannospalax ehrenbergi (Nehring, 
+1898) (Rodentia: Spalacidae) from Hatay Province, 
+Turkey. Turk J Zool. 28(3): 205-212.
+6. Özkan, Z.E. (2007). Macro-anatomical investigations on 
+the skeletons of mole-rat (Spalax leucodon Nordmann) 
+III. Skeleton axiale. Vet Arh. 77(3): 281-289.
+7. Nevo, E., Tchernov, E., Beiles, A. (1988). 
+Morphometrics of speciating mole-rats: Adaptive 
+differentiation in ecological speciation. J Zool Syst 
+Evol Res. 26(4): 286-314.
+https://doi.org/10.1111/j.1439-0469.1988.tb00318.x 
+8. World Association of Veterinary Anatomists. 6th 
+edition. (2017). Nomina anatomica veterinaria. 
+International Committee on Veterinary Gross 
+Anatomical Nomenclature ICVGAN.
+
+[source: doi:https://doi.org/10.1186/2193-1801-2-2|chunk:4]
+cylindrically shaped body with no external ear and a ves-
+tigial tail, and are completely blind spending their entire
+life in their tunnel system built underground (Topachevskii
+1969). Compared to other rodents, the conditions resulting
+from their lifestyle created a decreased morphological vari-
+ability and the species are very similar both externally and
+osteologically (Nevo 2000). Putting aside the lineage of
+l a r g em o l er a t s( g e n u sSpalax) (for taxonomic context and
+nomenclatural details see Topachevskii 1969, Németh et al.
+2009, Arslan, Akan and Zima 2011, Hadid et al. 2012), taxa
+belonging toNannospalax present a long-standing source
+* Correspondence:csorba@nhmus.hu
+3Hungarian Natural History Museum, Baross u. 13, Budapest H-1088, Hungary
+Full list of author information is available at the end of the article
+a SpringerOpen Journal
+© 2013 Németh et al.; licensee Springer. This is an Open Access article distributed under the terms of the Creative Commons
+
+[source: doi:https://doi.org/10.2478/macvetrev-2022-0025|chunk:5]
+when compared to other similar rodent species, 
+the skull of lesser mole-rats shows some different 
+morphological characteristics that were not 
+described before in other Nannospalax  species. 
+The authors of this research focused on the 
+morphological, morphometric, and radiographic 
+properties of the skull, aimed at contributing to 
+a better understanding of this field to provide 
+information for future research on this or similar 
+species.
+
+[source: doi:https://doi.org/10.1038/ncomms4966|chunk:62]
+mammal: a major somatosensory mechanism in adaptive evolution
+underground. Proc. Natl Acad. Sci. USA88, 1256–1260 (1991).
+19. Nevo, E., Pirlot, P. & Beiles, A. Brain size diversity in adaptation and speciation
+of subterranean mole rats.J. Zool. Syst. Evol. Res.26, 467–479 (1988).
+20. Pirlot, P. & Nevo, E. Brain organization and evolution in subterranean mole
+rats. J. Zool. Syst. Evol. Res.27, 58–64 (1989).
+21. Rehkamper, G., Necker, R. & Nevo, E. Functional anatomy of the thalamus in
+the blind mole ratSpalax ehrenbergi: an architectonic and electrophysiologically
+controlled tracing study.J. Comp. Neurol.347, 570–584 (1994).
+22. Mann, M. D.et al.Size of somatosensory cortex and of somatosensory thalamic
+nuclei of the naturally blind mole ratSpalax ehrenbergi. J. Hirnforsch.38, 47–59
+(1997).
+23. Frahm, H. D., Rehkamper, G. & Nevo, E. Brain structure volumes in the mole
+rat, Spalax ehrenbergi (Spalacidae, Rodentia) in comparison to the rat and
+
+[source: doi:https://doi.org/10.30897/ijegeo.945101|chunk:3]
+554 
+A Cytogenetic and Morphological Study on Nannospalax ehrenbergi in Adana (Ceyhan) 
+Province 
+Tuncay Tuluk , İlkay Civelek* , Cihan Düşgün , Teoman Kankılıç
+Department of Biotechnology, Faculty of Science and Letters, Niğde Ömer Halisdemir University, Niğde, Turkey 
+* Corresponding author: I. Civelek
+* E-mail: ilkaycivelek@ohu.edu.tr 
+Received 31.05.2021 
+Accepted 18.10.2021 
+Abstract 
+This study was conducted to explain the karyological analysis and morphological characteristics of blind mole rat samples collected 
+from Ceyhan, Adana in Turkey. The chromosomes of the blind mole rat samples were stained and analysed using conventional methods. 
+The chromosomes were defined according to centromere positions by processing photographs of metaphase cells. The karyotype of 
+Nannospalax ehrenbergi showed 53 chromosomes (2n=53) and fundamental number of chromosomal arms NF=66 and the number of
+
+[source: doi:https://doi.org/10.2478/macvetrev-2022-0025|chunk:23]
+leucodon of our study. Also, the gnathic process 
+has not been previously described in blind mole-
+rats, and this is the first paper that described and 
+labeled it.
+ 
+CONCLUSION
+The craniometrics of Nannospalax leucodon  
+from Bosnia and Herzegovina and Nannospalax 
+nehringi from Eastern Anatolia had high a 
+similarity. The Nannospalax ehrenbergi  specimen 
+from North Iraq had small similarities with these 
+two species. The craniometric, macro-anatomical, 
+and radiograph characteristics of the studied 
+specimens can be used for species identification 
+and anatomic description.
+CONFLICT OF INTEREST
+The authors declared that they have no potential 
+conflict of interest with respect to the authorship and/or 
+publication of this article.
+ACKNOWLEDGEMENTS
+We want to thank Department of Radiology on 
+Veterinary Faculty, who helped us on radiographic 
+imaging, and Amila Dautbasic, the English language 
+professor for proof reading the manuscript and English 
+correction.
+AUTHORS’ CONTRIBUTION
+
+[source: doi:https://doi.org/10.30897/ijegeo.945101|chunk:2]
+Oral Yağcı (TR), 3URI'U0XUDW<DNDU75 Assoc. Prof. Dr. İ. Noyan Yılmaz (AU); $VVLW3URI'U6LEHO=HNL
+75
+$EVWUDFWLQJDQG,QGH[LQJ 75',=,1 '2$-,QGH[&RSHUQLFXV2$-,6FLHQWLILF,QGH[LQJ6HUYLFHV ,QWHUQDWLRQDO6FLHQWLILF
+,QGH[LQJ-RXUQDO)DFWRU*RRJOH6FKRODU8OULFK
+V3HULRGLFDOV'LUHFWRU\:RUOG&DW'5-,5HVHDUFK%LE62%,$'
+A Cytogenetic and Morphological Study on Nannospalax ehrenbergi in Adana 
+(Ceyhan) Province 
+Tuncay TULUK , İlkay CİVELEK, Cihan DÜŞGÜN, Teoman KANKILIÇ
+
+[source: wiki:en:nannospalax ehrenbergi|chunk:1]
+=== Possible cryptic species ===
+Cytogenetic studies have shown N. ehrenbergi in Israel may actually be a species complex containing several cryptic species with chromosome numbers 2n=52, 2n=54, 2n=58 and 2n=60. Close to the 'border line' of the niche of each subspecies there is mating between individuals from different subspecies/different 2n chromosome number. Birth of fertile offspring implies that speciation of the subspecies has not been completed.
+In 2001, four new Nannospalax species (then classified within Spalax) endemic to geographical regions within Israel, Palestine and the Golan Heights were described based on chromosome divergence by a team of researchers led by Eviatar Nevo. These were:
+
+[source: doi:https://doi.org/10.2478/macvetrev-2022-0025|chunk:21]
+in Nannospalax nehringi,  external occipital crest 
+in N. nehringi  is seen in male animals, while in 
+female animals it is not prominent, and this is also 
+well-observed in Nannospalax leucodon . While 
+the shape components of the mandible do reveal 
+some variations between the sexes, the size of the 
+animal is the most important component of sexual 
+dimorphism (13). Tympanic bulla is well-developed 
+in all the above-mentioned species. The lumen of 
+the intraorbital foramen of Nannospalax leucodon is 
+wider dorsally and constricted ventrally. Although  
+Ketani et al. (12) wrote that the angular process on 
+the ramus mandibula is only seen in Nannospalax 
+nehringi and has not been reported in any other 
+rodent species, we observed that Nannospalax 
+leucodon has this process as well, and it is very 
+noticeable. However, it has to be pointed out 
+that the angular process is present in all rodents, 
+not only in Spalacidae (14). Another process that
+
+[source: doi:https://doi.org/10.2478/macvetrev-2022-0025|chunk:19]
+Rizvanovic  A. et al.
+220
+not observed this flattening of the sagittal crest 
+because the specimens were found in soft soil on 
+the Bjelasnica Mountain, so there was no need for 
+skull adaptation in this respect (9).
+We compared the results of the previously 
+published studies and found many similarities 
+between Nannospalax leucodon  in Bosnia and 
+Herzegovina, Nannospalax ehrenbergi  in North 
+Iraq (2), and Nannospalax nehringi  (3, 4) from 
+Eastern Anatolia. 
+Also, we found similarities with the skull 
+morphology of the Brazilian shrew mouse 
+Blarinomys breviceps  (11), which helped us to 
+identify and recognize bones that have not been 
+identified in Nannospalax  species yet. Still, this 
+should be taken with caution, because they belong to 
+two different families of the superfamily Muroidea 
+(Spalacidae and Cricetidae, respectively). 
+Nevertheless, many bones of Blarinomys breviceps  
+and Nannospalax leucodon  are very similar, 
+including the presence of gnathic process as well
+
+[source: doi:https://doi.org/10.30897/ijegeo.945101|chunk:17]
+According to karyological analysis, this form had a value 
+of 2n = 56 NF = 72, and morphologic studies revealed that 
+this form had a spike on the back of the palate (palatal 
+spike or styloid process) that was present in other N. 
+ehrenbergi populations. It was concluded that the 
+morphologic character was either very unclear or not 
+present in individuals belonging to this form. 
+Fig. 5. The figure showing the situation absence (A) and 
+presence (B) of a spike on the back of the palate (os 
+palatinum) 
+The skull morphologies of samples from Adana 
+populations were analyzed and it was determined that 
+there was no or very little protrusion in the back of the 
+palate, particularly in Adana samples (Figure 5). 
+However, these differences in these populations may not 
+be sufficient to evaluate populations with this karyotype 
+as a separate taxon. The topotype of the sample captured 
+by Szunyoghy from 50 kilometers east of Adana was
+
+[source: pmc:12719769|chunk:14]
+social interactions, we phenotyped the behavioral response repertoire of male BMRs to a same-sex intruder conspecific ( Figures 2 A and 2B; see methods). Figure 2 BMRs exhibit structured and diverse behavioral responses to a non-physical social encounter (A and B) Schematic illustration of the experimental procedure in the control (A) and social (B) groups. (C and D) Representative ethograms of social and locomotive behavioral parameters in a control (C) and social (D) animal. (E and F) Representative heatmaps of the BMRs' location during the assay in a control (E) and social (F) animal. (G–L) Schematic illustrations (top) and quantification (bottom) of social behavioral responses during a social encounter. Behaviors were classified into categories of seismic communication (G and H), defensive (I and J) and agonistic (K and L) behaviors. Data are represented as mean ± SEM. ns = non-significant. # p  < 0.1, ∗ p  ≤ 0.05, ∗∗∗ p  ≤ 0.001. n Control  = 8, n Social  = 7. Across trials, we
+
+[source: wiki:en:nannospalax ehrenbergi|chunk:0]
+The Middle East blind mole-rat (Nannospalax ehrenbergi), also known as the Ehrenberg's mole-rat, is a species of rodent in the family Spalacidae.
+
+
+== Taxonomy ==
+It was formerly classified in the genus Spalax, but more recent phylogenetic evidence supports it and two other species belonging to the genus Nannospalax. Of the three Nannospalax species, N. ehrenbergi is the only one to also belong to the subgenus Nannospalax (unless the potential species within N. ehrenbergi are also considered their own species).
+The species name, ehrenbergi, honors German naturalist Christian Gottfried Ehrenberg, who conducted significant research throughout the Middle East in the 19th century.
+
+[source: doi:https://doi.org/10.30897/ijegeo.945101|chunk:5]
+as a hybrid form. The portion behind the palate (os palatinum) has no a sharply defined styloid process. 
+Keywords: Nannospalax ehrenbergi, Adana, Ceyhan, Karyotype, Morphology 
+Introduction 
+Blind mole rats are well-adapted to living underground. 
+They spend their entire lives in the underground galleries 
+they build, barely go above ground. They feed on plants 
+such as roots, rhizomes, bulbs, and tubers that they find in 
+the galleries. These species dig the soil by their incisors 
+and at the same time throw excavated soil in the gallery 
+using their flattened head like a bulldozer. As a result, the 
+presence of soil mounds lined up at regular intervals along 
+with the gallery created by the blind mole rats helps to 
+identify the regions where these animals may be located 
+(Figure 1). Therefore, behind the blind mole rat, a pile of 
+soil forms, which are constructed at irregular intervals 
+along with the gallery (Savic and Nevo, 1990; Sözen,
+
+[source: doi:https://doi.org/10.30897/ijegeo.945101|chunk:16]
+a hybrid. This hybrid (2n = 53 NF = 66) was described for 
+the first time for N. ehrenbergi. To date, 4 distinct 
+cytotypes (2n = 48, 52, 56, and 58) have been described 
+for N. ehrenbergi species based on the diploid 
+chromosome number (Coşkun, 2004, Coşkun et al., 2006, 
+Ivanitskaya et al., 1997, Sözen et al., 2006). 
+2n=48 karyotype differs from the others because the 
+number of metacentric autosomal chromosomes in this 
+karyotype is higher than in the other N. ehrenbergi 
+cytotypes. Szunyoghy identified a sample captured from 
+50 kilometers east of Adana as N. ehrenbergi var. 
+ceyhanus (Szunyoghy, 1941). Coşkun and others 
+examined the karyological and morphological 
+characteristics of N. ceyhanus topotype samples and 
+concluded that N. ceyhanus could be a valid taxon 
+(Coşkun et al., 1999). 
+ According to karyological analysis, this form had a value 
+of 2n = 56 NF = 72, and morphologic studies revealed that 
+this form had a spike on the back of the palate (palatal
+
+[source: doi:https://doi.org/10.2478/macvetrev-2022-0025|chunk:9]
+Table 1. Comparison between metric characteristics of Nannospalax  species
+Metric characteristics of blind mole-rat
+Nannospalax 
+leucodon
+(MEAN ± SD)
+Nannospalax 
+nehringi
+Ketani et al. (8) 
+(MEAN ± SD)
+Nannospalax 
+ehrenbergi
+Coşkun et al. (5)
+(MEAN ± SD)
+1.   Condylobasal length of the skull 46±3.37 / 41.10±2.30
+2.   Basic length of the skull 41.56±3.25 / /
+3.   Length of the upper molars 8.37±0.36 8.33±0.31 7.00±0.64
+4.   Width of the rostrum in front of the infraorbital foramen 10.34±0.95 7.28±0.17 /
+5.   Occipitonasal length 49.04±3.21 52.67±1.70 /
+6.   Frontal and parietal length 22.65±2.58 21.99±1.12 17.00±1.68
+7.   Length of the nasal bones 19.11±1.50 20.41±0.72 16.90±1.24
+8.   Width between orbits 9.66±2.04 8.36±0.87 6.90±0.25
+9.   Width of the nasal bones 7.38±0.67 7.17±0.42 7.90±0.64
+10. Height of the skull 18.60±1.33 20.86±1.01 19.18±2.73
+11. Length of the diastema in the upper jaw 16.63±1.91 17.26±0.21 /
+12. Diameter of external auditory meatus 2.88±0.09 / /
+
+[source: doi:https://doi.org/10.21597/jist.1517654|chunk:51]
+Teoman KANKILIÇ ve ark. 15(1), 353-363, 2025 
+Nannospalax Kemirgenlerinde MTNR1A Genetik Varyasyonlarının Karakterizasyonu 
+ 
+ 363 
+Németh, A., Hegyeli, Z., Sendula, T., Horváth, M., Czabán, D., & Csorba, G. (2016). Danger 
+underground and in the open –predation on blind mole rats (R odentia: S palacinae) 
+revisited. Mammal Review, 46(3), 204-214. 
+Nevo, E. (2022). Evolution of Communication Systems Underground in a Blind Mammal,  Spalax. In: 
+Hill, P.S.M., Mazzoni, V., Stritih -Peljhan, N., Virant -Doberlet, M., Wessel, A. (eds) 
+Biotremology: Physiology, Ecology, and Evolution. Animal Signals and Communication, vol 8. 
+Springer, Cham. doi.org/10.1007/978-3-030-97419-0_15 
+Pham, T. T., Lee, E. S., Kong, S. Y., Kim, J., Kim, S. Y., Joo, J., ... & Park, B. (2019). Night -shift 
+work, circadian and melatonin pathway related genes and their interaction on breast cancer risk: 
+Evidence from a case-control study in Korean women. Scientific Reports, 9(1), 10982.
+
+[source: doi:https://doi.org/10.21597/jist.1517654|chunk:0]
+353 
+Iğdır Üniversitesi Fen Bilimleri Enstitüsü Dergisi, 15(1), 353-363, 2025 
+Journal of the Institute of Science and Technology, 15(1), 353-363, 2025 
+ISSN:  2146-0574,  eISSN: 2536-4618 
+Zootekni / Animal Science DOI: 10.21597/jist.1517654 
+Araştırma Makalesi / Research Article 
+Geliş tarihi / Received: 17.07.2024 Kabul tarihi / Accepted:24.12.2024. 
+Atıf İçin: Kankılıç, T., Civelek, İ. ve Köse, B. 2024.  Nannospalax Kemirgenlerinde MTNR1A Genetik Varyasyonlarının 
+Karakterizasyonu. Iğdır Üniversitesi Fen Bilimleri Enstitüsü Dergisi, 15(1), 353-363. 
+To Cite: Kankılıç, T., Civelek, İ. & Köse, B. 2024.  Characterization of MTNR1A Genetic Variations in Nannospalax Rodents . 
+Journal of the Institute of Science and Technology, 15(1), 353-363. 
+ Nannospalax Kemirgenlerinde MTNR1A Genetik Varyasyonlarının Karakterizasyonu  
+Teoman KANKILIÇ1, İlkay CİVELEK1*, Burcu KÖSE 1   
+Öne Çıkanlar: 
+• Nannospalax 
+• Varyasyon 
+• Sirkadiyen ritim 
+ 
+Anahtar Kelimeler: 
+• Nannospalax  
+• Körfare
+
+[source: doi:https://doi.org/10.1007/s42991-025-00549-0|chunk:132]
+Coppé JP, Desprez PY , Krtolica A et al (2010) The senescence-asso-
+ciated secretory phenotype: the dark side of tumor suppression. 
+Annu Rev Pathol 5:99–118.  h t t p  s : /  / d o i  . o  r g /  1 0 . 1  1 4 6  / a n  n u r  e v -  p a t 
+h  o l  - 1 2 1 8 0 8 - 1 0 2 1 4 4
+Cordaux R, Batzer MA (2009) The impact of retrotransposons on 
+human genome evolution. Nat Rev Genet 10:691–703.  h t t p  s : /  / d 
+o i  . o  r g /  1 0 . 1  0 3 8  / n r  g 2 6 4 0
+Davies KT, Bennett NC, Tsagkogeorga G et al (2015) Family wide 
+molecular adaptations to underground life in African mole-rats 
+revealed by phylogenomic analysis. Mol Biol Evol 32:3089–
+3107.  h t t p  s : /  / d o i  . o  r g /  1 0 . 1  0 9 3  / m o  l b e v / m s v 1 7 5
+De Waal EM, Liang H, Pierce A et al (2013) Elevated protein carbon-
+ylation and oxidative stress do not affect protein structure and 
+function in the long-living naked-mole rat: A proteomic approach.
+
+[source: doi:https://doi.org/10.2478/macvetrev-2022-0025|chunk:16]
+Spalax leucodon:  morphometry, morphology and radiography
+219
+DISCUSSION
+There is a taxonomic debate on the Spalacidae 
+because of their morphological similarities, thus 
+skull and molar morphometric analyses are very 
+important factors in rodent taxonomy distinction (9).
+According to Nowak (10), these two Spalacidae 
+species, Spalax and Nannospalax , are separated 
+from one another by the absence of a foramen on 
+the occipital condyle in the skull.
+Yağcı and Gurbanov (9)  also found that the 
+best way to taxonomically differentiate spalacids 
+is to perform morphometric analysis of skulls and 
+molars, which is widely used. Rather than focusing 
+on the shape differences, the authors focused on the 
+morphometric differences of the skull bones.
+Also, it is interesting to note that ecological 
+factors may affect dorsal shape variations. Young 
+and adult individuals sampled from hard soils 
+revealed that they have flattening of the sagittal
+
+[source: pmc:12719769|chunk:49]
+of experiments can be found in the results, figures and figure legends. Acknowledgments We thank Dr. Noa Stettner, Shaul Yadaiy, and Eyal Basahri for assistance with animal care, Genia Brodsky for assistance with graphics, and all members of the Kimchi lab for their comments on the article. This work was supported by the  10.13039/501100003977 Israel Science Foundation , grant numbers  2141/21  and  3319/25 , the  10.13039/501100000781 European Research Council ,  856487 ,  10.13039/501100001658 Minerva Foundation , the  Swiss Society Center  for Research on Perception and Action, Center for Research on Learning, Memory and Cognition, Mike and Valeria Rosenbloom Center for Research on Positive Neuroscience, Belle S. and Irving E. Meller Center for the Biology of Aging. Author contributions Conceptualization, N.Z., R.H., Y.K., and T.K.; methodology, R.H., Y.K., R.F., I.E.B., S.B, and T.K.; software, S.G.C.; formal analysis, N.Z., R.H., Y.S., Y.K., R.M., R.F., I.E.B., S.B., and S.G.C.;
+
+[source: doi:https://doi.org/10.1007/s42991-025-00549-0|chunk:133]
+ylation and oxidative stress do not affect protein structure and 
+function in the long-living naked-mole rat: A proteomic approach. 
+BBRC 434:815–819.  h t t p  s : /  / d o i  . o  r g /  1 0 . 1  0 1 6  / j .  b b r c . 2 0 1 3 . 0 4 . 0 1 9
+Del Marmol D, Holtze S, Kichler N et al (2021) Abundance and size 
+of hyaluronan in naked mole-rat tissues and plasma. Sci Rep 
+11:7951.  h t t p  s : /  / d o i  . o  r g /  1 0 . 1  0 3 8  / s 4  1 5 9 8 - 0 2 1 - 8 6 9 6 7 - 9
+Delaney MA, Nagy L, Kinsel MJ et al (2013) Spontaneous histologic 
+lesions of the adult naked mole rat ( Heterocephalus glaber): a 
+retrospective survey of lesions in a zoo population. Vet Pathol 
+50:607–621.  h t t p  s : /  / d o i  . o  r g /  1 0 . 1  1 7 7  / 0 3  0 0 9 8 5 8 1 2 4 7 1 5 4 3
+Delaney MA, Ward JM, Walsh TF et al (2016) Initial case reports of 
+cancer in naked mole-rats ( Heterocephalus glaber). Vet Pathol
+
+[source: doi:https://doi.org/10.1038/ncomms4966|chunk:7]
+been extensively studied genomically, proteomically and
+phenomically1–35 (for full list of publications please refer to the
+online Spalax publication list: http://evolution.haifa.ac.il/
+index.php/28-people/publications/152-publication-nevo-spalax).
+The lack of light in subterranean burrows presumably has
+triggered a complex mosaic of traits involving light perception,
+including severe ocular regression with a subcutaneous minute
+degenerated eye, coupled with the elaboration of photoperiodic
+perception16,17. The BMR has evolved a larger brain volume
+compared with that of rodents of similar body size because of the
+development of an expanded neocortex with developed
+vibrational, tactile, vocal, olfactory and magnetic (spatial)
+orientation systems replacing sight as well as the enlargement
+of the motor structures related to digging activity18–23.
+Most remarkably, the BMR has evolved physiological strategies
+to survive and carry out intense activities in a highly hypoxic and
+
+[source: doi:https://doi.org/10.1038/ncomms4966|chunk:43]
+Gallus NKP +
++
++
+++
+++
+++
+++
+++
++
+–
+NKA
+NKV
+KKV
+KKV
+HKV
+KKI
+KKV
+KKV
+EKD
+EKE
+EKD
+Ornithorhynchus
+Myotis
+Pteropus
+Homo
+Oryctolagus
+Heterocephalus
+Cavia
+Spalax
+Cricetulus
+Rattus
+Mus
+–
+–
+Figure 4 | Evolution of the adaptive amino-acid sequence motif from
+the sodium channel nociceptor protein Nav1.7 in mammals.Note the
+negative net charge of the motif (as indicated byþ or /C0 ) in the
+hypercapnia-exposed BMR (Spalax), NMR (Heterocephalus) and the
+cave microbat (Myotis). The adaptive trait, which confers resistance to
+acidosis pain, has evolved by convergence in the three distantly related
+hypercapnic animal lineages.
+ARTICLE NATURE COMMUNICATIONS | DOI: 10.1038/ncomms4966
+6 NATURE COMMUNICATIONS| 5:3966 | DOI: 10.1038/ncomms4966 | www.nature.com/naturecommunications
+& 2014 Macmillan Publishers Limited. All rights reserved.
+
+[source: doi:https://doi.org/10.1186/2193-1801-2-2|chunk:43]
+Moorhead PS, Nowell PC, Mellman WJ, Battips DM, Hungerford DA (1960)
+Chromosome preparation of leukocytes cultured from human peripheral
+blood. Exp Cell Res 20:613– 616
+Moritz C (1994) Defining evolutionarily significant units for conservation. Trends
+Ecol Evol 9:373– 375
+Musser G, Carleton M (2005) Superfamily Muroidea. In: Wilson DE, Reeder DM
+(eds) Mammal species of the world: A taxonomic and geographic reference,
+3rd edn. The Johns Hopkins University Press, Baltimore, pp 894– 1531
+Németh A, Czabán D, Csorba G, Farkas J (2007) Evaluating the methods for live-
+trapping of the Hungarian lesser blind mole rat (Spalax leucodon). Term véd
+Közl 13:417– 421, in Hungarian with English abstract
+Németh A, Révay T, Zs H, Farkas J, Czabán D, Rózsás A, Csorba G (2009)
+Chromosomal forms and risk assessment of Nannospalax (superspecies
+leucodon) (Mammalia: Rodentia) in the Carpathian Basin. Folia Zool
+58:349– 361
+Nevo E (2000) Mosaic evolution of subterranean mammals: regression,
+
+[source: pmc:12719769|chunk:28]
+solitary social behavior in the blind mole rat ( Nannospalax galili ), a naturally wild, subterranean, and non-social rodent. While oxytocin (OT) is a highly conserved neuropeptide implicated in a wide range of social behaviors across mammals, its role in solitary species has remained largely unexplored. 20 , 22 , 35 We show that, despite its solitary lifestyle, the BMR exhibits structured and diverse behavioral responses to non-physical social encounters, including the rapid initiation of species-typical seismic communication (head-drumming and jaw-listening), elevated defensive behaviors (tube blocking), and modest increases in agonistic behaviors (open-mouth displays and divider attacks), 42 , 43 , 49 , 52 , 63 , 64  with no changes in non-social activity. All components of this repertoire were quantified in a semi-naturalistic setting, revealing substantial individual differences in the diversity, intensity, and structure of social behaviors, reflecting the natural variability
+
+[source: doi:https://doi.org/10.1038/ncomms4966|chunk:37]
+QLTQSPQQFLQTSRLLHGNPSTQLILSAAFPLQQSTFPPSHHQQHQS
+QLTQPPQQFLQTSRLLHGNPSTQLILSAAFPLQQSTFPQSHHQQHQS
+QLtQ PQQFLQTSRLLHGNPSTQLILSAAFPLQQSTFPpSHHQQHq
+:8 4 0
+:8 3 2
+:8 4 2
+:8 4 2
+:8 2 3
+:
+:
+:
+:
+:
+*
+-QQQQLHRHRTDSLTDPSKVQPQ
+QQQQQLPRHRTDSLTDPSKVQPQ
+QQQQQLSRHRTDSLTDPSKVQPQ
+QQQQQLSRHRTDSLTDPSKVQPQ
+QQQQQLSRHRTDSLPDPSKVQPQ
+qQQQQL RHRTDSLtDPSKVQPQ
+: 862
+: 855
+: 865
+: 865
+846:
+Rattus
+Mus
+Spalax
+Heterocephalus
+Homo
+Rattus
+Mus
+Spalax
+Heterocephalus
+Homo
+Rattus
+Mus
+Spalax
+Heterocephalus
+Homo
+Rattus
+Mus
+Spalax
+Heterocephalus
+Homo
+QQPQQQQPQQQQPQQQQPQ
+QQPQQQQPQQQQPQQQQPQ
+Homo
+Spermophilus daurics
+Spermophilus tridecemlineatus
+Cricetulus
+Mus
+Rattus
+Spalax  
+Heterocephalus  
+Divergence, substitutions/site
+0 0.009 0.018 0.027 0.036
+98
+100
+100
+97
+84
+Subterranean
+750
+747
+752
+752
+751
+80
+860
+Figure 2 | Convergent evolution of BMR and NMR CLOCK proteins.(a) The Q-rich domain of BMR (Spalax) and NMR (Heterocephalus) CLOCK
+
+[source: pmc:12719769|chunk:11]
+an enlarged harderian gland cavity, which secretes aggression-dampening pheromones to deter intruders. 57  Coronal and sagittal images revealed hypertrophied masseter muscles surrounding the jaw, supporting powerful biting and gnawing. 58  Well-developed vomeronasal organ (VNO) canals and main olfactory epithelium (MOE) were also evident, indicating reliance on chemosensory cues for underground communication. 59  Finally, MRI scans showed flattening along the brain’s ventral plane and an absence of optic tracts, consistent with advanced visual system degeneration 16 , 60  ( Figure 1 C and  Video S2 ). Comparative analysis of the oxytocin system uncovers a previously unknown neuronal population To examine whether OT sequence evolution corresponds with social lifestyle, we compared OT DNA sequences across >20 rodents representing 3 diverse social lifestyles (solitary, facultatively solitary, social) within the Myomorpha suborder ( Figure 1 D). We further compared the full OT protein
+
+[source: doi:https://doi.org/10.1186/2193-1801-2-2|chunk:40]
+sequences and mammals. J Mamm 82:960– 973
+Ceballos G, Brown JH (1995) Global patterns of mammalian diversity, endemism,
+and endangerment. Cons Biol 9:559– 568
+Corti M (2001) Chromosomal speciation and phenotypic evolution in the house
+mouse. Biol J Linn Soc 73:99– 112
+Gannon WL, Sikes RS, the Animal Care and Use Committee of the American
+Society of Mammalogists (2007) Guidelines of the American Society of
+Mammalogists for the use of wild mammals in research. J Mamm
+88:809– 823
+Hadid Y, Németh A, Snir S, Pavlíček T, Csorba G, Kázmér M, Major A, Mezhzherin
+S, Rusin M, Coşkun Y, Nevo E (2012) Is evolution of blind mole rats
+Németh et al. SpringerPlus2013, 2:2 Page 9 of 10
+http://www.springerplus.com/content/2/1/2
+
+Species:
+nannospalax ehrenbergi
+
+Answer:
