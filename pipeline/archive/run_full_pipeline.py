@@ -9,8 +9,12 @@ import sys
 from datetime import datetime
 from uuid import uuid4
 
-from build_testcase_json import build_entries, parse_species_arg
-from llm_backend import DEFAULT_CHAT_MODEL
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parents[2]))
+
+from scripts.build_testcase_json import build_entries, parse_species_arg
+from core.llm_backend import resolve_chat_model
 
 
 def slugify(name: str) -> str:
@@ -36,7 +40,7 @@ def run_inventory(
         run_dir.mkdir(parents=True, exist_ok=True)
         cmd = [
             sys.executable,
-            "inventory_single_2.py",
+            str(Path(__file__).parents[1] / "inventory_single_2.py"),
             "--species-file",
             str(species_file),
             "--log-run",
@@ -251,7 +255,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--model",
-        default=DEFAULT_CHAT_MODEL,
+        default=resolve_chat_model(None),
         help="Chat model name for grouping.",
     )
     parser.add_argument(
@@ -316,7 +320,7 @@ def main() -> None:
     subprocess.run(
         [
             sys.executable,
-            "analyze_runs.py",
+            str(Path(__file__).parents[2] / "analysis" / "analyze_runs.py"),
             "--run-list",
             str(run_list_path),
             "--out",
@@ -330,7 +334,7 @@ def main() -> None:
 
     group_cmd = [
         sys.executable,
-        "group_traits_llm.py",
+        str(Path(__file__).parents[2] / "analysis" / "group_traits_llm.py"),
         str(analyze_out),
         "--model",
         args.model,
