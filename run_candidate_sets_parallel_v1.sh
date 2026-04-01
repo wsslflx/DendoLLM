@@ -3,7 +3,7 @@ set -euo pipefail
 
 INPUT_TSV="${1:-candidate_sets_v1.tsv}"
 PARALLELISM="${PARALLELISM:-10}"
-RUNS="${RUNS:-10}"
+RUNS="${RUNS:-1}"
 BUNDLE_ROOT="${BUNDLE_ROOT:-logs_v1}"
 export RUNS
 export BUNDLE_ROOT
