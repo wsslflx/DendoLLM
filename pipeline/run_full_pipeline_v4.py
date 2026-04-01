@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import sys
+from pathlib import Path as _Path
+sys.path.insert(0, str(_Path(__file__).parents[1]))
+sys.path.insert(0, str(_Path(__file__).parent))
+
 import argparse
 import json
 import pathlib
@@ -9,8 +14,8 @@ import sys
 from datetime import datetime
 from uuid import uuid4
 
-from build_testcase_json import build_entries, parse_species_arg
-from llm_backend import DEFAULT_CHAT_MODEL
+from scripts.build_testcase_json import build_entries, parse_species_arg
+from core.llm_backend import DEFAULT_CHAT_MODEL
 
 
 def slugify(name: str) -> str:
@@ -37,7 +42,7 @@ def run_inventory(
         run_dir.mkdir(parents=True, exist_ok=True)
         cmd = [
             sys.executable,
-            "inventory_single_4.py",
+            str(pathlib.Path(__file__).parent / "inventory_single_4.py"),
             "--species-file",
             str(species_file),
             "--log-run",
@@ -319,7 +324,7 @@ def main() -> None:
     subprocess.run(
         [
             sys.executable,
-            "analyze_runs.py",
+            str(pathlib.Path(__file__).parents[1] / "analysis" / "analyze_runs.py"),
             "--run-list",
             str(run_list_path),
             "--out",
@@ -333,7 +338,7 @@ def main() -> None:
 
     group_cmd = [
         sys.executable,
-        "group_traits_llm.py",
+        str(pathlib.Path(__file__).parents[1] / "analysis" / "group_traits_llm.py"),
         str(analyze_out),
         "--model",
         args.model,

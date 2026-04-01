@@ -18,8 +18,8 @@ import numpy as np
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 
-from llm_backend import make_chat_llm
-from rag_cli import (
+from core.llm_backend import make_chat_llm
+from core.rag_cli import (
     RAG,
     maximal_marginal_relevance,
     DEFAULT_QUERY,

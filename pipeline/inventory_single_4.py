@@ -6,6 +6,11 @@ Keeps v1 scripts unchanged.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path as _Path
+sys.path.insert(0, str(_Path(__file__).parents[1]))
+sys.path.insert(0, str(_Path(__file__).parent))
+
 import argparse
 import json
 import pathlib
@@ -17,8 +22,8 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 
 import inventory_single_2 as v1
-from hybrid_normalization import build_hybrid_species_profile
-from llm_backend import make_chat_llm
+from core.hybrid_normalization import build_hybrid_species_profile
+from core.llm_backend import make_chat_llm
 
 SYNTHESIS_PROMPT_FILE = "Prompts/prompt_synthesis_v4.txt"
 MAX_SYNTHESIS_RETRIES = 3

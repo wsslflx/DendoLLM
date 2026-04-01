@@ -108,7 +108,7 @@ def analyze_runs(run_files: list[Path]) -> dict:
         else:
             mean_pairwise = 1.0 if per_run_sets else 0.0
 
-        # mean jaccard vs union (how complete each run’s citations are relative to all seen)
+        # mean jaccard vs union (how complete each run's citations are relative to all seen)
         if union and per_run_sets:
             vs_union = [jaccard(s, union) for s in per_run_sets]
             mean_vs_union = sum(vs_union) / len(vs_union)

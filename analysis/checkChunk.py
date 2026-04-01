@@ -1,7 +1,9 @@
 import re
 import sys
+from pathlib import Path as _Path
+sys.path.insert(0, str(_Path(__file__).parents[1]))
 
-from rag_cli import RAG
+from core.rag_cli import RAG
 
 TAG_RE = re.compile(r"\[source:\s*(?P<doc_id>[^|]+)\|chunk:(?P<chunk>\d+)\]")
 RAW_RE = re.compile(r"(?P<doc_id>[^|]+)\|chunk:(?P<chunk>\d+)")
@@ -17,7 +19,7 @@ def parse_tag(tag: str) -> tuple[str, int]:
     return match.group("doc_id"), int(match.group("chunk"))
 
 
-def main() -> None: 
+def main() -> None:
     if len(sys.argv) != 2:
         print(
             "Usage: python checkChunk.py \"[source: <doc_id>|chunk:<int>]\" "
