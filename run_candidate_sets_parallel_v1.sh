@@ -37,7 +37,7 @@ species="$3"
 slug_gene="$(printf "%s" "$gene" | tr -cs "[:alnum:]" "_" | tr "[:upper:]" "[:lower:]")"
 log_file="${LOG_ROOT}/${row_id}_${slug_gene}.log"
 echo "[$(date +"%Y-%m-%d %H:%M:%S")] START row=${row_id} gene=${gene}"
-if python run_full_pipeline.py \
+if python pipeline/archive/run_full_pipeline.py \
   --species-list "$species" \
   --run-label "$gene" \
   --runs "$RUNS" \
