@@ -43,7 +43,7 @@ try:
 except ImportError:  # fallback for older langchain versions
     from langchain.vectorstores.utils import maximal_marginal_relevance
 
-from llm_backend import make_chat_llm, make_embeddings
+from core.llm_backend import make_chat_llm, make_embeddings
 
 load_dotenv()
 

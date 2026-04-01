@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from llm_backend import make_chat_llm, make_embeddings, resolve_chat_model, resolve_embed_model
+import sys
+from pathlib import Path as _Path
+sys.path.insert(0, str(_Path(__file__).parents[1]))
+
+from core.llm_backend import make_chat_llm, make_embeddings, resolve_chat_model, resolve_embed_model
 
 
 def main() -> None:

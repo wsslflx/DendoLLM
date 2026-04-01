@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 
-from llm_backend import make_chat_llm, make_embeddings
+from core.llm_backend import make_chat_llm, make_embeddings
 
 _STOPWORDS = {
     "a",

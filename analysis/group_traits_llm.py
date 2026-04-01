@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import sys
+from pathlib import Path as _Path
+sys.path.insert(0, str(_Path(__file__).parents[1]))
+
 import argparse
 import json
 import pathlib
@@ -11,7 +15,7 @@ from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda
 
-from llm_backend import DEFAULT_CHAT_MODEL, make_chat_llm
+from core.llm_backend import DEFAULT_CHAT_MODEL, make_chat_llm
 
 load_dotenv()
 

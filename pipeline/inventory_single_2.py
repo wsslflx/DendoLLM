@@ -6,6 +6,10 @@ Uses prompt_inventory_json_cited.txt and the existing RAG ingestion/retrieval ut
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path as _Path
+sys.path.insert(0, str(_Path(__file__).parents[1]))
+
 import argparse
 import hashlib
 import json
@@ -19,8 +23,8 @@ import numpy as np
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 
-from llm_backend import make_chat_llm
-from rag_cli import RAG, maximal_marginal_relevance
+from core.llm_backend import make_chat_llm
+from core.rag_cli import RAG, maximal_marginal_relevance
 
 try:
     import fcntl
