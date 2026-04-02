@@ -12,8 +12,6 @@ SCOPE:
 INCLUSION RULES:
 - Extract characteristics that are explicit, repeatedly supported, or strongly emphasized.
 - Prefer characteristics with ecological, functional, or evolutionary relevance.
-- When context suggests an underlying biological challenge, include the best supported
-  species-level functional trait linked to that challenge.
 
 EXCLUSION RULES:
 - Exclude trivial generic characteristics with low discriminative value.
@@ -24,15 +22,19 @@ STRICT RULES:
 - Species-specific only. Do NOT compare species.
 - Do NOT invent unsupported claims.
 - Inference is allowed only when strongly and unambiguously implied by evidence.
+- Trait names must be noun phrases. No clauses, no "where/because/which/that" constructions.
 
 OUTPUT RULES (JSON ARRAY ONLY):
 - Return a JSON array.
 - Each item MUST be:
   {{
-    "trait": "<3-9 word species-level characteristic>",
+    "trait": "<2-5 word noun phrase>",
     "sources": ["<citation tags from context>"],
     "confidence": 1.0 | 0.7 | 0.5
   }}
+- Trait name style:
+  Good: "electroreception capability", "subterranean burrowing", "reduced visual acuity"
+  Bad:  "sensory substitution where electroreception compensates for reduced visual acuity"
 - Confidence:
   - 1.0: explicit and clearly characteristic
   - 0.7: strongly supported/repeated
@@ -40,6 +42,7 @@ OUTPUT RULES (JSON ARRAY ONLY):
 - Use only citation tags from context.
 - Include all relevant supporting tags for each trait.
 - Do NOT include prose or headings.
+- Return 2 to 7 traits. Prefer the most biologically distinctive ones.
 - If no central characteristics are supported, return [].
 
 Context:

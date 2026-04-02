@@ -17,7 +17,7 @@ Return JSON only:
 {{
   "latent_factors": [
     {{
-      "factor": "<concise factor>",
+      "factor": "<2-5 word factor>",
       "supporting_traits": ["<exact trait text from input>", "..."],
       "confidence": 0.0
     }}
