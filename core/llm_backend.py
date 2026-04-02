@@ -60,11 +60,20 @@ def resolve_embed_model(model: str | None = None) -> str:
 
 
 def make_chat_llm(model: str | None, temperature: float, **kwargs: Any) -> ChatOllama:
+    kwargs.setdefault("num_ctx", 16000)    # cap context to reduce VRAM pressure and proxy timeout risk
+    kwargs.setdefault("num_predict", 4096) # enough for thinking tokens + JSON output
+    resolved = resolve_chat_model(model)
+    # Disable thinking mode for qwen3.x — without this, the model burns the entire
+    # num_predict budget on thinking tokens before generating any JSON output.
+    # langchain_ollama maps `reasoning` → Ollama API `think` field (chat_models.py:770).
+    # Setting system="/no_think" does NOT disable thinking; reasoning=False does.
+    if "qwen3" in resolved.lower():
+        kwargs.setdefault("reasoning", False)
     return ChatOllama(
         base_url=ollama_base_url(),
-        model=resolve_chat_model(model),
+        model=resolved,
         temperature=temperature,
-        client_kwargs={"headers": ollama_headers(), **kwargs.pop("client_kwargs", {})},
+        client_kwargs={"headers": ollama_headers(), "timeout": 300, **kwargs.pop("client_kwargs", {})},
         **kwargs,
     )
 

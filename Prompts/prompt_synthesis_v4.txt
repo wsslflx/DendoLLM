@@ -22,22 +22,22 @@ RULES
 - Avoid trivial universal traits (e.g., "has cells", "is alive", "has limbs").
 - If evidence is mixed, move claims to subgroup_common_traits or lower confidence.
 - Use only source IDs present in the input profiles.
+- Trait names are 2-5 word noun phrases. No subordinate clauses.
 
 OUTPUT
 Return ONLY valid JSON (no markdown fences, no extra text) with this schema:
 {{
   "strict_common_traits": [
-    {{"trait": "...", "sources": ["...", "..."], "confidence": 0.0}}
+    {{"trait": "<2-5 word noun phrase>", "sources": ["...", "..."], "confidence": 0.0}}
   ],
   "subgroup_common_traits": [
-    {{"trait": "...", "sources": ["...", "..."], "confidence": 0.0}}
+    {{"trait": "<2-5 word noun phrase>", "sources": ["...", "..."], "confidence": 0.0}}
   ],
   "mechanism_hypotheses": [
-    {{"trait": "...", "sources": ["...", "..."], "confidence": 0.0}}
+    {{"trait": "<3-8 word functional hypothesis>", "sources": ["...", "..."], "confidence": 0.0}}
   ]
 }}
 
 CONSTRAINTS
 - confidence must be numeric in [0.0, 1.0].
 - sources must contain at least 2 source IDs when possible.
-- Keep trait text concise and biologically meaningful.

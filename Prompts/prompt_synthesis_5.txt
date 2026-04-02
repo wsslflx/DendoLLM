@@ -19,6 +19,7 @@ NORMALIZATION:
 - Merge equivalent phrasings into one canonical trait.
 - Keep abstraction coherent.
 - Prefer biologically meaningful labels over generic broad labels.
+- Canonical trait names are noun phrases of 2-5 words.
 
 MECHANISM INFERENCE (GENERAL RULE):
 - Always evaluate whether multiple observed traits may reflect a shared underlying biological challenge.
@@ -36,21 +37,21 @@ Return exactly:
 {{
   "strict_common_traits": [
     {{
-      "trait": "<canonical strict-common trait>",
+      "trait": "<2-5 word noun phrase>",
       "sources": ["<all supporting citation tags>"],
       "confidence": 1.0 | 0.7 | 0.5
     }}
   ],
   "subgroup_common_traits": [
     {{
-      "trait": "<trait common in coherent subgroup>",
+      "trait": "<2-5 word noun phrase>",
       "sources": ["<all supporting citation tags>"],
       "confidence": 1.0 | 0.7 | 0.5
     }}
   ],
   "mechanism_hypotheses": [
     {{
-      "trait": "<mechanism-level hypothesis>",
+      "trait": "<3-8 word functional hypothesis>",
       "sources": ["<all supporting citation tags used for mechanism>"],
       "confidence": 1.0 | 0.7 | 0.5
     }}
@@ -80,5 +81,6 @@ FAILSAFE:
 - If no trait qualifies for a section, return an empty list for that section.
 - Always return all three top-level keys.
 - Return JSON only (no prose, no markdown).
+- Return 2 to 7 total traits across all three sections combined. Prefer the most strongly supported ones.
 
 START IMMEDIATELY WITH THE JSON OBJECT.
