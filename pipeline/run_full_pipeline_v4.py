@@ -316,6 +316,13 @@ def main() -> None:
     )
     source_stats = aggregate_source_stats(run_dirs)
 
+    # Step 4b: KG mapping + Neo4j push + hypotheses (non-fatal)
+    try:
+        from kg.kg_pipeline_step import run_kg_step
+        run_kg_step(str(bundle_dir), model=args.model)
+    except Exception as _kg_exc:
+        print(f"[KG] KG step failed (non-fatal) — pipeline continues: {_kg_exc}")
+
     run_list_path = pathlib.Path(args.run_list_out) if args.run_list_out else bundle_dir / "run_list.txt"
     write_run_list(run_dirs, run_list_path)
     print(f"Run list written to: {run_list_path}")
