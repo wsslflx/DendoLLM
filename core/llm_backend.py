@@ -16,7 +16,10 @@ if _env_path.exists():
                 _k, _, _v = _line.partition("=")
                 os.environ.setdefault(_k.strip(), _v.strip())
 
-from langchain_ollama import ChatOllama, OllamaEmbeddings
+from ollama import Client as OllamaClient
+from langchain_ollama import OllamaEmbeddings
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.runnables import RunnableLambda
 
 DEFAULT_OLLAMA_BASE_URL = "https://dev.chat.cosy.bio/ollama"
 DEFAULT_CHAT_MODEL = "qwen2.5:latest"
@@ -59,23 +62,69 @@ def resolve_embed_model(model: str | None = None) -> str:
     )
 
 
-def make_chat_llm(model: str | None, temperature: float, **kwargs: Any) -> ChatOllama:
-    kwargs.setdefault("num_ctx", 16000)    # cap context to reduce VRAM pressure and proxy timeout risk
-    kwargs.setdefault("num_predict", 4096) # enough for thinking tokens + JSON output
+def _prompt_value_to_messages(input_val) -> list[dict]:
+    """Convert a LangChain PromptValue, message list, or plain string to ollama messages."""
+    if isinstance(input_val, str):
+        return [{"role": "user", "content": input_val}]
+    if hasattr(input_val, "to_messages"):
+        # ChatPromptValue / StringPromptValue
+        lc_messages = input_val.to_messages()
+    elif isinstance(input_val, list):
+        lc_messages = input_val
+    else:
+        return [{"role": "user", "content": str(input_val)}]
+
+    messages = []
+    for m in lc_messages:
+        # Support (role, content) tuples as well as LangChain message objects
+        if isinstance(m, tuple) and len(m) == 2:
+            messages.append({"role": m[0], "content": m[1]})
+            continue
+        msg_type = getattr(m, "type", None)
+        if msg_type == "system" or isinstance(m, SystemMessage):
+            role = "system"
+        elif msg_type == "ai" or isinstance(m, AIMessage):
+            role = "assistant"
+        else:
+            role = "user"
+        messages.append({"role": role, "content": m.content})
+    return messages
+
+
+def make_chat_llm(model: str | None, temperature: float, **kwargs: Any) -> RunnableLambda:
+    """Return a LangChain-compatible Runnable backed by the native ollama.Client.
+
+    Uses the native ollama Python library instead of langchain_ollama.ChatOllama
+    to avoid timeout/streaming issues with newer Ollama server versions.
+    Supports the same | prompt | llm chain syntax and .invoke() calls.
+    """
     resolved = resolve_chat_model(model)
-    # Disable thinking mode for qwen3.x — without this, the model burns the entire
-    # num_predict budget on thinking tokens before generating any JSON output.
-    # langchain_ollama maps `reasoning` → Ollama API `think` field (chat_models.py:770).
-    # Setting system="/no_think" does NOT disable thinking; reasoning=False does.
-    if "qwen3" in resolved.lower():
-        kwargs.setdefault("reasoning", False)
-    return ChatOllama(
-        base_url=ollama_base_url(),
-        model=resolved,
-        temperature=temperature,
-        client_kwargs={"headers": ollama_headers(), "timeout": 300, **kwargs.pop("client_kwargs", {})},
-        **kwargs,
-    )
+    fmt = kwargs.pop("format", None)
+    num_ctx = kwargs.pop("num_ctx", 16000)
+    num_predict = kwargs.pop("num_predict", 4096)
+
+    options = {"temperature": temperature, "num_ctx": num_ctx, "num_predict": num_predict}
+
+    # Disable thinking mode for qwen3.x models
+    disable_think = "qwen3" in resolved.lower()
+
+    client = OllamaClient(host=ollama_base_url(), headers=ollama_headers())
+
+    def _invoke(input_val):
+        messages = _prompt_value_to_messages(input_val)
+        chat_kwargs: dict[str, Any] = {
+            "model": resolved,
+            "messages": messages,
+            "options": options,
+        }
+        if fmt:
+            chat_kwargs["format"] = fmt
+        if disable_think:
+            chat_kwargs["think"] = False
+        response = client.chat(**chat_kwargs)
+        return AIMessage(content=response.message.content)
+
+    return RunnableLambda(_invoke)
 
 
 def make_embeddings(model: str | None = None, **kwargs: Any) -> OllamaEmbeddings:

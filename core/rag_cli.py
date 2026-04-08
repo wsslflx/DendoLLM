@@ -49,20 +49,29 @@ load_dotenv()
 
 
 def _add_documents_with_retry(vectorstore, splits, max_retries=5, base_delay=30):
-    """Add documents to vectorstore with exponential backoff on 502/transient errors."""
+    """Add documents to vectorstore with exponential backoff on transient Ollama errors.
+
+    Handles two classes of recoverable errors:
+    - 5xx / proxy errors (502, 503, 504): server overloaded, short backoff
+    - 400 "not found": embed model was evicted from GPU memory by the server and
+      needs time to reload; use a longer initial delay before retrying.
+    """
     for attempt in range(max_retries):
         try:
             vectorstore.add_documents(splits)
             return
         except Exception as exc:
             err_str = str(exc)
-            # Retry on 502 / proxy / connection errors from the Ollama backend
-            is_transient = any(x in err_str for x in ("502", "503", "504", "Proxy Error",
-                                                        "RemoteDisconnected", "Connection",
-                                                        "timeout", "Timeout"))
-            if is_transient and attempt < max_retries - 1:
-                delay = base_delay * (2 ** attempt)
-                print(f"[RAG] add_documents failed (attempt {attempt+1}/{max_retries}): {exc!r}")
+            is_5xx = any(x in err_str for x in ("502", "503", "504", "Proxy Error",
+                                                  "RemoteDisconnected", "Connection",
+                                                  "timeout", "Timeout"))
+            is_model_reload = ("400" in err_str or "status code: 400" in err_str) and "not found" in err_str.lower()
+            if (is_5xx or is_model_reload) and attempt < max_retries - 1:
+                # Give the embed model more time to reload from disk into GPU memory
+                initial_delay = 60 if is_model_reload else base_delay
+                delay = initial_delay * (2 ** attempt)
+                reason = "embed model unloaded from GPU, waiting for reload" if is_model_reload else "transient server error"
+                print(f"[RAG] add_documents failed ({reason}, attempt {attempt+1}/{max_retries}): {exc!r}")
                 print(f"[RAG] Retrying in {delay}s...")
                 time.sleep(delay)
             else:
@@ -627,7 +636,7 @@ class RAG:
                 )
             doc.metadata = metadata
 
-        _add_documents_with_retry(self.vectorstore, splits)
+        self.vectorstore.add_documents(splits)
         # persist to disk so future runs can reuse without re-embedding
         return splits
 
@@ -675,7 +684,7 @@ class RAG:
                     }
                 )
 
-            _add_documents_with_retry(self.vectorstore, splits)
+            self.vectorstore.add_documents(splits)
             self.ingested_per_species[specie_norm].add(source_path)
 
     def ingest_wikipedia(
@@ -709,7 +718,7 @@ class RAG:
                     "source": "wikipedia",
                 }
             )
-        _add_documents_with_retry(self.vectorstore, splits)
+        self.vectorstore.add_documents(splits)
         self.ingested_per_species[specie_norm].add(source_path)
         return True
 
