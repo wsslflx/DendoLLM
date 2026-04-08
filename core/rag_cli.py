@@ -47,6 +47,27 @@ from core.llm_backend import make_chat_llm, make_embeddings
 
 load_dotenv()
 
+
+def _add_documents_with_retry(vectorstore, splits, max_retries=5, base_delay=30):
+    """Add documents to vectorstore with exponential backoff on 502/transient errors."""
+    for attempt in range(max_retries):
+        try:
+            vectorstore.add_documents(splits)
+            return
+        except Exception as exc:
+            err_str = str(exc)
+            # Retry on 502 / proxy / connection errors from the Ollama backend
+            is_transient = any(x in err_str for x in ("502", "503", "504", "Proxy Error",
+                                                        "RemoteDisconnected", "Connection",
+                                                        "timeout", "Timeout"))
+            if is_transient and attempt < max_retries - 1:
+                delay = base_delay * (2 ** attempt)
+                print(f"[RAG] add_documents failed (attempt {attempt+1}/{max_retries}): {exc!r}")
+                print(f"[RAG] Retrying in {delay}s...")
+                time.sleep(delay)
+            else:
+                raise
+
 EMAIL = os.getenv("EMAIL", "trifonova.kate.s@gmail.com")
 BASE_URL = "https://api.openalex.org/works"
 NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -606,7 +627,7 @@ class RAG:
                 )
             doc.metadata = metadata
 
-        self.vectorstore.add_documents(splits)
+        _add_documents_with_retry(self.vectorstore, splits)
         # persist to disk so future runs can reuse without re-embedding
         return splits
 
@@ -654,7 +675,7 @@ class RAG:
                     }
                 )
 
-            self.vectorstore.add_documents(splits)
+            _add_documents_with_retry(self.vectorstore, splits)
             self.ingested_per_species[specie_norm].add(source_path)
 
     def ingest_wikipedia(
@@ -688,7 +709,7 @@ class RAG:
                     "source": "wikipedia",
                 }
             )
-        self.vectorstore.add_documents(splits)
+        _add_documents_with_retry(self.vectorstore, splits)
         self.ingested_per_species[specie_norm].add(source_path)
         return True
 

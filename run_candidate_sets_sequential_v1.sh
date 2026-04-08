@@ -3,12 +3,15 @@ set -euo pipefail
 
 INPUT_TSV="${1:-candidate_sets_v1.tsv}"
 RUNS="${RUNS:-1}"
-BUNDLE_ROOT="${BUNDLE_ROOT:-logs_v1}"
+BUNDLE_ROOT_BASE="${BUNDLE_ROOT:-logs_v1}"
+RUNSTAMP="$(date +%Y%m%d_%H%M%S)"
+BUNDLE_ROOT="${BUNDLE_ROOT_BASE}/${RUNSTAMP}"
 export RUNS
 export BUNDLE_ROOT
-RUNSTAMP="$(date +%Y%m%d_%H%M%S)"
 LOG_ROOT="${LOG_ROOT:-run_logs_v1/${RUNSTAMP}}"
-mkdir -p "${LOG_ROOT}"
+# Shared Chroma store at the base level so embeddings persist across re-runs.
+SHARED_CHROMA="${BUNDLE_ROOT_BASE}/shared_chroma_store_ollama"
+mkdir -p "${LOG_ROOT}" "${BUNDLE_ROOT}" "${SHARED_CHROMA}"
 
 if [[ ! -f "$INPUT_TSV" ]]; then
   echo "Input TSV not found: $INPUT_TSV" >&2
@@ -21,10 +24,11 @@ if ! command -v python >/dev/null 2>&1; then
 fi
 
 echo "Starting candidate-set runs (sequential)"
-echo "Input:           $INPUT_TSV"
+echo "Input:             $INPUT_TSV"
 echo "Runs per testcase: $RUNS"
-echo "Bundle root:     $BUNDLE_ROOT"
-echo "Log root:        $LOG_ROOT"
+echo "Bundle root:       $BUNDLE_ROOT"
+echo "Shared chroma:     $SHARED_CHROMA"
+echo "Log root:          $LOG_ROOT"
 
 success_count=0
 fail_count=0
@@ -61,6 +65,7 @@ PY
     --run-label "$gene" \
     --runs "$RUNS" \
     --bundle-root "$BUNDLE_ROOT" \
+    --chroma-dir "$SHARED_CHROMA" \
     >"$log_file" 2>&1; then
     echo "[$(date +"%Y-%m-%d %H:%M:%S")] DONE  row=${row_id} gene=${gene}"
     : > "${LOG_ROOT}/success_${row_id}_${slug_gene}"
