@@ -284,7 +284,8 @@ def build_index(force: bool = False) -> None:
 
     # Persist embeddings
     tmp_npy = EMBED_NPY.with_suffix(".npy.tmp")
-    np.save(tmp_npy, vecs)
+    with open(tmp_npy, "wb") as _f:
+        np.save(_f, vecs)
     os.replace(tmp_npy, EMBED_NPY)
     print(f"[KG] Saved embeddings: {EMBED_NPY}")
 
