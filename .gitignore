@@ -12,4 +12,5 @@ analyze_report/
 group_reports/
 CLAUDE.md
 .claude
-kg/cache
+kg/cache/*
+!kg/cache/.gitkeep
