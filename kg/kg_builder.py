@@ -92,7 +92,6 @@ def build_graph(
 
     Returns (nodes, edges) where each dict has a '_label' key.
     """
-    from kg.ontology_index import SQLITE_PATH
 
     nodes: list[dict] = []
     edges: list[dict] = []
