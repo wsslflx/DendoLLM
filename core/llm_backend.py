@@ -19,7 +19,7 @@ if _env_path.exists():
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 
 DEFAULT_OLLAMA_BASE_URL = "https://dev.chat.cosy.bio/ollama"
-DEFAULT_CHAT_MODEL = "qwen2.5:latest"
+DEFAULT_CHAT_MODEL = os.getenv("OLLAMA_CHAT_MODEL", "qwen2.5:latest")
 
 
 def ollama_base_url() -> str:
