@@ -14,3 +14,7 @@ CLAUDE.md
 .claude
 kg/cache/*
 !kg/cache/.gitkeep
+core/__pycache__/
+__pycache__/
+*.pyc
+*.pyo
