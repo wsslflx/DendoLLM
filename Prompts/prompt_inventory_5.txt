@@ -33,7 +33,7 @@ OUTPUT RULES (JSON ARRAY ONLY):
     "confidence": 1.0 | 0.7 | 0.5
   }}
 - Trait name style:
-  Good: "electroreception capability", "subterranean burrowing", "reduced visual acuity"
+  Good: "nocturnal activity pattern", "filter feeding mechanism", "migratory flight behavior"
   Bad:  "sensory substitution where electroreception compensates for reduced visual acuity"
 - Confidence:
   - 1.0: explicit and clearly characteristic
