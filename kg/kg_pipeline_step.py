@@ -111,18 +111,24 @@ def _write_summary(path: Path, data: dict) -> None:
     lines = [
         "KG Pipeline Step Summary",
         "=" * 40,
-        f"Run ID:          {data.get('run_id', '?')}",
-        f"Species:         {len(data.get('species_names', []))}",
-        f"Traits mapped:   {data.get('traits_mapped', 0)} / {data.get('traits_total', 0)}",
-        f"Shared terms:    {len(data.get('shared_terms', []))}",
-        f"ENVO stressors:  {len(data.get('stressors', []))}",
-        f"Hypotheses:      {len(data.get('hypotheses', []))}",
+        f"Run ID:               {data.get('run_id', '?')}",
+        f"Species:              {len(data.get('species_names', []))}",
+        f"Traits mapped:        {data.get('traits_mapped', 0)} / {data.get('traits_total', 0)}",
+        f"Shared terms:         {len(data.get('shared_terms', []))}",
+        f"Similar trait pairs:  {len(data.get('similar_clusters', []))}",
+        f"ENVO stressors:       {len(data.get('stressors', []))}",
+        f"Hypotheses:           {len(data.get('hypotheses', []))}",
         "",
         "Shared ontology terms:",
     ]
     for t in data.get("shared_terms", [])[:10]:
         lines.append(f"  {t.get('term_id','?')} — {t.get('term_name','?')} "
                      f"({t.get('species_count',0)} species)")
+    lines += ["", "Semantically similar trait pairs:"]
+    for sc in data.get("similar_clusters", [])[:10]:
+        sp = ", ".join(sc.get("all_species", []))
+        lines.append(f"  '{sc.get('norm_a')}' ~ '{sc.get('norm_b')}' "
+                     f"(score={sc.get('score', 0):.2f}, species: {sp})")
     lines += [
         "",
         "Inferred stressors:",
@@ -232,6 +238,7 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None) -> None:
 
     # Step 7: write output files
     _write_json(bundle_dir / "kg_shared_terms.json", query_results["shared_terms"])
+    _write_json(bundle_dir / "kg_similar_clusters.json", query_results.get("similar_clusters", []))
     _write_json(bundle_dir / "kg_inferred_stressors.json", query_results["stressors"])
     _write_json(bundle_dir / "kg_hypotheses.json", query_results["hypotheses"])
     _write_json(bundle_dir / "kg_evidence_paths.json", query_results["evidence_paths"])
@@ -245,18 +252,21 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None) -> None:
         "traits_total": traits_total,
         "traits_mapped": traits_mapped,
         "shared_terms": query_results["shared_terms"],
+        "similar_clusters": query_results.get("similar_clusters", []),
         "stressors": query_results["stressors"],
         "hypotheses": query_results["hypotheses"],
     }
     _write_summary(bundle_dir / "kg_summary.txt", summary_data)
 
+    similar_clusters = query_results.get("similar_clusters", [])
     print(f"\n[KG] ============================================================")
     print(f"[KG] KG step complete.")
-    print(f"[KG]   Traits mapped:   {traits_mapped}/{traits_total}")
-    print(f"[KG]   Shared terms:    {len(query_results['shared_terms'])}")
-    print(f"[KG]   ENVO stressors:  {len(query_results['stressors'])}")
-    print(f"[KG]   Hypotheses:      {len(query_results['hypotheses'])}")
-    print(f"[KG]   Output dir:      {bundle_dir}")
+    print(f"[KG]   Traits mapped:        {traits_mapped}/{traits_total}")
+    print(f"[KG]   Shared terms:         {len(query_results['shared_terms'])}")
+    print(f"[KG]   Similar trait pairs:  {len(similar_clusters)}")
+    print(f"[KG]   ENVO stressors:       {len(query_results['stressors'])}")
+    print(f"[KG]   Hypotheses:           {len(query_results['hypotheses'])}")
+    print(f"[KG]   Output dir:           {bundle_dir}")
     print(f"[KG] ============================================================\n")
 
 

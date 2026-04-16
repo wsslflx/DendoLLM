@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).parents[1]))
 
 ALLOWED_PREFIXES = ("UPHENO:", "HP:", "MP:", "GO:", "ENVO:", "UBERON:", "ZP:", "XPO:")
 MAX_ANCESTOR_DEPTH = 3
+SIMILAR_TO_THRESHOLD = 0.78
 
 
 def _is_allowed(term_id: str) -> bool:
@@ -73,6 +74,85 @@ def _load_ancestors(term_id: str, world, depth: int = MAX_ANCESTOR_DEPTH) -> lis
             break
 
     return results
+
+
+# ---------------------------------------------------------------------------
+# Semantic similarity edges
+# ---------------------------------------------------------------------------
+
+def _add_similar_to_edges(
+    species_trait_map: dict[str, list[dict]],
+    run_id: str,
+    threshold: float = SIMILAR_TO_THRESHOLD,
+) -> list[dict]:
+    """
+    Embed all normalized trait strings and add SIMILAR_TO edges between
+    traits from *different* species whose cosine similarity >= threshold.
+    Returns a list of edge dicts (same format as build_graph edges).
+    """
+    import numpy as np
+    from core.llm_backend import make_embeddings
+
+    # Collect (species, raw_trait, normalized_trait) tuples
+    entries = []
+    for species_name, trait_results in species_trait_map.items():
+        for tr in trait_results:
+            raw = tr.get("raw_trait", "")
+            norm = tr.get("normalized_trait", "") or raw
+            if raw:
+                entries.append((species_name, raw, norm))
+
+    if len(entries) < 2:
+        return []
+
+    texts = [e[2] for e in entries]
+    print(f"[KG] Embedding {len(texts)} traits for SIMILAR_TO edge computation...")
+    try:
+        embedder = make_embeddings()
+        vecs = np.array(embedder.embed_documents(texts), dtype="float32")
+    except Exception as exc:
+        print(f"[KG] SIMILAR_TO embedding failed (non-fatal): {exc}")
+        return []
+
+    # Normalise for cosine similarity
+    norms = np.linalg.norm(vecs, axis=1, keepdims=True)
+    norms[norms == 0] = 1.0
+    vecs = vecs / norms
+
+    edges = []
+    n = len(entries)
+    pair_count = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            species_i, raw_i, _ = entries[i]
+            species_j, raw_j, _ = entries[j]
+            if species_i == species_j:
+                continue  # only cross-species edges
+            score = float(np.dot(vecs[i], vecs[j]))
+            if score >= threshold:
+                edges.append({
+                    "type": "SIMILAR_TO",
+                    "from_label": "Trait",
+                    "from_id": raw_i,
+                    "to_label": "Trait",
+                    "to_id": raw_j,
+                    "similarity_score": round(score, 4),
+                    "run_id": run_id,
+                })
+                # Also add reverse direction so the graph is undirected
+                edges.append({
+                    "type": "SIMILAR_TO",
+                    "from_label": "Trait",
+                    "from_id": raw_j,
+                    "to_label": "Trait",
+                    "to_id": raw_i,
+                    "similarity_score": round(score, 4),
+                    "run_id": run_id,
+                })
+                pair_count += 1
+
+    print(f"[KG] SIMILAR_TO edges added: {pair_count} cross-species pairs above threshold {threshold}")
+    return edges
 
 
 # ---------------------------------------------------------------------------
@@ -202,6 +282,10 @@ def build_graph(
                         "depth_from_matched": 1,
                         "run_id": run_id,
                     })
+
+    # Semantic similarity edges across species
+    similar_edges = _add_similar_to_edges(species_trait_map, run_id)
+    edges.extend(similar_edges)
 
     print(f"[KG] Graph built: {len(nodes)} nodes, {len(edges)} edges.")
     return nodes, edges

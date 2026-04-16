@@ -38,6 +38,32 @@ def query_shared_terms(run_id: str, min_species: int = 2) -> list[dict]:
     return neo4j_client.run_query(cypher, {"run_id": run_id, "min_species": min_species})
 
 
+def query_similar_trait_clusters(run_id: str, min_species: int = 2) -> list[dict]:
+    """
+    Query 1b: clusters of semantically similar traits (via SIMILAR_TO edges)
+    that span >= min_species different species.
+    Returns one entry per similar pair group with the species covered.
+    """
+    from kg import neo4j_client
+    cypher = """
+    MATCH (s1:Species)-[:HAS_TRAIT]->(t1:Trait)-[r:SIMILAR_TO]->(t2:Trait)<-[:HAS_TRAIT]-(s2:Species)
+    WHERE s1.run_id = $run_id AND s2.run_id = $run_id AND s1.name <> s2.name
+      AND t1.run_id = $run_id AND t2.run_id = $run_id
+      AND id(t1) < id(t2)
+    WITH t1.raw_trait AS trait_a, t1.normalized_trait AS norm_a,
+         t2.raw_trait AS trait_b, t2.normalized_trait AS norm_b,
+         r.similarity_score AS score,
+         collect(DISTINCT s1.name) + collect(DISTINCT s2.name) AS all_species
+    WITH trait_a, norm_a, trait_b, norm_b, score,
+         [x IN all_species WHERE x IS NOT NULL] AS all_species
+    WHERE size(all_species) >= $min_species
+    RETURN trait_a, norm_a, trait_b, norm_b, score,
+           all_species, size(all_species) AS species_count
+    ORDER BY score DESC
+    """
+    return neo4j_client.run_query(cypher, {"run_id": run_id, "min_species": min_species})
+
+
 def query_inferred_stressors(run_id: str, shared_term_ids: list[str]) -> list[dict]:
     """Query 2: ENVO ancestor nodes reachable from shared terms."""
     from kg import neo4j_client
@@ -106,6 +132,7 @@ _HYPOTHESIS_SYSTEM = (
 _HYPOTHESIS_TEMPLATE = """\
 Species set: {species_names}
 Shared biological traits (ontology-mapped): {term_names_and_ids}
+Semantically similar traits across species (not ontology-mapped but highly similar): {similar_summary}
 Inferred environmental stressors: {envo_terms}
 Evidence traversal summary: {path_summary}
 
@@ -128,24 +155,34 @@ def generate_hypotheses(
     shared_terms: list[dict],
     stressors: list[dict],
     evidence_paths: list[dict],
+    similar_clusters: list[dict] | None = None,
     model=None,
 ) -> list[dict]:
     """Query 4: LLM generates gene-function hypotheses from assembled KG context."""
     from core.llm_backend import make_chat_llm
     from langchain_core.messages import HumanMessage, SystemMessage
 
-    if not shared_terms:
-        print("[KG] No shared terms found — skipping hypothesis generation.")
+    if not shared_terms and not similar_clusters:
+        print("[KG] No shared terms or similar clusters found — skipping hypothesis generation.")
         return []
 
     term_names_and_ids = "; ".join(
         f"{t.get('term_name', '')} ({t.get('term_id', '')})"
         for t in shared_terms[:10]
-    )
+    ) or "none"
     envo_str = "; ".join(
         f"{s.get('term_name', '')} ({s.get('term_id', '')})"
         for s in stressors[:5]
     ) or "none identified"
+
+    # Summarise top similar clusters
+    similar_lines = []
+    for sc in (similar_clusters or [])[:8]:
+        sp = ", ".join(sc.get("all_species", []))
+        similar_lines.append(
+            f"'{sc.get('norm_a')}' ~ '{sc.get('norm_b')}' (score={sc.get('score', 0):.2f}, species: {sp})"
+        )
+    similar_summary = "; ".join(similar_lines) or "none"
 
     # Flatten top 3 evidence paths for the summary
     path_lines = []
@@ -158,6 +195,7 @@ def generate_hypotheses(
     prompt = _HYPOTHESIS_TEMPLATE.format(
         species_names=", ".join(species_names),
         term_names_and_ids=term_names_and_ids,
+        similar_summary=similar_summary,
         envo_terms=envo_str,
         path_summary=path_summary,
     )
@@ -213,6 +251,17 @@ def run_all_queries(
         print(f"[KG] Query 1 failed (non-fatal): {exc}")
         shared_terms = []
 
+    print("[KG] Query 1b: semantically similar trait clusters...")
+    try:
+        similar_clusters = query_similar_trait_clusters(run_id, min_species=min_species)
+        print(f"[KG]   Found {len(similar_clusters)} cross-species similar trait pairs.")
+        for sc in similar_clusters[:5]:
+            print(f"[KG]     '{sc.get('norm_a')}' ~ '{sc.get('norm_b')}' "
+                  f"(score={sc.get('score', 0):.2f}, species={sc.get('all_species')})")
+    except Exception as exc:
+        print(f"[KG] Query 1b failed (non-fatal): {exc}")
+        similar_clusters = []
+
     shared_term_ids = [t.get("term_id") for t in shared_terms if t.get("term_id")]
 
     print("[KG] Query 2: inferred stressors...")
@@ -239,6 +288,7 @@ def run_all_queries(
             shared_terms=shared_terms,
             stressors=stressors,
             evidence_paths=evidence_paths,
+            similar_clusters=similar_clusters,
             model=model,
         )
     except Exception as exc:
@@ -247,6 +297,7 @@ def run_all_queries(
 
     return {
         "shared_terms": shared_terms,
+        "similar_clusters": similar_clusters,
         "stressors": stressors,
         "evidence_paths": evidence_paths,
         "hypotheses": hypotheses,
