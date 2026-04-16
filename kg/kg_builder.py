@@ -156,6 +156,66 @@ def _add_similar_to_edges(
 
 
 # ---------------------------------------------------------------------------
+# Synonym edges from LLM grouping
+# ---------------------------------------------------------------------------
+
+def _add_synonym_edges(
+    species_trait_map: dict[str, list[dict]],
+    synonym_groups: list[list[str]],
+    run_id: str,
+) -> list[dict]:
+    """
+    For each synonym group from trait_groups.json, add SYNONYM_OF edges between
+    traits from *different* species that are members of the same group.
+    Edges are bidirectional.
+    """
+    if not synonym_groups:
+        return []
+
+    # Build lookup: raw_trait → species
+    trait_to_species: dict[str, str] = {}
+    for species_name, trait_results in species_trait_map.items():
+        for tr in trait_results:
+            raw = tr.get("raw_trait", "")
+            if raw:
+                trait_to_species[raw] = species_name
+
+    edges = []
+    group_count = 0
+    for group in synonym_groups:
+        # Filter to members that actually exist in this run's traits
+        present = [m for m in group if m in trait_to_species]
+        if len(present) < 2:
+            continue
+        group_count += 1
+        # Add edges between all cross-species pairs in the group
+        for i in range(len(present)):
+            for j in range(i + 1, len(present)):
+                if trait_to_species[present[i]] == trait_to_species[present[j]]:
+                    continue  # same species — skip
+                edges.append({
+                    "type": "SYNONYM_OF",
+                    "from_label": "Trait",
+                    "from_id": present[i],
+                    "to_label": "Trait",
+                    "to_id": present[j],
+                    "run_id": run_id,
+                })
+                edges.append({
+                    "type": "SYNONYM_OF",
+                    "from_label": "Trait",
+                    "from_id": present[j],
+                    "to_label": "Trait",
+                    "to_id": present[i],
+                    "run_id": run_id,
+                })
+
+    print(f"[KG] SYNONYM_OF edges added: {group_count} cross-species synonym groups "
+          f"({len(edges) // 2} pairs)")
+    return edges
+
+
+# ---------------------------------------------------------------------------
 # Main builder
 # ---------------------------------------------------------------------------
 
@@ -163,6 +223,7 @@ def build_graph(
     species_trait_map: dict[str, list[dict]],
     run_id: str,
     input_file: str = "",
+    synonym_groups: list[list[str]] | None = None,
 ) -> tuple[list[dict], list[dict]]:
     """
     Build node and edge lists from mapped traits.
@@ -286,6 +347,10 @@ def build_graph(
     # Semantic similarity edges across species
     similar_edges = _add_similar_to_edges(species_trait_map, run_id)
     edges.extend(similar_edges)
+
+    # LLM-derived synonym edges
+    synonym_edges = _add_synonym_edges(species_trait_map, synonym_groups or [], run_id)
+    edges.extend(synonym_edges)
 
     print(f"[KG] Graph built: {len(nodes)} nodes, {len(edges)} edges.")
     return nodes, edges

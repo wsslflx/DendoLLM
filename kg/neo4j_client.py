@@ -121,6 +121,13 @@ def push_graph(nodes: list[dict], edges: list[dict], run_id: str) -> None:
                         "MERGE (a)-[r:SIMILAR_TO {run_id: $run_id}]->(b) SET r += $props",
                         fid=from_id, tid=to_id, run_id=run_id, props=props,
                     )
+                elif etype == "SYNONYM_OF":
+                    session.run(
+                        "MATCH (a:Trait {raw_trait: $fid, run_id: $run_id}), "
+                        "      (b:Trait {raw_trait: $tid, run_id: $run_id}) "
+                        "MERGE (a)-[r:SYNONYM_OF {run_id: $run_id}]->(b) SET r += $props",
+                        fid=from_id, tid=to_id, run_id=run_id, props=props,
+                    )
 
         print(f"[KG] Pushed {len(nodes)} nodes and {len(edges)} edges to Neo4j (run_id={run_id})")
     except Exception as exc:

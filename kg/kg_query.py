@@ -38,6 +38,28 @@ def query_shared_terms(run_id: str, min_species: int = 2) -> list[dict]:
     return neo4j_client.run_query(cypher, {"run_id": run_id, "min_species": min_species})
 
 
+def query_synonym_clusters(run_id: str, min_species: int = 2) -> list[dict]:
+    """
+    Query 1c: LLM-derived synonym groups (SYNONYM_OF edges) spanning >= min_species species.
+    Returns one entry per synonym pair with the species covered.
+    """
+    from kg import neo4j_client
+    cypher = """
+    MATCH (s1:Species)-[:HAS_TRAIT]->(t1:Trait)-[:SYNONYM_OF]->(t2:Trait)<-[:HAS_TRAIT]-(s2:Species)
+    WHERE s1.run_id = $run_id AND s2.run_id = $run_id AND s1.name <> s2.name
+      AND t1.run_id = $run_id AND t2.run_id = $run_id
+      AND id(t1) < id(t2)
+    WITH t1.raw_trait AS trait_a, t2.raw_trait AS trait_b,
+         collect(DISTINCT s1.name) + collect(DISTINCT s2.name) AS all_species
+    WITH trait_a, trait_b,
+         [x IN all_species WHERE x IS NOT NULL] AS all_species
+    WHERE size(all_species) >= $min_species
+    RETURN trait_a, trait_b, all_species, size(all_species) AS species_count
+    ORDER BY species_count DESC
+    """
+    return neo4j_client.run_query(cypher, {"run_id": run_id, "min_species": min_species})
+
+
 def query_similar_trait_clusters(run_id: str, min_species: int = 2) -> list[dict]:
     """
     Query 1b: clusters of semantically similar traits (via SIMILAR_TO edges)
@@ -132,7 +154,8 @@ _HYPOTHESIS_SYSTEM = (
 _HYPOTHESIS_TEMPLATE = """\
 Species set: {species_names}
 Shared biological traits (ontology-mapped): {term_names_and_ids}
-Semantically similar traits across species (not ontology-mapped but highly similar): {similar_summary}
+Synonym trait pairs across species (LLM-verified same biological phenomenon): {synonym_summary}
+Semantically similar traits across species (embedding-based, unverified): {similar_summary}
 Inferred environmental stressors: {envo_terms}
 Evidence traversal summary: {path_summary}
 
@@ -156,14 +179,15 @@ def generate_hypotheses(
     stressors: list[dict],
     evidence_paths: list[dict],
     similar_clusters: list[dict] | None = None,
+    synonym_clusters: list[dict] | None = None,
     model=None,
 ) -> list[dict]:
     """Query 4: LLM generates gene-function hypotheses from assembled KG context."""
     from core.llm_backend import make_chat_llm
     from langchain_core.messages import HumanMessage, SystemMessage
 
-    if not shared_terms and not similar_clusters:
-        print("[KG] No shared terms or similar clusters found — skipping hypothesis generation.")
+    if not shared_terms and not similar_clusters and not synonym_clusters:
+        print("[KG] No shared terms, synonym clusters, or similar clusters found — skipping hypothesis generation.")
         return []
 
     term_names_and_ids = "; ".join(
@@ -175,7 +199,16 @@ def generate_hypotheses(
         for s in stressors[:5]
     ) or "none identified"
 
-    # Summarise top similar clusters
+    # Summarise synonym clusters (LLM-verified)
+    synonym_lines = []
+    for sc in (synonym_clusters or [])[:8]:
+        sp = ", ".join(sc.get("all_species", []))
+        synonym_lines.append(
+            f"'{sc.get('trait_a')}' ≡ '{sc.get('trait_b')}' (species: {sp})"
+        )
+    synonym_summary = "; ".join(synonym_lines) or "none"
+
+    # Summarise top similar clusters (embedding-based)
     similar_lines = []
     for sc in (similar_clusters or [])[:8]:
         sp = ", ".join(sc.get("all_species", []))
@@ -195,6 +228,7 @@ def generate_hypotheses(
     prompt = _HYPOTHESIS_TEMPLATE.format(
         species_names=", ".join(species_names),
         term_names_and_ids=term_names_and_ids,
+        synonym_summary=synonym_summary,
         similar_summary=similar_summary,
         envo_terms=envo_str,
         path_summary=path_summary,
@@ -251,7 +285,18 @@ def run_all_queries(
         print(f"[KG] Query 1 failed (non-fatal): {exc}")
         shared_terms = []
 
-    print("[KG] Query 1b: semantically similar trait clusters...")
+    print("[KG] Query 1b: LLM synonym clusters...")
+    try:
+        synonym_clusters = query_synonym_clusters(run_id, min_species=min_species)
+        print(f"[KG]   Found {len(synonym_clusters)} cross-species synonym pairs.")
+        for sc in synonym_clusters[:5]:
+            print(f"[KG]     '{sc.get('trait_a')}' ≡ '{sc.get('trait_b')}' "
+                  f"(species={sc.get('all_species')})")
+    except Exception as exc:
+        print(f"[KG] Query 1b failed (non-fatal): {exc}")
+        synonym_clusters = []
+
+    print("[KG] Query 1c: semantically similar trait clusters...")
     try:
         similar_clusters = query_similar_trait_clusters(run_id, min_species=min_species)
         print(f"[KG]   Found {len(similar_clusters)} cross-species similar trait pairs.")
@@ -259,7 +304,7 @@ def run_all_queries(
             print(f"[KG]     '{sc.get('norm_a')}' ~ '{sc.get('norm_b')}' "
                   f"(score={sc.get('score', 0):.2f}, species={sc.get('all_species')})")
     except Exception as exc:
-        print(f"[KG] Query 1b failed (non-fatal): {exc}")
+        print(f"[KG] Query 1c failed (non-fatal): {exc}")
         similar_clusters = []
 
     shared_term_ids = [t.get("term_id") for t in shared_terms if t.get("term_id")]
@@ -289,6 +334,7 @@ def run_all_queries(
             stressors=stressors,
             evidence_paths=evidence_paths,
             similar_clusters=similar_clusters,
+            synonym_clusters=synonym_clusters,
             model=model,
         )
     except Exception as exc:
@@ -297,6 +343,7 @@ def run_all_queries(
 
     return {
         "shared_terms": shared_terms,
+        "synonym_clusters": synonym_clusters,
         "similar_clusters": similar_clusters,
         "stressors": stressors,
         "evidence_paths": evidence_paths,

@@ -226,14 +226,6 @@ def main() -> None:
         help="Where to write run list (default: <bundle>/run_list.txt).",
     )
     parser.add_argument(
-        "--analyze-out",
-        help="Where to write analyze report JSON (default: <bundle>/summary/analyze_report.json).",
-    )
-    parser.add_argument(
-        "--group-out",
-        help="Where to write grouped traits JSON (passed to group_traits_llm.py --out).",
-    )
-    parser.add_argument(
         "--bundle-root",
         default="logs_v4",
         help="Base directory for one-folder-per-command bundles (default: logs_v4).",
@@ -327,35 +319,6 @@ def main() -> None:
     write_run_list(run_dirs, run_list_path)
     print(f"Run list written to: {run_list_path}")
 
-    analyze_out = pathlib.Path(args.analyze_out) if args.analyze_out else summary_dir / "analyze_report.json"
-    subprocess.run(
-        [
-            sys.executable,
-            str(pathlib.Path(__file__).parents[1] / "analysis" / "analyze_runs.py"),
-            "--run-list",
-            str(run_list_path),
-            "--out",
-            str(analyze_out),
-        ],
-        check=True,
-    )
-    if not analyze_out.exists():
-        raise SystemExit(f"Missing analyze report after analysis: {analyze_out}")
-    print(f"Analyze report: {analyze_out}")
-
-    group_cmd = [
-        sys.executable,
-        str(pathlib.Path(__file__).parents[1] / "analysis" / "group_traits_llm.py"),
-        str(analyze_out),
-        "--model",
-        args.model,
-        "--temperature",
-        str(args.temperature),
-    ]
-    group_out = pathlib.Path(args.group_out) if args.group_out else summary_dir / "trait_groups.json"
-    group_cmd += ["--out", str(group_out)]
-    subprocess.run(group_cmd, check=True)
-
     meta = {
         "bundle_dir": str(bundle_dir),
         "run_label": args.run_label if args.run_label else label,
@@ -372,8 +335,6 @@ def main() -> None:
         "chroma_dir": str(chroma_dir),
         "ingest_lock_file": str(ingest_lock_file),
         "run_list": str(run_list_path),
-        "analyze_report": str(analyze_out),
-        "group_report": str(group_out),
         "model": args.model,
         "temperature": args.temperature,
         "timestamp": timestamp,

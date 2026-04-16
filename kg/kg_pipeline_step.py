@@ -19,7 +19,90 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
-from core.llm_backend import resolve_chat_model
+from core.llm_backend import resolve_chat_model, make_chat_llm
+
+
+# ---------------------------------------------------------------------------
+# Inline LLM synonym grouping
+# ---------------------------------------------------------------------------
+
+_SYNONYM_SYSTEM = (
+    "You are grouping biological trait phrases that mean the same underlying condition "
+    "across different species."
+)
+
+_SYNONYM_PROMPT = """\
+Below are biological traits extracted per species. Group traits from DIFFERENT species \
+that describe the same biological phenomenon (true synonyms or rephrasings).
+
+Rules:
+- Only group when meaning is essentially identical (true synonyms / rephrasings).
+- If unsure, do NOT group — keep the trait in its own singleton group.
+- Do NOT merge different abstraction levels (behavior vs morphology vs physiology).
+- Every input trait must appear in exactly one group's members list.
+- Output JSON only (no markdown fences, no commentary).
+
+Output format:
+{{
+  "groups": [
+    {{"canonical": "<representative phrase>", "members": ["<trait 1>", "<trait 2>", ...]}}
+  ]
+}}
+
+TRAITS BY SPECIES:
+{trait_block}
+"""
+
+
+def _group_synonyms_inline(
+    species_trait_map: dict[str, list[dict]],
+    model: str,
+) -> list[list[str]]:
+    """
+    Ask the LLM to group synonym traits across species.
+    Returns list of groups, each group is a list of raw_trait strings.
+    Singletons are excluded (no cross-species synonym found).
+    """
+    import re
+
+    # Build trait block: "Species: trait1, trait2, ..."
+    lines = []
+    all_traits = []
+    for species_name, trait_results in species_trait_map.items():
+        traits = [tr.get("raw_trait", "") for tr in trait_results if tr.get("raw_trait")]
+        if traits:
+            lines.append(f"{species_name}: {'; '.join(traits)}")
+            all_traits.extend(traits)
+
+    if len(all_traits) < 2:
+        return []
+
+    trait_block = "\n".join(lines)
+    prompt = _SYNONYM_PROMPT.format(trait_block=trait_block)
+
+    print(f"[KG] Running inline synonym grouping for {len(all_traits)} traits across "
+          f"{len(species_trait_map)} species...")
+
+    try:
+        from langchain_core.messages import HumanMessage, SystemMessage
+        llm = make_chat_llm(model=model, temperature=0.0)
+        resp = llm.invoke([SystemMessage(content=_SYNONYM_SYSTEM), HumanMessage(content=prompt)])
+        raw = resp.content.strip()
+        # Strip markdown fences if present
+        fence = re.search(r"```(?:json)?\s*(.*?)```", raw, re.DOTALL)
+        if fence:
+            raw = fence.group(1).strip()
+        parsed = json.loads(raw)
+        groups = parsed.get("groups", [])
+        # Return only multi-member groups (singletons have no synonym to link)
+        result = [g["members"] for g in groups if len(g.get("members", [])) > 1]
+        print(f"[KG] Synonym grouping complete: {len(result)} synonym groups found.")
+        for g in result:
+            print(f"[KG]   Group: {g}")
+        return result
+    except Exception as exc:
+        print(f"[KG] Inline synonym grouping failed (non-fatal): {exc}")
+        return []
 
 
 # ---------------------------------------------------------------------------
@@ -214,6 +297,9 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None) -> None:
     _write_json(bundle_dir / "kg_mapped_traits.json", all_mapped)
     print(f"[KG] Mapped traits written: {bundle_dir / 'kg_mapped_traits.json'}")
 
+    # Step 3b: inline LLM synonym grouping across species
+    synonym_groups = _group_synonyms_inline(species_trait_map, model=model)
+
     # Step 4: build graph
     from kg.kg_builder import build_graph, push_and_serialize
     print("[KG] Building graph...")
@@ -221,6 +307,7 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None) -> None:
         species_trait_map=species_trait_map,
         run_id=run_id,
         input_file=str(bundle_dir / "species_input.json"),
+        synonym_groups=synonym_groups,
     )
 
     # Step 5: push to Neo4j + write GraphML
@@ -238,6 +325,7 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None) -> None:
 
     # Step 7: write output files
     _write_json(bundle_dir / "kg_shared_terms.json", query_results["shared_terms"])
+    _write_json(bundle_dir / "kg_synonym_clusters.json", query_results.get("synonym_clusters", []))
     _write_json(bundle_dir / "kg_similar_clusters.json", query_results.get("similar_clusters", []))
     _write_json(bundle_dir / "kg_inferred_stressors.json", query_results["stressors"])
     _write_json(bundle_dir / "kg_hypotheses.json", query_results["hypotheses"])
@@ -258,11 +346,13 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None) -> None:
     }
     _write_summary(bundle_dir / "kg_summary.txt", summary_data)
 
+    synonym_clusters = query_results.get("synonym_clusters", [])
     similar_clusters = query_results.get("similar_clusters", [])
     print(f"\n[KG] ============================================================")
     print(f"[KG] KG step complete.")
     print(f"[KG]   Traits mapped:        {traits_mapped}/{traits_total}")
     print(f"[KG]   Shared terms:         {len(query_results['shared_terms'])}")
+    print(f"[KG]   Synonym pairs:        {len(synonym_clusters)}")
     print(f"[KG]   Similar trait pairs:  {len(similar_clusters)}")
     print(f"[KG]   ENVO stressors:       {len(query_results['stressors'])}")
     print(f"[KG]   Hypotheses:           {len(query_results['hypotheses'])}")
