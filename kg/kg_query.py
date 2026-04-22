@@ -270,6 +270,7 @@ def run_all_queries(
     species_names: list[str],
     min_species: int = 2,
     model=None,
+    generate_hypotheses_flag: bool = False,
 ) -> dict:
     """
     Run all four queries and return structured results dict.
@@ -325,20 +326,24 @@ def run_all_queries(
         print(f"[KG] Query 3 failed (non-fatal): {exc}")
         evidence_paths = []
 
-    print("[KG] Query 4: LLM hypothesis generation...")
-    try:
-        hypotheses = generate_hypotheses(
-            run_id=run_id,
-            species_names=species_names,
-            shared_terms=shared_terms,
-            stressors=stressors,
-            evidence_paths=evidence_paths,
-            similar_clusters=similar_clusters,
-            synonym_clusters=synonym_clusters,
-            model=model,
-        )
-    except Exception as exc:
-        print(f"[KG] Query 4 failed (non-fatal): {exc}")
+    if generate_hypotheses_flag:
+        print("[KG] Query 4: LLM hypothesis generation...")
+        try:
+            hypotheses = generate_hypotheses(
+                run_id=run_id,
+                species_names=species_names,
+                shared_terms=shared_terms,
+                stressors=stressors,
+                evidence_paths=evidence_paths,
+                similar_clusters=similar_clusters,
+                synonym_clusters=synonym_clusters,
+                model=model,
+            )
+        except Exception as exc:
+            print(f"[KG] Query 4 failed (non-fatal): {exc}")
+            hypotheses = []
+    else:
+        print("[KG] Query 4: LLM hypothesis generation skipped (use --kg-hypotheses to enable).")
         hypotheses = []
 
     return {

@@ -230,7 +230,7 @@ def _write_summary(path: Path, data: dict) -> None:
 # Main entry point
 # ---------------------------------------------------------------------------
 
-def run_kg_step(bundle_dir_str: str, model: str | None = None) -> None:
+def run_kg_step(bundle_dir_str: str, model: str | None = None, generate_hypotheses: bool = False) -> None:
     """
     Full KG pipeline step. Non-fatal at the top level — any unhandled exception
     is caught by the caller in run_full_pipeline_v4.py.
@@ -321,6 +321,7 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None) -> None:
         species_names=species_names,
         min_species=max(2, len(species_names) // 2),
         model=model,
+        generate_hypotheses_flag=generate_hypotheses,
     )
 
     # Step 7: write output files
@@ -364,5 +365,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="KG pipeline step (standalone).")
     parser.add_argument("--bundle-dir", required=True, help="Path to pipeline bundle directory.")
     parser.add_argument("--model", default=None, help="Override LLM model name.")
+    parser.add_argument(
+        "--kg-hypotheses",
+        action="store_true",
+        default=False,
+        help="Enable LLM hypothesis generation (Query 4). Off by default.",
+    )
     args = parser.parse_args()
-    run_kg_step(args.bundle_dir, model=args.model)
+    run_kg_step(args.bundle_dir, model=args.model, generate_hypotheses=args.kg_hypotheses)

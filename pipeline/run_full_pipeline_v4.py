@@ -262,6 +262,12 @@ def main() -> None:
         default=0.0,
         help="LLM temperature for grouping (default: 0.0).",
     )
+    parser.add_argument(
+        "--kg-hypotheses",
+        action="store_true",
+        default=False,
+        help="Enable LLM hypothesis generation at the KG step (Query 4). Off by default.",
+    )
     args = parser.parse_args()
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -311,7 +317,7 @@ def main() -> None:
     # Step 4b: KG mapping + Neo4j push + hypotheses (non-fatal)
     try:
         from kg.kg_pipeline_step import run_kg_step
-        run_kg_step(str(bundle_dir), model=args.model)
+        run_kg_step(str(bundle_dir), model=args.model, generate_hypotheses=args.kg_hypotheses)
     except Exception as _kg_exc:
         print(f"[KG] KG step failed (non-fatal) — pipeline continues: {_kg_exc}")
 
