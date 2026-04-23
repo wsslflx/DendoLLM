@@ -101,6 +101,37 @@ def query_inferred_stressors(run_id: str, shared_term_ids: list[str]) -> list[di
     return neo4j_client.run_query(cypher, {"shared_term_ids": shared_term_ids})
 
 
+def query_shared_ancestor_terms(run_id: str, min_species: int = 2) -> list[dict]:
+    """
+    Query 2b: Find ontology ancestor terms reachable (via IS_A/PART_OF) from
+    traits of >= min_species DIFFERENT species, even via different leaf terms.
+    Captures convergent adaptations (e.g. diving + altitude both reaching
+    'response to hypoxia phenotype').
+    Filters to UPHENO and ENVO ancestors only — HP/MP/GO are too specific or too broad.
+    """
+    from kg import neo4j_client
+    cypher = """
+    MATCH (s:Species)-[:HAS_TRAIT]->(t:Trait)-[:MAPPED_TO]->(ot:OntologyTerm)
+    WHERE s.run_id = $run_id
+    MATCH (ot)-[:IS_A|PART_OF*1..3]->(ancestor:OntologyTerm)
+    WHERE (ancestor.term_id STARTS WITH 'UPHENO:' OR ancestor.term_id STARTS WITH 'ENVO:')
+    WITH ancestor,
+         collect(DISTINCT s.name) AS species_list,
+         collect(DISTINCT ot.term_id) AS leaf_term_ids,
+         collect(DISTINCT ot.term_name) AS leaf_term_names
+    WHERE size(species_list) >= $min_species
+    RETURN ancestor.term_id AS ancestor_id,
+           ancestor.term_name AS ancestor_name,
+           ancestor.ontology_source AS ontology_source,
+           species_list,
+           leaf_term_ids,
+           leaf_term_names,
+           size(species_list) AS species_count
+    ORDER BY species_count DESC, ancestor_id
+    """
+    return neo4j_client.run_query(cypher, {"run_id": run_id, "min_species": min_species})
+
+
 def query_evidence_paths(run_id: str, top_n: int = 5) -> list[dict]:
     """
     Query 3: Evidence paths for the top N most-shared traits.
@@ -318,6 +349,18 @@ def run_all_queries(
         print(f"[KG] Query 2 failed (non-fatal): {exc}")
         stressors = []
 
+    print("[KG] Query 2b: shared ancestor term convergence...")
+    try:
+        ancestor_convergence = query_shared_ancestor_terms(run_id, min_species=min_species)
+        print(f"[KG]   Found {len(ancestor_convergence)} shared ancestor terms.")
+        for ac in ancestor_convergence[:5]:
+            sp = ", ".join(ac.get("species_list", []))
+            print(f"[KG]     {ac.get('ancestor_name')} ({ac.get('ancestor_id')}) "
+                  f"— {ac.get('species_count')} species: {sp}")
+    except Exception as exc:
+        print(f"[KG] Query 2b failed (non-fatal): {exc}")
+        ancestor_convergence = []
+
     print("[KG] Query 3: evidence paths...")
     try:
         evidence_paths = query_evidence_paths(run_id, top_n=5)
@@ -351,6 +394,7 @@ def run_all_queries(
         "synonym_clusters": synonym_clusters,
         "similar_clusters": similar_clusters,
         "stressors": stressors,
+        "ancestor_convergence": ancestor_convergence,
         "evidence_paths": evidence_paths,
         "hypotheses": hypotheses,
     }

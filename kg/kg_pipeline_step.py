@@ -218,6 +218,12 @@ def _write_summary(path: Path, data: dict) -> None:
     ]
     for s in data.get("stressors", [])[:5]:
         lines.append(f"  {s.get('term_id','?')} — {s.get('term_name','?')}")
+    lines += ["", "Convergent ancestor terms (different traits, shared biological pressure):"]
+    for ac in data.get("ancestor_convergence", [])[:8]:
+        sp = ", ".join(ac.get("species_list", []))
+        leaves = ", ".join(ac.get("leaf_term_names", [])[:3])
+        lines.append(f"  {ac.get('ancestor_id','?')} — {ac.get('ancestor_name','?')} "
+                     f"({ac.get('species_count',0)} species via: {leaves})")
     lines += ["", "Hypotheses:"]
     for h in data.get("hypotheses", []):
         lines.append(f"  [{h.get('confidence','?')}] {h.get('hypothesis','')}")
@@ -329,6 +335,7 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None, generate_hypothes
     _write_json(bundle_dir / "kg_synonym_clusters.json", query_results.get("synonym_clusters", []))
     _write_json(bundle_dir / "kg_similar_clusters.json", query_results.get("similar_clusters", []))
     _write_json(bundle_dir / "kg_inferred_stressors.json", query_results["stressors"])
+    _write_json(bundle_dir / "kg_ancestor_convergence.json", query_results.get("ancestor_convergence", []))
     _write_json(bundle_dir / "kg_hypotheses.json", query_results["hypotheses"])
     _write_json(bundle_dir / "kg_evidence_paths.json", query_results["evidence_paths"])
 
@@ -343,6 +350,7 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None, generate_hypothes
         "shared_terms": query_results["shared_terms"],
         "similar_clusters": query_results.get("similar_clusters", []),
         "stressors": query_results["stressors"],
+        "ancestor_convergence": query_results.get("ancestor_convergence", []),
         "hypotheses": query_results["hypotheses"],
     }
     _write_summary(bundle_dir / "kg_summary.txt", summary_data)
@@ -356,6 +364,7 @@ def run_kg_step(bundle_dir_str: str, model: str | None = None, generate_hypothes
     print(f"[KG]   Synonym pairs:        {len(synonym_clusters)}")
     print(f"[KG]   Similar trait pairs:  {len(similar_clusters)}")
     print(f"[KG]   ENVO stressors:       {len(query_results['stressors'])}")
+    print(f"[KG]   Ancestor convergence: {len(query_results.get('ancestor_convergence', []))}")
     print(f"[KG]   Hypotheses:           {len(query_results['hypotheses'])}")
     print(f"[KG]   Output dir:           {bundle_dir}")
     print(f"[KG] ============================================================\n")
