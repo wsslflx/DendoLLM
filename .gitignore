@@ -16,5 +16,8 @@ kg/cache/*
 !kg/cache/.gitkeep
 core/__pycache__/
 __pycache__/
+kg/__pychache__/
+pipeline/__pycache__/
+scripts/__pycache__/
 *.pyc
 *.pyo

@@ -577,6 +577,7 @@ class RAG:
             return []
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         splits = splitter.split_documents(docs)
+        splits = [doc for doc in splits if len(doc.page_content.strip()) >= 80]
 
         specie_norm = puppy.strip().lower() if puppy else None
 
@@ -642,6 +643,7 @@ class RAG:
             splits = splitter.split_documents(
                 [Document(page_content=full_text, metadata={})]
             )
+            splits = [doc for doc in splits if len(doc.page_content.strip()) >= 80]
             for i, doc in enumerate(splits):
                 doc.metadata.update(
                     {
@@ -677,6 +679,7 @@ class RAG:
         splits = splitter.split_documents(
             [Document(page_content=content, metadata={})]
         )
+        splits = [doc for doc in splits if len(doc.page_content.strip()) >= 80]
         for i, doc in enumerate(splits):
             doc.metadata.update(
                 {

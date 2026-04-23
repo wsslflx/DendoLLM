@@ -186,8 +186,11 @@ def per_species_retrieve(rag: RAG, query1: str, query2: str, specie: str):
         mmr_indices = list(range(min(rag.per_species_final_k, len(candidates))))
     selected = [candidates[idx] for idx in mmr_indices]
     sorted_by_score = sorted(selected, key=lambda t: t[1])
-    keep_n = max(1, math.ceil(rag.per_species_keep_percentile * len(sorted_by_score)))
-    kept = sorted_by_score[:keep_n]
+    best_score = sorted_by_score[0][1]
+    cutoff = best_score + getattr(rag, "score_margin", 0.3)
+    kept = [t for t in sorted_by_score if t[1] <= cutoff]
+    if not kept:
+        kept = sorted_by_score[:1]
     docs = []
     per_doc_counts: dict[str, int] = {}
     for doc, score in kept:
