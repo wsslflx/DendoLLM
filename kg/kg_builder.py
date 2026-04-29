@@ -247,8 +247,20 @@ def build_graph(
         if quadstore.exists():
             world = owlready2.World()
             world.set_backend(filename=str(quadstore), exclusive=False)
-            adapter = world  # pass world as adapter
-            print("[KG] owlready2 world loaded for ancestor traversal.")
+            # Re-attach the ontology so world.classes() is populated from the quadstore.
+            # This is fast (~seconds) since OWL data is already in the SQLite backend.
+            if OWL_PATH.exists():
+                owl_iri = OWL_PATH.absolute().as_uri()
+                try:
+                    world.get_ontology(owl_iri).load()
+                    print("[KG] owlready2 world loaded for ancestor traversal.")
+                except Exception as _load_exc:
+                    print(f"[KG] owlready2 ontology reload failed: {_load_exc} — ancestor traversal disabled.")
+                    world = None
+            else:
+                print("[KG] upheno.owl not found — ancestor traversal disabled (run kg.ontology_index --build first).")
+                world = None
+            adapter = world
         else:
             print("[KG] owlready2 quadstore not found — ancestor traversal disabled. Run --build first.")
     except Exception as exc:
