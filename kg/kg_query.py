@@ -92,7 +92,7 @@ def query_inferred_stressors(run_id: str, shared_term_ids: list[str]) -> list[di
     if not shared_term_ids:
         return []
     cypher = """
-    MATCH (ot:OntologyTerm)-[:IS_A|PART_OF*1..3]->(ancestor:OntologyTerm)
+    MATCH (ot:OntologyTerm)-[:IS_A*1..3]->(ancestor:OntologyTerm)
     WHERE ot.term_id IN $shared_term_ids
       AND ancestor.term_id STARTS WITH 'ENVO:'
     RETURN DISTINCT ancestor.term_id AS term_id, ancestor.term_name AS term_name,
@@ -113,7 +113,7 @@ def query_shared_ancestor_terms(run_id: str, min_species: int = 2) -> list[dict]
     cypher = """
     MATCH (s:Species)-[:HAS_TRAIT]->(t:Trait)-[:MAPPED_TO]->(ot:OntologyTerm)
     WHERE s.run_id = $run_id
-    MATCH (ot)-[:IS_A|PART_OF*1..3]->(ancestor:OntologyTerm)
+    MATCH (ot)-[:IS_A*1..3]->(ancestor:OntologyTerm)
     WHERE (ancestor.term_id STARTS WITH 'UPHENO:' OR ancestor.term_id STARTS WITH 'ENVO:')
     WITH ancestor,
          collect(DISTINCT s.name) AS species_list,

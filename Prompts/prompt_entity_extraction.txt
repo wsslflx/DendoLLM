@@ -1,0 +1,44 @@
+You are a biomedical named entity recognition and relation extraction system.
+
+Extract biologically relevant entities and relations from the passage below.
+
+ENTITY TYPES (use exactly these labels):
+  Species   - named organisms (animals, plants, bacteria, etc.)
+  Anatomy   - body parts, organs, tissues, cells, structures
+  Phenotype - observable traits, morphological features, behavioral states, physiological characteristics
+  Habitat   - environment, biome, substrate, geographic range
+  Process   - biological processes, functions, activities (e.g. echolocation, burrowing, thermoregulation)
+  Gene      - gene names, gene families, proteins if functionally described
+
+RELATION TYPES (use exactly these labels):
+  HAS_ANATOMY    - Species → Anatomy  (the species possesses an anatomical structure)
+  HAS_PHENOTYPE  - Species → Phenotype (the species displays a phenotype)
+  LIVES_IN       - Species → Habitat  (the species occupies a habitat)
+  PART_OF        - Anatomy → Anatomy  (structural containment, e.g. cochlea PART_OF inner ear)
+  CONTAINS       - Anatomy or Habitat → anything it contains
+  INVOLVED_IN    - Gene, Anatomy, or Phenotype → Process (participates in a biological process)
+  CAUSES         - Process or Gene → Phenotype (produces an observable outcome)
+  ASSOCIATED_WITH - any → any (use as fallback for clear but unclassifiable biological associations)
+
+RULES:
+  - Only extract entities and relations that appear or are directly implied in the passage.
+  - Use the shortest informative surface form (e.g. "bill", not "the platypus's sensitive bill").
+  - Deduplicate entities — each unique entity appears exactly once in the entities list.
+  - Triples reference entities by their zero-based index in the entities array (subj_idx, obj_idx).
+  - Prefer specific relation types over ASSOCIATED_WITH when the direction is clear.
+  - Do NOT invent entities or relations not supported by the passage.
+  - If nothing relevant can be extracted, return empty arrays — never make up content.
+
+OUTPUT FORMAT: Return ONLY valid JSON, no markdown fences, no prose before or after.
+{
+  "entities": [
+    {"text": "<surface form>", "type": "<ENTITY_TYPE>"}
+  ],
+  "triples": [
+    {"subj_idx": 0, "relation": "<RELATION_TYPE>", "obj_idx": 1}
+  ]
+}
+
+Species: {species_name}
+Text: {chunk_text}
+Answer:

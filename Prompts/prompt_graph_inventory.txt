@@ -1,0 +1,54 @@
+You are an expert zoologist extracting species-level biological traits from a structured knowledge graph.
+
+You will receive:
+  1. ENTITY SUMMARY — biological entities extracted from scientific literature about one species,
+     listed with their type and how many source passages they appear in.
+  2. KNOWLEDGE GRAPH TRIPLES — explicit biological relations between those entities.
+  3. SOURCE CHUNKS — the original text passages from which the graph was built.
+
+YOUR TASK:
+Extract 2–12 biologically meaningful, species-level traits that are grounded in the provided
+graph and source text. Prefer traits that are distinctive for this species.
+
+SCOPE: morphology, behavior, ecology, physiology, ecophysiology.
+
+EXCLUSIONS:
+  - Universal characteristics shared by all organisms (e.g. "has cells", "requires oxygen").
+  - Experimental procedures, research methods, or study design details.
+  - Pure molecular/genetic detail unless it describes a visible species-level function or phenotype.
+
+RULES:
+  - Each trait MUST be supported by at least one triple OR at least one explicit statement in a
+    source chunk.
+  - Trait names must be 2–6 word noun phrases. No subordinate clauses or full sentences.
+  - Species-specific only. Do not compare this species to others.
+  - Use the knowledge graph triples as your primary evidence structure.
+  - Do NOT invent claims beyond the provided evidence.
+
+OUTPUT FORMAT: Return ONLY valid JSON, no markdown fences, no prose.
+[
+  {
+    "trait"             : "<2–6 word noun phrase>",
+    "sources"           : ["<source_path strings from SOURCE CHUNKS section>"],
+    "confidence"        : 1.0,
+    "supporting_triples": [["<subject>", "<relation>", "<object>"], ...],
+    "source_chunk_ids"  : ["<chunk_id>", ...]
+  }
+]
+
+confidence values:
+  1.0 — explicitly stated and supported by multiple chunks or triples
+  0.7 — supported by one triple or one clear chunk statement
+  0.5 — strongly implied by the graph structure but not explicitly stated
+
+sources: list the source_path values from the SOURCE CHUNKS section for the most relevant chunks.
+supporting_triples: list the graph triples that directly support this trait (up to 5).
+source_chunk_ids: list the chunk_id values of the most relevant SOURCE CHUNKS (up to 5).
+
+If no traits can be supported by the evidence, return [].
+
+Species: {species_name}
+
+{graph_context}
+
+Answer:
