@@ -233,6 +233,36 @@ def main() -> None:
         default=False,
         help="Enable LLM hypothesis generation at the KG step.",
     )
+    parser.add_argument(
+        "--skip-enrich",
+        action="store_true",
+        default=False,
+        help="Skip uPheno enrichment + DOC_SIMILAR_TO step (graph already enriched).",
+    )
+    parser.add_argument(
+        "--force-reenrich",
+        action="store_true",
+        default=False,
+        help="Re-enrich all DocEntity nodes even if upheno_enriched=true.",
+    )
+    parser.add_argument(
+        "--similarity-threshold",
+        type=float,
+        default=0.78,
+        help="Cosine similarity threshold for DOC_SIMILAR_TO edges (default: 0.78).",
+    )
+    parser.add_argument(
+        "--skip-synthesis",
+        action="store_true",
+        default=False,
+        help="Skip three-tier cross-species synthesis step.",
+    )
+    parser.add_argument(
+        "--min-species",
+        type=int,
+        default=None,
+        help="Minimum species count for synthesis communities (default: max(2, n_species//2)).",
+    )
     args = parser.parse_args()
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -289,6 +319,70 @@ def main() -> None:
     )
     source_stats = aggregate_source_stats(run_dirs)
 
+    # Parse species info from the species file for enrichment + synthesis
+    try:
+        species_groups = json.loads(species_file.read_text(encoding="utf-8"))
+        species_norms = [e["canonical"].lower().strip() for e in species_groups if e.get("canonical")]
+        species_display = [e["canonical"] for e in species_groups if e.get("canonical")]
+    except Exception as exc:
+        print(f"[GraphPipeline] Could not parse species file for enrichment/synthesis: {exc}")
+        species_norms = []
+        species_display = []
+
+    min_species = args.min_species if args.min_species is not None else max(2, len(species_norms) // 2)
+
+    # Enrichment step: map DocEntity → uPheno + DOC_SIMILAR_TO edges
+    if not args.skip_enrich and species_norms:
+        print(f"\n[GraphPipeline] ========================================")
+        print(f"[GraphPipeline] Running enrichment for {len(species_norms)} species...")
+        print(f"[GraphPipeline] ========================================")
+        try:
+            from kg.graph_enricher import enrich_doc_entities
+            enrich_summary = enrich_doc_entities(
+                species_norms=species_norms,
+                similarity_threshold=args.similarity_threshold,
+                model=args.model,
+                force_reenrich=args.force_reenrich,
+                log_dir=bundle_dir,
+            )
+            (bundle_dir / "graph_enricher_summary.json").write_text(
+                json.dumps(enrich_summary, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            print(f"[GraphPipeline] Enrichment complete: {enrich_summary.get('entities_mapped', 0)} mapped, "
+                  f"{enrich_summary.get('similarity_pairs_added', 0)} similarity pairs.")
+        except Exception as exc:
+            print(f"[GraphPipeline] Enrichment failed (non-fatal): {exc}")
+    elif args.skip_enrich:
+        print(f"[GraphPipeline] Skipping enrichment step (--skip-enrich).")
+
+    # Three-tier synthesis step
+    if not args.skip_synthesis and species_norms:
+        print(f"\n[GraphPipeline] ========================================")
+        print(f"[GraphPipeline] Running three-tier synthesis (min_species={min_species})...")
+        print(f"[GraphPipeline] ========================================")
+        try:
+            from kg.graph_synthesizer import run_synthesis
+            synthesis = run_synthesis(
+                species_norms=species_norms,
+                species_display_names=species_display,
+                min_species=min_species,
+                model=args.model,
+                log_dir=bundle_dir,
+            )
+            (bundle_dir / "graph_synthesis.json").write_text(
+                json.dumps(synthesis, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            n_communities = len(synthesis.get("communities", []))
+            print(f"[GraphPipeline] Synthesis complete: {n_communities} communities found.")
+            if n_communities:
+                for comm in synthesis["communities"]:
+                    print(f"[GraphPipeline]   [{comm.get('tier','?')}] {comm.get('label','?')} "
+                          f"({comm.get('species_count',0)} species)")
+        except Exception as exc:
+            print(f"[GraphPipeline] Synthesis failed (non-fatal): {exc}")
+    elif args.skip_synthesis:
+        print(f"[GraphPipeline] Skipping synthesis step (--skip-synthesis).")
+
     # KG step (reused unchanged from v4)
     try:
         from kg.kg_pipeline_step import run_kg_step
@@ -324,6 +418,12 @@ def main() -> None:
         "timestamp": timestamp,
         "source_stats": source_stats,
         "run_dirs": [str(p) for p in run_dirs],
+        "skip_enrich": args.skip_enrich,
+        "force_reenrich": args.force_reenrich,
+        "similarity_threshold": args.similarity_threshold,
+        "skip_synthesis": args.skip_synthesis,
+        "min_species": min_species,
+        "species_norms": species_norms,
     }
     (summary_dir / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
