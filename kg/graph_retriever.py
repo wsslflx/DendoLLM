@@ -170,10 +170,19 @@ def retrieve_subgraph(
 # Serialization
 # ---------------------------------------------------------------------------
 
-def serialize_subgraph_to_context(result: SubgraphResult, max_chunks_in_context: int = 40) -> str:
+def serialize_subgraph_to_context(
+    result: SubgraphResult,
+    max_chunks_in_context: int = 40,
+    include_source_chunks: bool = True,
+    max_triples_in_context: int = 0,
+) -> str:
     """
-    Convert SubgraphResult to a structured string for the LLM inventory prompt.
-    Produces three sections: ENTITY SUMMARY, KNOWLEDGE GRAPH TRIPLES, SOURCE CHUNKS.
+    Convert SubgraphResult to a structured string for the LLM prompt.
+    Produces up to three sections: ENTITY SUMMARY, KNOWLEDGE GRAPH TRIPLES, SOURCE CHUNKS.
+
+    include_source_chunks: if False, the SOURCE CHUNKS section is omitted entirely.
+                           Set to False for synthesis context to save tokens.
+    max_triples_in_context: if > 0, truncate triples to this many. 0 = no limit.
     """
     lines: list[str] = []
 
@@ -203,23 +212,27 @@ def serialize_subgraph_to_context(result: SubgraphResult, max_chunks_in_context:
     if not result.triples:
         lines.append("(no triples extracted)")
     else:
-        for subj, rel, obj in result.triples:
+        triples = result.triples
+        if max_triples_in_context > 0:
+            triples = triples[:max_triples_in_context]
+        for subj, rel, obj in triples:
             lines.append(f"  ({subj}) -[{rel}]-> ({obj})")
     lines.append("")
 
     # --- Source Chunks ---
-    lines.append("=== SOURCE CHUNKS ===")
-    chunk_ids_to_show = result.source_chunk_ids[:max_chunks_in_context]
-    if not chunk_ids_to_show:
-        lines.append("(no source chunks)")
-    else:
-        for cid in chunk_ids_to_show:
-            source = result.chunk_sources.get(cid, "unknown")
-            snippet = result.chunk_texts.get(cid, "")
-            lines.append(f"[chunk:{cid} | source:{source}]")
-            if snippet:
-                lines.append(snippet)
-            lines.append("")
+    if include_source_chunks:
+        lines.append("=== SOURCE CHUNKS ===")
+        chunk_ids_to_show = result.source_chunk_ids[:max_chunks_in_context]
+        if not chunk_ids_to_show:
+            lines.append("(no source chunks)")
+        else:
+            for cid in chunk_ids_to_show:
+                source = result.chunk_sources.get(cid, "unknown")
+                snippet = result.chunk_texts.get(cid, "")
+                lines.append(f"[chunk:{cid} | source:{source}]")
+                if snippet:
+                    lines.append(snippet)
+                lines.append("")
 
     return "\n".join(lines)
 

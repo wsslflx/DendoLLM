@@ -226,34 +226,139 @@ def _format_tier2_text(clusters: list[dict], species_display_map: dict[str, str]
 
 
 # ---------------------------------------------------------------------------
-# Entity lists per species (for Tier 3 gap-finding)
+# Per-species subgraph context (for Tier 3 gap-finding and relational reasoning)
 # ---------------------------------------------------------------------------
 
-def _query_entity_lists(species_norms: list[str]) -> dict[str, list[str]]:
-    """Pull all entity surface forms per species norm."""
+def _deduplicate_subgraph_entities(result) -> "SubgraphResult":
+    """
+    Collapse DocEntity nodes that share the same mapped OntologyTerm into one
+    canonical entry. Only merges groups of 2+ entities — singletons are unchanged.
+
+    - Entity summary: canonical term name + summed mention count + variant count annotation
+    - Triples: surface forms rewritten to canonical name; duplicate triples removed
+    - Neo4j is not modified — serialization-level change only
+    """
+    import dataclasses
+
+    if not result.entities:
+        return result
+
+    eids = [e["entity_id"] for e in result.entities]
+
     cypher = (
-        "MATCH (c:DocChunk)-[:MENTIONS]->(e:DocEntity) "
-        "WHERE c.species_norm IN $sn "
-        "RETURN c.species_norm AS sp, "
-        "       collect(DISTINCT e.surface_form) AS forms "
+        "MATCH (e:DocEntity)-[:DOC_MAPPED_TO]->(t:OntologyTerm) "
+        "WHERE e.entity_id IN $eids "
+        "RETURN e.entity_id AS eid, t.term_id AS tid, t.term_name AS tname"
     )
     try:
         from kg.neo4j_client import run_query
-        rows = run_query(cypher, {"sn": species_norms})
-        return {r["sp"]: r["forms"] for r in rows}
+        rows = run_query(cypher, {"eids": eids})
     except Exception as exc:
-        print(f"[GraphSynthesizer] Entity list query failed: {exc}")
-        return {}
+        print(f"[GraphSynthesizer] Dedup query failed: {exc} — skipping deduplication.")
+        return result
+
+    # entity_id → (term_id, term_name)
+    eid_to_term: dict[str, tuple[str, str]] = {
+        r["eid"]: (r["tid"], r["tname"]) for r in rows
+    }
+
+    # Group entities by term_id
+    term_to_entities: dict[str, list[dict]] = defaultdict(list)
+    unmapped: list[dict] = []
+
+    for entity in result.entities:
+        eid = entity["entity_id"]
+        if eid in eid_to_term:
+            term_to_entities[eid_to_term[eid][0]].append(entity)
+        else:
+            unmapped.append(entity)
+
+    # Build canonical entity list + surface_form → canonical name mapping for triples
+    canonical_entities: list[dict] = []
+    sf_to_canonical: dict[str, str] = {}
+
+    for term_id, group in term_to_entities.items():
+        term_name = eid_to_term[group[0]["entity_id"]][1] or term_id
+
+        if len(group) == 1:
+            # Singleton — keep original entity unchanged
+            canonical_entities.append(group[0])
+        else:
+            # Genuine duplicate group — merge into one canonical entry
+            total_mentions = sum(e.get("mention_count", 1) for e in group)
+            entity_type = max(group, key=lambda e: e.get("mention_count", 1))["entity_type"]
+            display_sf = f"{term_name}  (merged {len(group)} forms)"
+            canonical_entities.append({
+                "entity_id": group[0]["entity_id"],
+                "surface_form": display_sf,
+                "entity_type": entity_type,
+                "mention_count": total_mentions,
+            })
+            for e in group:
+                sf_to_canonical[e["surface_form"]] = term_name
+
+    # Rewrite triples using canonical names, remove duplicates produced by merging
+    seen_triples: set[tuple[str, str, str]] = set()
+    new_triples: list[tuple[str, str, str]] = []
+    for subj, rel, obj in result.triples:
+        t = (sf_to_canonical.get(subj, subj), rel, sf_to_canonical.get(obj, obj))
+        if t not in seen_triples:
+            seen_triples.add(t)
+            new_triples.append(t)
+
+    all_entities = canonical_entities + unmapped
+    all_entities.sort(key=lambda e: e.get("mention_count", 1), reverse=True)
+
+    merged_count = sum(1 for g in term_to_entities.values() if len(g) > 1)
+    if merged_count:
+        print(f"[GraphSynthesizer]   Deduplication: {merged_count} groups merged, "
+              f"{len(all_entities)} entities remain (was {len(result.entities)}), "
+              f"{len(new_triples)} triples remain (was {len(result.triples)}).")
+
+    return dataclasses.replace(
+        result,
+        entities=all_entities,
+        triples=new_triples,
+        n_entities=len(all_entities),
+        n_triples=len(new_triples),
+    )
 
 
-def _format_entity_lists(entity_lists: dict[str, list[str]], species_display_map: dict[str, str]) -> str:
-    if not entity_lists:
-        return "(No entity lists available.)"
-    lines = []
-    for sp_norm, forms in entity_lists.items():
+def _build_subgraph_context(
+    species_norms: list[str],
+    species_display_map: dict[str, str],
+    max_triples_per_species: int = 150,
+) -> str:
+    """
+    Retrieve and serialize the enriched subgraph for each species.
+    Returns a single string with all species subgraphs concatenated,
+    each prefixed with a species header. Source chunk text is excluded
+    to keep synthesis context compact.
+    """
+    from kg.graph_retriever import retrieve_subgraph, serialize_subgraph_to_context
+    sections = []
+    for sp_norm in species_norms:
         display = species_display_map.get(sp_norm, sp_norm)
-        lines.append(f"  {display}: {', '.join(sorted(forms)[:40])}")
-    return "\n".join(lines)
+        print(f"[GraphSynthesizer] Retrieving subgraph for '{display}'...")
+        try:
+            result = retrieve_subgraph(sp_norm)
+            if result.n_chunks == 0:
+                print(f"[GraphSynthesizer] No graph data for '{display}'.")
+                sections.append(f"### {display}\n  (no graph data available)\n")
+                continue
+            result = _deduplicate_subgraph_entities(result)
+            context = serialize_subgraph_to_context(
+                result,
+                include_source_chunks=False,
+                max_triples_in_context=max_triples_per_species,
+            )
+            print(f"[GraphSynthesizer]   {result.n_entities} entities (after dedup), "
+                  f"{min(result.n_triples, max_triples_per_species)} triples.")
+            sections.append(f"### {display}\n{context}")
+        except Exception as exc:
+            print(f"[GraphSynthesizer] Subgraph retrieval failed for '{display}': {exc}")
+            sections.append(f"### {display}\n  (retrieval error)\n")
+    return "\n\n".join(sections)
 
 
 # ---------------------------------------------------------------------------
@@ -312,14 +417,14 @@ def _validate_synthesis(data: object) -> dict:
 def _run_llm_synthesis(
     tier1: list[dict],
     tier2_clusters: list[dict],
-    entity_lists: dict[str, list[str]],
+    subgraph_context: str,
     species_norms: list[str],
     species_display_names: list[str],
     species_display_map: dict[str, str],
     min_species: int,
     model: str | None,
 ) -> dict:
-    """Call LLM with structured Tier 1 + Tier 2 evidence."""
+    """Call LLM with structured Tier 1 + Tier 2 evidence + per-species subgraphs."""
     try:
         prompt_text = pathlib.Path(SYNTHESIS_PROMPT_FILE).read_text(encoding="utf-8")
     except Exception as exc:
@@ -328,7 +433,6 @@ def _run_llm_synthesis(
 
     tier1_text = _format_tier1_text(tier1, species_display_map)
     tier2_text = _format_tier2_text(tier2_clusters, species_display_map)
-    entity_lists_text = _format_entity_lists(entity_lists, species_display_map)
 
     prompt = (
         prompt_text
@@ -336,7 +440,7 @@ def _run_llm_synthesis(
         .replace("{species_names}", ", ".join(species_display_names))
         .replace("{tier1_text}", tier1_text)
         .replace("{tier2_text}", tier2_text)
-        .replace("{entity_lists_text}", entity_lists_text)
+        .replace("{subgraph_context_text}", subgraph_context)
         .replace("{min_species}", str(min_species))
     )
 
@@ -397,9 +501,9 @@ def run_synthesis(
     pairs = _query_tier2_pairs(species_norms)
     tier2_clusters = _cluster_tier2(pairs, min_species)
 
-    # Entity lists for Tier 3
-    print("[GraphSynthesizer] Fetching entity lists per species...")
-    entity_lists = _query_entity_lists(species_norms)
+    # Per-species subgraphs for Tier 3
+    print("[GraphSynthesizer] Retrieving per-species subgraphs for Tier 3...")
+    subgraph_context = _build_subgraph_context(species_norms, species_display_map)
 
     if not tier1 and not tier2_clusters:
         print("[GraphSynthesizer] No Tier 1 or Tier 2 evidence — enrichment may not have run.")
@@ -409,7 +513,7 @@ def run_synthesis(
     synthesis = _run_llm_synthesis(
         tier1=tier1,
         tier2_clusters=tier2_clusters,
-        entity_lists=entity_lists,
+        subgraph_context=subgraph_context,
         species_norms=species_norms,
         species_display_names=species_display_names,
         species_display_map=species_display_map,
@@ -446,7 +550,7 @@ def run_synthesis(
         prompt_log = {
             "tier1": tier1,
             "tier2_clusters": synthesis.get("tier2_raw", []),
-            "entity_lists": {k: v[:20] for k, v in entity_lists.items()},
+            "subgraph_context_chars": len(subgraph_context),
         }
         try:
             (log_dir / "graph_synthesis_evidence.json").write_text(

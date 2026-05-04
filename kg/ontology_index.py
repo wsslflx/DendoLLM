@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Build and cache the uPheno ontology index.
+Build and cache the ontology index for uPheno, GO, and ENVO.
 
 Usage:
     python -m kg.ontology_index --build [--force-rebuild]
 
-On first run: downloads upheno.owl, parses with owlready2, embeds all terms.
-Takes 15-45 minutes. Subsequent runs load from cache instantly.
+On first run: downloads upheno.owl, go.owl, and envo.owl, parses with owlready2,
+embeds all terms. Takes 15–60 minutes. Subsequent runs load from cache instantly.
 """
 from __future__ import annotations
 
@@ -20,9 +20,11 @@ from pathlib import Path
 # Allow running from project root or kg/ subdirectory
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
-CACHE_DIR    = Path(__file__).parent / "cache"
-OWL_PATH     = CACHE_DIR / "upheno.owl"
-EMBED_NPY    = CACHE_DIR / "term_embeddings.npy"
+CACHE_DIR      = Path(__file__).parent / "cache"
+OWL_PATH       = CACHE_DIR / "upheno.owl"
+GO_OWL_PATH    = CACHE_DIR / "go.owl"
+ENVO_OWL_PATH  = CACHE_DIR / "envo.owl"
+EMBED_NPY      = CACHE_DIR / "term_embeddings.npy"
 METADATA_JSONL = CACHE_DIR / "term_metadata.jsonl"
 MANIFEST_JSON  = CACHE_DIR / "manifest.json"
 
@@ -32,29 +34,44 @@ ALLOWED_PREFIXES = ("UPHENO:", "HP:", "MP:", "GO:", "ENVO:", "UBERON:", "ZP:", "
 UPHENO_OWL_URL = (
     "https://github.com/obophenotype/upheno/releases/latest/download/upheno.owl"
 )
+GO_OWL_URL   = "http://purl.obolibrary.org/obo/go.owl"
+ENVO_OWL_URL = "http://purl.obolibrary.org/obo/envo.owl"
+
+# All OWL sources: (local_path, download_url, label)
+_OWL_SOURCES = [
+    (OWL_PATH,      UPHENO_OWL_URL, "upheno.owl"),
+    (GO_OWL_PATH,   GO_OWL_URL,     "go.owl"),
+    (ENVO_OWL_PATH, ENVO_OWL_URL,   "envo.owl"),
+]
 
 
 # ---------------------------------------------------------------------------
 # Download
 # ---------------------------------------------------------------------------
 
-def download_owl(force: bool = False) -> None:
-    if OWL_PATH.exists() and not force:
-        print(f"[KG] upheno.owl already present at {OWL_PATH} — skipping download.")
-        return
-    print(f"[KG] Downloading upheno.owl from GitHub releases...")
-    print(f"     URL: {UPHENO_OWL_URL}")
-    import urllib.request
+def download_all_owls(force: bool = False) -> None:
+    """Download upheno.owl, go.owl, and envo.owl if not already present."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    tmp = OWL_PATH.with_suffix(".owl.tmp")
-    try:
-        urllib.request.urlretrieve(UPHENO_OWL_URL, tmp)
-        os.replace(tmp, OWL_PATH)
-        print(f"[KG] Downloaded upheno.owl ({OWL_PATH.stat().st_size / 1e6:.1f} MB)")
-    except Exception as exc:
-        if tmp.exists():
-            tmp.unlink()
-        raise RuntimeError(f"Failed to download upheno.owl: {exc}") from exc
+    import urllib.request
+    for owl_path, owl_url, label in _OWL_SOURCES:
+        if owl_path.exists() and not force:
+            print(f"[KG] {label} already present at {owl_path} — skipping download.")
+            continue
+        print(f"[KG] Downloading {label} from {owl_url} ...")
+        tmp = owl_path.with_suffix(".owl.tmp")
+        try:
+            urllib.request.urlretrieve(owl_url, tmp)
+            os.replace(tmp, owl_path)
+            print(f"[KG] Downloaded {label} ({owl_path.stat().st_size / 1e6:.1f} MB)")
+        except Exception as exc:
+            if tmp.exists():
+                tmp.unlink()
+            raise RuntimeError(f"Failed to download {label}: {exc}") from exc
+
+
+def download_owl(force: bool = False) -> None:
+    """Backwards-compatible wrapper — downloads all OWL files."""
+    download_all_owls(force=force)
 
 
 # ---------------------------------------------------------------------------
@@ -67,7 +84,6 @@ def _is_allowed(term_id: str) -> bool:
 
 def _iri_to_curie(iri: str) -> str | None:
     """Convert an OBO-style IRI to a CURIE, e.g. .../UPHENO_0001234 → UPHENO:0001234"""
-    # OBO IRIs end with Namespace_LocalID or Namespace/LocalID
     for sep in ("_", "/"):
         if sep in iri:
             last = iri.rsplit(sep, 1)[-1]
@@ -82,20 +98,21 @@ def _iri_to_curie(iri: str) -> str | None:
     return None
 
 
-def load_terms() -> list[dict]:
-    """Parse all allowed terms from upheno.owl using owlready2."""
+def _load_terms_from_owl(owl_path: Path) -> list[dict]:
+    """
+    Parse all allowed terms from a single OWL file using a fresh owlready2 world.
+    Uses no quadstore backend — in-memory only, no side effects on owlready2_quadstore.db.
+    """
     import owlready2
-    print(f"[KG] Loading upheno.owl with owlready2 (this may take a few minutes)...")
+    label = owl_path.name
+    print(f"[KG] Loading {label} with owlready2...")
 
-    # owlready2 uses a SQLite world internally — point it at cache dir to persist
+    # Fresh in-memory world per OWL file — no shared state, no SQLite writes
     world = owlready2.World()
-    world.set_backend(filename=str(CACHE_DIR / "owlready2_quadstore.db"), exclusive=False)
-
-    owl_iri = OWL_PATH.absolute().as_uri()
+    owl_iri = owl_path.absolute().as_uri()
     onto = world.get_ontology(owl_iri).load()
-    print(f"[KG] Ontology loaded. Extracting terms...")
+    print(f"[KG] {label} loaded. Extracting terms...")
 
-    # Collect OBO synonym annotation properties via IRI lookup
     HAS_EXACT_SYN_IRI   = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"
     HAS_RELATED_SYN_IRI = "http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym"
     has_exact_syn   = world[HAS_EXACT_SYN_IRI]
@@ -112,12 +129,10 @@ def load_terms() -> list[dict]:
             continue
 
         try:
-            # Label
-            label = ""
+            label_val = ""
             if cls.label:
-                label = str(cls.label[0]) if cls.label else ""
+                label_val = str(cls.label[0]) if cls.label else ""
 
-            # Definition (IAO_0000115 or comment)
             defn = ""
             try:
                 defn_prop = world["http://purl.obolibrary.org/obo/IAO_0000115"]
@@ -129,7 +144,6 @@ def load_terms() -> list[dict]:
             if not defn and cls.comment:
                 defn = str(cls.comment[0])
 
-            # Synonyms
             syns: list[str] = []
             for prop in (has_exact_syn, has_related_syn):
                 if prop is None:
@@ -141,7 +155,6 @@ def load_terms() -> list[dict]:
                 except Exception:
                     pass
 
-            # Parents (is_a only, allowed namespaces)
             parents: list[str] = []
             try:
                 for parent in cls.is_a:
@@ -153,13 +166,13 @@ def load_terms() -> list[dict]:
             except Exception:
                 pass
 
-            rich_text = f"{label}. {' | '.join(syns)}. {defn}".strip(". ")
+            rich_text = f"{label_val}. {' | '.join(syns)}. {defn}".strip(". ")
             if not rich_text.strip():
                 rich_text = curie
 
             terms.append({
                 "id": curie,
-                "name": label,
+                "name": label_val,
                 "ontology": curie.split(":")[0],
                 "synonyms": syns,
                 "definition": defn,
@@ -170,9 +183,28 @@ def load_terms() -> list[dict]:
             continue
 
         if scanned % 10000 == 0:
-            print(f"[KG]   Scanned {scanned} classes, collected {len(terms)} allowed terms...")
+            print(f"[KG]   {owl_path.name}: scanned {scanned}, collected {len(terms)} terms...")
 
-    print(f"[KG] Parsed {len(terms)} allowed terms from {scanned} total classes.")
+    print(f"[KG] {owl_path.name}: parsed {len(terms)} allowed terms from {scanned} total classes.")
+    return terms
+
+
+def load_terms() -> list[dict]:
+    """
+    Parse all allowed terms from upheno.owl, go.owl, and envo.owl.
+    Deduplicates by term ID — first occurrence wins.
+    Skips OWL files that are not yet downloaded.
+    """
+    seen: dict[str, dict] = {}
+    for owl_path, _, label in _OWL_SOURCES:
+        if not owl_path.exists():
+            print(f"[KG] {label} not found in cache — skipping.")
+            continue
+        for term in _load_terms_from_owl(owl_path):
+            if term["id"] not in seen:
+                seen[term["id"]] = term
+    terms = list(seen.values())
+    print(f"[KG] Total unique terms after merge: {len(terms)}")
     return terms
 
 
@@ -232,22 +264,26 @@ def _is_cache_fresh() -> bool:
     manifest = _read_manifest()
     if not manifest:
         return False
-    # Rebuild if OWL file is newer than the last build
-    if OWL_PATH.exists():
-        owl_mtime = OWL_PATH.stat().st_mtime
-        manifest_mtime = manifest.get("owl_mtime", 0)
-        if owl_mtime > manifest_mtime:
-            print("[KG] upheno.owl has been updated — rebuilding index.")
-            return False
+    owl_mtimes = manifest.get("owl_mtimes", {})
+    for owl_path, _, label in _OWL_SOURCES:
+        if owl_path.exists():
+            recorded = owl_mtimes.get(label, 0)
+            if owl_path.stat().st_mtime > recorded:
+                print(f"[KG] {label} has been updated — rebuilding index.")
+                return False
     return True
 
 
 def _write_manifest(terms: list[dict], embed_model: str) -> None:
+    owl_mtimes = {}
+    for owl_path, _, label in _OWL_SOURCES:
+        if owl_path.exists():
+            owl_mtimes[label] = owl_path.stat().st_mtime
     manifest = {
         "term_count": len(terms),
         "embedding_model": embed_model,
         "build_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "owl_mtime": OWL_PATH.stat().st_mtime if OWL_PATH.exists() else 0,
+        "owl_mtimes": owl_mtimes,
     }
     tmp = MANIFEST_JSON.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
@@ -259,7 +295,7 @@ def _write_manifest(terms: list[dict], embed_model: str) -> None:
 # ---------------------------------------------------------------------------
 
 def build_index(force: bool = False) -> None:
-    """Full build: download → convert → parse → embed → persist."""
+    """Full build: download → parse → embed → persist."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     if not force and _is_cache_fresh():
@@ -268,15 +304,15 @@ def build_index(force: bool = False) -> None:
         return
 
     print(
-        "[KG] Building ontology index for the first time. This will take 15–45 minutes.\n"
+        "[KG] Building ontology index (uPheno + GO + ENVO). This will take 15–60 minutes.\n"
         "     Subsequent runs will load from cache instantly."
     )
 
-    download_owl(force=force)
+    download_all_owls(force=force)
     terms = load_terms()
 
     if not terms:
-        raise RuntimeError("[KG] No terms extracted from uPheno — aborting index build.")
+        raise RuntimeError("[KG] No terms extracted from ontologies — aborting index build.")
 
     print(f"[KG] Embedding {len(terms)} terms...")
     import numpy as np
@@ -322,7 +358,7 @@ def load_index() -> tuple["np.ndarray", list[dict]]:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Build uPheno ontology index.")
+    parser = argparse.ArgumentParser(description="Build uPheno + GO + ENVO ontology index.")
     parser.add_argument("--build", action="store_true", help="Build (or check) the index.")
     parser.add_argument("--force-rebuild", action="store_true", help="Force full rebuild even if cache is fresh.")
     args = parser.parse_args()

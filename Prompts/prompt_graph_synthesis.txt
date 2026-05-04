@@ -17,17 +17,20 @@ Catches synonyms and paraphrases that Tier 1 misses. May have false positives.
 
 {tier2_text}
 
-=== ENTITY LISTS PER SPECIES ===
-Full list of biological entities extracted from source documents per species.
-Use this for Tier 3 gap-filling — look for shared conditions not captured above.
+=== KNOWLEDGE GRAPH PER SPECIES ===
+Structured knowledge graph for each species: entities with their types and mention
+frequency, and the biological relations between them extracted from source documents.
+Use this to understand the relational context of each species and to identify shared
+biological conditions or patterns not captured by Tier 1 or Tier 2 above.
 
-{entity_lists_text}
+{subgraph_context_text}
 
 YOUR TASKS:
 1. MERGE: if Tier 1 and Tier 2 identify the same underlying biological condition,
    merge them into one community (tier = "merged"). Combined evidence is stronger.
-2. GAP-FILL (Tier 3): scan the entity lists for biological conditions clearly shared
-   across >= {min_species} species that neither tier captured. Add these as tier = "llm".
+2. GAP-FILL (Tier 3): scan the knowledge graphs for biological conditions or relational
+   patterns (e.g. shared entity-relation-entity chains) clearly present across
+   >= {min_species} species that neither tier captured. Add these as tier = "llm".
    Be conservative — only add if the evidence is clear across multiple species.
 3. INTERPRET: for each community, write 1-2 sentences explaining the biological
    significance and why these species might share this condition.
