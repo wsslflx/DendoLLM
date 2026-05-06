@@ -11,6 +11,13 @@ to shared ancestors in the uPheno/HP/MP/ENVO ontology. May miss synonyms or info
 
 {tier1_text}
 
+=== TIER 1B — RELATIONAL PATTERNS ===
+High precision. Directed biological relationships (subject -[relation]-> object) shared
+across species, where both endpoints map to shared ontology ancestors. Complements TIER 1
+by capturing directionality and relational context, not just co-occurrence.
+
+{tier1_relational_text}
+
 === TIER 2 — SEMANTIC SIMILARITY CLUSTERS ===
 Medium precision. These are entity pairs from different species with high embedding similarity.
 Catches synonyms and paraphrases that Tier 1 misses. May have false positives.
@@ -26,7 +33,7 @@ biological conditions or patterns not captured by Tier 1 or Tier 2 above.
 {subgraph_context_text}
 
 YOUR TASKS:
-1. MERGE: if Tier 1 and Tier 2 identify the same underlying biological condition,
+1. MERGE: if Tier 1, Tier 1B, and/or Tier 2 identify the same underlying biological condition,
    merge them into one community (tier = "merged"). Combined evidence is stronger.
 2. GAP-FILL (Tier 3): scan the knowledge graphs for biological conditions or relational
    patterns (e.g. shared entity-relation-entity chains) clearly present across

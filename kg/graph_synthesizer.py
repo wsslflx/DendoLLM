@@ -29,6 +29,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
 SYNTHESIS_PROMPT_FILE = "Prompts/prompt_graph_synthesis.txt"
 MAX_TIER1_RESULTS = 30
+MAX_TIER1_RELATIONAL_RESULTS = 50
 MAX_TIER2_CLUSTERS = 30
 MAX_SYNTHESIS_RETRIES = 2
 
@@ -65,6 +66,11 @@ _TIER1_GENERIC_TERMS = {
 # ---------------------------------------------------------------------------
 # Tier 1 — uPheno ancestor convergence
 # ---------------------------------------------------------------------------
+
+def _normalize_rel_type(s: str) -> str:
+    """Lowercase + collapse whitespace/hyphens to underscores for relation type grouping."""
+    return re.sub(r'[\s\-]+', '_', s.strip().lower())
+
 
 def _query_tier1(species_norms: list[str], min_species: int) -> list[dict]:
     """
@@ -116,6 +122,104 @@ def _format_tier1_text(tier1: list[dict], species_display_map: dict[str, str]) -
             f"      Species ({len(sp_display)}): {', '.join(sp_display)}\n"
             f"      Entity forms: {', '.join(r.get('entity_forms', [])[:8])}\n"
             f"      Via terms: {', '.join(r.get('term_names', [])[:5])}"
+        )
+    return "\n".join(lines)
+
+
+def _query_tier1_relational(species_norms: list[str], min_species: int) -> list[dict]:
+    """
+    Find (subject_ancestor) -[relation_type]-> (object_ancestor) triples shared
+    across >= min_species species via RELATED_TO edges in the document graph.
+
+    Returns list of {rel_type, anc1_id, anc1_name, anc2_id, anc2_name,
+                     species_list, subj_forms, obj_forms}.
+    Uses IS_A*0..2 (not ..3) to keep the double traversal tractable.
+    """
+    blocklist = list(_TIER1_GENERIC_TERMS)
+    cypher = (
+        "MATCH (e1:DocEntity)-[rel:RELATED_TO]->(e2:DocEntity) "
+        "WHERE rel.species_norm IN $sn "
+        "MATCH (e1)-[:DOC_MAPPED_TO]->(t1:OntologyTerm)-[:IS_A*0..2]->(anc1:OntologyTerm) "
+        "MATCH (e2)-[:DOC_MAPPED_TO]->(t2:OntologyTerm)-[:IS_A*0..2]->(anc2:OntologyTerm) "
+        "WHERE anc1.term_id <> anc2.term_id "
+        "  AND NOT anc1.term_id IN $blocklist "
+        "  AND NOT anc2.term_id IN $blocklist "
+        "WITH toLower(trim(rel.relation_type)) AS rel_type, "
+        "     anc1.term_id AS anc1_id, anc1.term_name AS anc1_name, "
+        "     anc2.term_id AS anc2_id, anc2.term_name AS anc2_name, "
+        "     collect(DISTINCT rel.species_norm) AS species_list, "
+        "     collect(DISTINCT e1.surface_form)  AS subj_forms, "
+        "     collect(DISTINCT e2.surface_form)  AS obj_forms "
+        "WHERE size(species_list) >= $min_sp "
+        "RETURN rel_type, anc1_id, anc1_name, anc2_id, anc2_name, "
+        "       species_list, subj_forms, obj_forms "
+        "ORDER BY size(species_list) DESC, size(subj_forms) DESC "
+        f"LIMIT {MAX_TIER1_RELATIONAL_RESULTS}"
+    )
+    try:
+        from kg.neo4j_client import run_query
+        rows = run_query(cypher, {"sn": species_norms, "min_sp": min_species,
+                                  "blocklist": blocklist})
+    except Exception as exc:
+        print(f"[GraphSynthesizer] Tier 1 relational query failed: {exc}")
+        return []
+
+    # Re-group in Python to merge rows that differ only by whitespace vs underscore
+    # e.g. "has phenotype" and "has_phenotype" become the same key after normalization
+    groups: dict[tuple, dict] = {}
+    for r in rows:
+        key = (_normalize_rel_type(r["rel_type"]), r["anc1_id"], r["anc2_id"])
+        if key not in groups:
+            groups[key] = {
+                "rel_type": key[0],
+                "anc1_id": r["anc1_id"],
+                "anc1_name": r["anc1_name"],
+                "anc2_id": r["anc2_id"],
+                "anc2_name": r["anc2_name"],
+                "species_set": set(),
+                "subj_forms": set(),
+                "obj_forms": set(),
+            }
+        groups[key]["species_set"].update(r["species_list"])
+        groups[key]["subj_forms"].update(r["subj_forms"])
+        groups[key]["obj_forms"].update(r["obj_forms"])
+
+    patterns = []
+    for g in groups.values():
+        sp_list = sorted(g["species_set"])
+        if len(sp_list) >= min_species:
+            patterns.append({
+                "rel_type": g["rel_type"],
+                "anc1_id": g["anc1_id"],
+                "anc1_name": g["anc1_name"],
+                "anc2_id": g["anc2_id"],
+                "anc2_name": g["anc2_name"],
+                "species_list": sp_list,
+                "subj_forms": sorted(g["subj_forms"]),
+                "obj_forms": sorted(g["obj_forms"]),
+            })
+
+    patterns.sort(key=lambda x: (-len(x["species_list"]), -len(x["subj_forms"])))
+
+    print(f"[GraphSynthesizer] Tier 1 relational: {len(patterns)} patterns found "
+          f"(from {len(rows)} raw rows).")
+    return patterns
+
+
+def _format_tier1_relational_text(patterns: list[dict], species_display_map: dict[str, str]) -> str:
+    if not patterns:
+        return "(No Tier 1 relational patterns found.)"
+    lines = []
+    for i, p in enumerate(patterns, 1):
+        sp_display = [species_display_map.get(s, s) for s in p.get("species_list", [])]
+        subj = ", ".join(p.get("subj_forms", [])[:6])
+        obj  = ", ".join(p.get("obj_forms",  [])[:6])
+        lines.append(
+            f"  [{i}] ({p.get('anc1_name', '?')}) -[{p.get('rel_type', '?')}]-> "
+            f"({p.get('anc2_name', '?')})\n"
+            f"      Species ({len(sp_display)}): {', '.join(sp_display)}\n"
+            f"      Subjects: {subj}\n"
+            f"      Objects:  {obj}"
         )
     return "\n".join(lines)
 
@@ -447,6 +551,7 @@ def _validate_synthesis(data: object) -> dict:
 
 def _run_llm_synthesis(
     tier1: list[dict],
+    tier1_relational: list[dict],
     tier2_clusters: list[dict],
     subgraph_context: str,
     species_norms: list[str],
@@ -455,21 +560,23 @@ def _run_llm_synthesis(
     min_species: int,
     model: str | None,
 ) -> dict:
-    """Call LLM with structured Tier 1 + Tier 2 evidence + per-species subgraphs."""
+    """Call LLM with structured Tier 1 + Tier 1B relational + Tier 2 evidence + per-species subgraphs."""
     try:
         prompt_text = pathlib.Path(SYNTHESIS_PROMPT_FILE).read_text(encoding="utf-8")
     except Exception as exc:
         print(f"[GraphSynthesizer] Cannot load prompt {SYNTHESIS_PROMPT_FILE}: {exc}")
         return {"communities": [], "gene_function_hypothesis": ""}
 
-    tier1_text = _format_tier1_text(tier1, species_display_map)
-    tier2_text = _format_tier2_text(tier2_clusters, species_display_map)
+    tier1_text            = _format_tier1_text(tier1, species_display_map)
+    tier1_relational_text = _format_tier1_relational_text(tier1_relational, species_display_map)
+    tier2_text            = _format_tier2_text(tier2_clusters, species_display_map)
 
     prompt = (
         prompt_text
         .replace("{n_species}", str(len(species_display_names)))
         .replace("{species_names}", ", ".join(species_display_names))
         .replace("{tier1_text}", tier1_text)
+        .replace("{tier1_relational_text}", tier1_relational_text)
         .replace("{tier2_text}", tier2_text)
         .replace("{subgraph_context_text}", subgraph_context)
         .replace("{min_species}", str(min_species))
@@ -525,9 +632,13 @@ def run_synthesis(
 
     species_display_map = dict(zip(species_norms, species_display_names))
 
-    # Tier 1
+    # Tier 1 (node-level)
     print("[GraphSynthesizer] Running Tier 1 (uPheno convergence)...")
     tier1 = _query_tier1(species_norms, min_species)
+
+    # Tier 1B (relational patterns)
+    print("[GraphSynthesizer] Running Tier 1B (RELATED_TO relational patterns)...")
+    tier1_relational = _query_tier1_relational(species_norms, min_species)
 
     # Tier 2
     print("[GraphSynthesizer] Running Tier 2 (embedding similarity clusters)...")
@@ -538,13 +649,14 @@ def run_synthesis(
     print("[GraphSynthesizer] Retrieving per-species subgraphs for Tier 3...")
     subgraph_context = _build_subgraph_context(species_norms, species_display_map)
 
-    if not tier1 and not tier2_clusters:
-        print("[GraphSynthesizer] No Tier 1 or Tier 2 evidence — enrichment may not have run.")
+    if not tier1 and not tier1_relational and not tier2_clusters:
+        print("[GraphSynthesizer] No Tier 1/1B or Tier 2 evidence — enrichment may not have run.")
 
     # Tier 3: LLM
     print("[GraphSynthesizer] Running Tier 3 (LLM synthesis)...")
     synthesis = _run_llm_synthesis(
         tier1=tier1,
+        tier1_relational=tier1_relational,
         tier2_clusters=tier2_clusters,
         subgraph_context=subgraph_context,
         species_norms=species_norms,
