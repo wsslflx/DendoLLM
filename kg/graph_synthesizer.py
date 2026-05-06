@@ -124,10 +124,13 @@ def _format_tier1_text(tier1: list[dict], species_display_map: dict[str, str]) -
 # Tier 2 — DOC_SIMILAR_TO clustering
 # ---------------------------------------------------------------------------
 
-def _query_tier2_pairs(species_norms: list[str]) -> list[dict]:
+def _query_tier2_pairs(species_norms: list[str], score_threshold: float = 0.80) -> list[dict]:
     """
-    Pull all DOC_SIMILAR_TO edges between entities from different species.
+    Pull DOC_SIMILAR_TO edges between entities from different species with score >= threshold.
     Returns list of {sf1, sf2, score, sp1, sp2, eid1, eid2}.
+
+    score_threshold is applied at query time (independent of the enrichment threshold used
+    when the edges were written) so weak borderline edges never form Tier 2 communities.
     """
     cypher = (
         "MATCH (e1:DocEntity)-[r:DOC_SIMILAR_TO]->(e2:DocEntity) "
@@ -135,6 +138,7 @@ def _query_tier2_pairs(species_norms: list[str]) -> list[dict]:
         "MATCH (c2:DocChunk)-[:MENTIONS]->(e2) "
         "WHERE c1.species_norm IN $sn AND c2.species_norm IN $sn "
         "  AND c1.species_norm <> c2.species_norm "
+        "  AND r.score >= $threshold "
         "RETURN DISTINCT "
         "  e1.entity_id AS eid1, e1.surface_form AS sf1, "
         "  e2.entity_id AS eid2, e2.surface_form AS sf2, "
@@ -145,7 +149,9 @@ def _query_tier2_pairs(species_norms: list[str]) -> list[dict]:
     )
     try:
         from kg.neo4j_client import run_query
-        return run_query(cypher, {"sn": species_norms})
+        rows = run_query(cypher, {"sn": species_norms, "threshold": score_threshold})
+        print(f"[GraphSynthesizer] Tier 2: {len(rows)} pairs returned (score >= {score_threshold}).")
+        return rows
     except Exception as exc:
         print(f"[GraphSynthesizer] Tier 2 query failed: {exc}")
         return []
@@ -500,6 +506,7 @@ def run_synthesis(
     min_species: int = 2,
     model: str | None = None,
     log_dir: pathlib.Path | None = None,
+    tier2_score_threshold: float = 0.80,
 ) -> dict:
     """
     Three-tier cross-species synthesis.
@@ -507,6 +514,7 @@ def run_synthesis(
     species_norms: lowercase species names matching DocChunk.species_norm
     species_display_names: display names (same order as species_norms)
     min_species: minimum species a community must span to be included
+    tier2_score_threshold: minimum DOC_SIMILAR_TO score for Tier 2 pairs (default 0.80)
 
     Returns communities dict.
     """
@@ -523,7 +531,7 @@ def run_synthesis(
 
     # Tier 2
     print("[GraphSynthesizer] Running Tier 2 (embedding similarity clusters)...")
-    pairs = _query_tier2_pairs(species_norms)
+    pairs = _query_tier2_pairs(species_norms, score_threshold=tier2_score_threshold)
     tier2_clusters = _cluster_tier2(pairs, min_species)
 
     # Per-species subgraphs for Tier 3

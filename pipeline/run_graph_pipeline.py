@@ -266,6 +266,7 @@ def main() -> None:
                 min_species=min_species,
                 model=args.model,
                 log_dir=bundle_dir,
+                tier2_score_threshold=args.similarity_threshold,
             )
             (bundle_dir / "graph_synthesis.json").write_text(
                 json.dumps(synthesis, ensure_ascii=False, indent=2), encoding="utf-8"
