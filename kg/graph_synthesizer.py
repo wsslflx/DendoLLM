@@ -32,6 +32,35 @@ MAX_TIER1_RESULTS = 30
 MAX_TIER2_CLUSTERS = 30
 MAX_SYNTHESIS_RETRIES = 2
 
+# Root and near-root ontology terms that are too generic for Tier 1 communities.
+# IS_A*0..3 traversal always reaches these — block them explicitly.
+_TIER1_GENERIC_TERMS = {
+    # HP root hierarchy
+    "HP:0000001",          # All (HP root)
+    "HP:0000118",          # Phenotypic abnormality
+    "HP:0012823",          # Clinical modifier
+
+    # uPheno root hierarchy
+    "UPHENO:0001001",      # uPheno root
+    "UPHENO:0001002",      # Phenotype
+
+    # GO — three top-level aspects
+    "GO:0008150",          # biological_process
+    "GO:0003674",          # molecular_function
+    "GO:0005575",          # cellular_component
+
+    # GO — one level below (universal processes in every organism)
+    "GO:0065007",          # biological regulation
+    "GO:0008152",          # metabolic process
+    "GO:0009987",          # cellular process
+    "GO:0044699",          # single-organism process
+    "GO:0071840",          # cellular component organization or biogenesis
+
+    # ENVO root
+    "ENVO:00000000",       # ENVO root
+    "ENVO:01000254",       # environmental system
+}
+
 
 # ---------------------------------------------------------------------------
 # Tier 1 — uPheno ancestor convergence
@@ -64,14 +93,10 @@ def _query_tier1(species_norms: list[str], min_species: int) -> list[dict]:
         print(f"[GraphSynthesizer] Tier 1 query failed: {exc}")
         return []
 
-    # Filter out overly generic top-level terms
-    # Heuristic: if a term appears in ALL species it's likely a generic ancestor
-    n_species = len(species_norms)
+    # Filter out known root/near-root terms using explicit blocklist
     filtered = []
     for r in rows:
-        sp_count = len(r.get("species_list", []))
-        # Skip if it covers ALL species and has a very short/generic name (likely root term)
-        if sp_count == n_species and len(r.get("term_name", "")) < 10:
+        if r.get("term_id") in _TIER1_GENERIC_TERMS:
             continue
         filtered.append(r)
 
