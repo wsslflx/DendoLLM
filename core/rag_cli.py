@@ -456,6 +456,32 @@ class RAG:
         self.log_runs = log_runs
         self.log_root = pathlib.Path(log_root)
         self.log_dir: pathlib.Path | None = None
+        self._restore_ingested_from_store()
+
+    def _restore_ingested_from_store(self) -> None:
+        """
+        Pre-populate ingested_per_species from an existing Chroma store.
+        This allows a shared store to be reused across pipeline runs without
+        re-downloading or re-embedding already-ingested documents.
+        """
+        try:
+            result = self.vectorstore.get(include=["metadatas"])
+            metadatas = result.get("metadatas") or []
+            for meta in metadatas:
+                if not meta:
+                    continue
+                specie = meta.get("specie") or ""
+                source = meta.get("source_path") or meta.get("doc_id") or ""
+                if specie and source:
+                    self.ingested_per_species[specie].add(source)
+            if self.ingested_per_species:
+                total = sum(len(v) for v in self.ingested_per_species.values())
+                print(
+                    f"[RAG] Restored {total} source entries for "
+                    f"{len(self.ingested_per_species)} species from existing Chroma store."
+                )
+        except Exception as exc:
+            print(f"[RAG] Could not restore ingested state from store (non-fatal): {exc}")
 
     def _init_log_dir(self) -> None:
         if not self.log_runs:

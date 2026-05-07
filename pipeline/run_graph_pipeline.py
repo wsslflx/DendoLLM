@@ -138,6 +138,16 @@ def main() -> None:
     parser.add_argument("--run-label", help="Optional label for bundle directory name.")
     parser.add_argument("--pdf-dir")
     parser.add_argument("--chroma-dir")
+    parser.add_argument(
+        "--shared-chroma-dir",
+        default=None,
+        help=(
+            "Path to a persistent shared Chroma store reused across bundles. "
+            "Documents already present are skipped (no re-download, no re-embedding). "
+            "If omitted, a fresh per-bundle store is created (old behavior). "
+            "Use a separate path per embedding backend to avoid mixing models."
+        ),
+    )
     parser.add_argument("--ingest-lock-file", default=".ingest.lock")
     parser.add_argument("--model", default=DEFAULT_CHAT_MODEL)
     parser.add_argument("--temperature", type=float, default=0.0)
@@ -193,11 +203,17 @@ def main() -> None:
     summary_dir.mkdir(parents=True, exist_ok=True)
 
     pdf_dir = pathlib.Path(args.pdf_dir) if args.pdf_dir else bundle_dir / "cache" / "pdfs"
-    chroma_dir = (
-        pathlib.Path(args.chroma_dir)
-        if args.chroma_dir
-        else bundle_dir / "cache" / "chroma_store_ollama"
-    )
+
+    # Shared Chroma store: reused across bundles to avoid re-downloading/re-embedding.
+    # Priority: --shared-chroma-dir > --chroma-dir > per-bundle default.
+    if args.shared_chroma_dir:
+        chroma_dir = pathlib.Path(args.shared_chroma_dir)
+        print(f"[GraphPipeline] Using shared Chroma store: {chroma_dir}")
+    elif args.chroma_dir:
+        chroma_dir = pathlib.Path(args.chroma_dir)
+    else:
+        chroma_dir = bundle_dir / "cache" / "chroma_store_ollama"
+
     ingest_lock_file = pathlib.Path(args.ingest_lock_file)
     pdf_dir.mkdir(parents=True, exist_ok=True)
     chroma_dir.mkdir(parents=True, exist_ok=True)
@@ -325,6 +341,7 @@ def main() -> None:
         "min_species": min_species,
         "species_norms": species_norms,
         "embed_backend": args.embed_backend or "ollama",
+        "shared_chroma_dir": str(chroma_dir) if args.shared_chroma_dir else None,
     }
     (summary_dir / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
