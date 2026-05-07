@@ -78,7 +78,12 @@ def download_all_owls(force: bool = False) -> None:
         print(f"[KG] Downloading {label} from {owl_url} ...")
         tmp = owl_path.with_suffix(".owl.tmp")
         try:
-            urllib.request.urlretrieve(owl_url, tmp)
+            req = urllib.request.Request(
+                owl_url,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; ontology-downloader/1.0)"},
+            )
+            with urllib.request.urlopen(req) as resp, open(tmp, "wb") as out:
+                out.write(resp.read())
             os.replace(tmp, owl_path)
             print(f"[KG] Downloaded {label} ({owl_path.stat().st_size / 1e6:.1f} MB)")
         except Exception as exc:
