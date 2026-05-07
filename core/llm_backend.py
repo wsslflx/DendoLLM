@@ -21,6 +21,9 @@ from langchain_ollama import ChatOllama, OllamaEmbeddings
 DEFAULT_OLLAMA_BASE_URL = "https://dev.chat.cosy.bio/ollama"
 DEFAULT_CHAT_MODEL = os.getenv("OLLAMA_CHAT_MODEL", "qwen2.5:latest")
 
+# Embedding backend: "ollama" (default) or "openai"
+EMBED_BACKEND = os.getenv("EMBED_BACKEND", "ollama")
+
 
 def ollama_base_url() -> str:
     return os.getenv("OLLAMA_BASE_URL", DEFAULT_OLLAMA_BASE_URL).strip().rstrip("/")
@@ -78,7 +81,27 @@ def make_chat_llm(model: str | None, temperature: float, **kwargs: Any) -> ChatO
     )
 
 
-def make_embeddings(model: str | None = None, **kwargs: Any) -> OllamaEmbeddings:
+def resolve_embed_model_name(embed_backend: str | None = None) -> str:
+    """Return the active embedding model name string (used for cache dir naming)."""
+    backend = (embed_backend or EMBED_BACKEND).strip().lower()
+    if backend == "openai":
+        return os.getenv("OPENAI_EMBED_MODEL", "text-embedding-ada-002")
+    return resolve_embed_model()
+
+
+def make_embeddings(model: str | None = None, embed_backend: str | None = None, **kwargs: Any):
+    """
+    Return an embedding function for the active backend.
+
+    embed_backend: "ollama" (default) or "openai". Falls back to EMBED_BACKEND env var.
+    For OpenAI, set OPENAI_API_KEY in the environment.
+    """
+    backend = (embed_backend or EMBED_BACKEND).strip().lower()
+    if backend == "openai":
+        from langchain_openai import OpenAIEmbeddings
+        openai_model = model or os.getenv("OPENAI_EMBED_MODEL", "text-embedding-ada-002")
+        return OpenAIEmbeddings(model=openai_model)
+    # default: ollama
     return OllamaEmbeddings(
         base_url=ollama_base_url(),
         model=resolve_embed_model(model),

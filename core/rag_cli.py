@@ -440,10 +440,11 @@ class RAG:
         log_runs: bool = False,
         log_root: str = "./logs",
         persist_dir: str = "./chroma_store_ollama",
+        embed_backend: str | None = None,
     ) -> None:
         self.vectorstore = Chroma(
             collection_name="bunch_of_docs",
-            embedding_function=make_embeddings(),
+            embedding_function=make_embeddings(embed_backend=embed_backend),
             persist_directory=persist_dir,  # keep embeddings/metadata across runs
         )
         self.threshold: float | None = None  # optional hard cutoff on distance

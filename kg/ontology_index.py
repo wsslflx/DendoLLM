@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -20,13 +21,30 @@ from pathlib import Path
 # Allow running from project root or kg/ subdirectory
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
-CACHE_DIR      = Path(__file__).parent / "cache"
-OWL_PATH       = CACHE_DIR / "upheno.owl"
-GO_OWL_PATH    = CACHE_DIR / "go.owl"
-ENVO_OWL_PATH  = CACHE_DIR / "envo.owl"
-EMBED_NPY      = CACHE_DIR / "term_embeddings.npy"
-METADATA_JSONL = CACHE_DIR / "term_metadata.jsonl"
-MANIFEST_JSON  = CACHE_DIR / "manifest.json"
+# CACHE_DIR is the shared base for OWL files (model-independent).
+# Embedding index files live in per-model subdirectories — see _get_embed_cache_dir().
+CACHE_DIR     = Path(__file__).parent / "cache"
+OWL_PATH      = CACHE_DIR / "upheno.owl"
+GO_OWL_PATH   = CACHE_DIR / "go.owl"
+ENVO_OWL_PATH = CACHE_DIR / "envo.owl"
+
+
+def _get_embed_cache_dir(embed_backend: str | None = None) -> Path:
+    """
+    Return the per-model embedding cache directory.
+    e.g. kg/cache/snowflake-arctic-embed2_latest/ or kg/cache/text-embedding-ada-002/
+    """
+    from core.llm_backend import resolve_embed_model_name
+    model_slug = re.sub(r"[^a-zA-Z0-9_-]", "_", resolve_embed_model_name(embed_backend))
+    d = CACHE_DIR / model_slug
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _index_paths(embed_backend: str | None = None) -> tuple[Path, Path, Path]:
+    """Return (EMBED_NPY, METADATA_JSONL, MANIFEST_JSON) for the given backend."""
+    d = _get_embed_cache_dir(embed_backend)
+    return d / "term_embeddings.npy", d / "term_metadata.jsonl", d / "manifest.json"
 
 # Only keep terms from these namespaces
 ALLOWED_PREFIXES = ("UPHENO:", "HP:", "MP:", "GO:", "ENVO:", "UBERON:", "ZP:", "XPO:")
@@ -212,12 +230,12 @@ def load_terms() -> list[dict]:
 # Embedding
 # ---------------------------------------------------------------------------
 
-def embed_terms(terms: list[dict]) -> "np.ndarray":
+def embed_terms(terms: list[dict], embed_backend: str | None = None) -> "np.ndarray":
     import numpy as np
     sys.path.insert(0, str(Path(__file__).parents[1]))
     from core.llm_backend import make_embeddings
 
-    embedder = make_embeddings()
+    embedder = make_embeddings(embed_backend=embed_backend)
     batch_size = 256
     all_vecs = []
 
@@ -249,19 +267,21 @@ def embed_terms(terms: list[dict]) -> "np.ndarray":
 # Manifest helpers
 # ---------------------------------------------------------------------------
 
-def _read_manifest() -> dict:
-    if MANIFEST_JSON.exists():
+def _read_manifest(embed_backend: str | None = None) -> dict:
+    _, _, manifest_json = _index_paths(embed_backend)
+    if manifest_json.exists():
         try:
-            return json.loads(MANIFEST_JSON.read_text(encoding="utf-8"))
+            return json.loads(manifest_json.read_text(encoding="utf-8"))
         except Exception:
             pass
     return {}
 
 
-def _is_cache_fresh() -> bool:
-    if not (EMBED_NPY.exists() and METADATA_JSONL.exists() and MANIFEST_JSON.exists()):
+def _is_cache_fresh(embed_backend: str | None = None) -> bool:
+    embed_npy, metadata_jsonl, manifest_json = _index_paths(embed_backend)
+    if not (embed_npy.exists() and metadata_jsonl.exists() and manifest_json.exists()):
         return False
-    manifest = _read_manifest()
+    manifest = _read_manifest(embed_backend)
     if not manifest:
         return False
     owl_mtimes = manifest.get("owl_mtimes", {})
@@ -274,7 +294,8 @@ def _is_cache_fresh() -> bool:
     return True
 
 
-def _write_manifest(terms: list[dict], embed_model: str) -> None:
+def _write_manifest(terms: list[dict], embed_model: str, embed_backend: str | None = None) -> None:
+    _, _, manifest_json = _index_paths(embed_backend)
     owl_mtimes = {}
     for owl_path, _, label in _OWL_SOURCES:
         if owl_path.exists():
@@ -282,30 +303,33 @@ def _write_manifest(terms: list[dict], embed_model: str) -> None:
     manifest = {
         "term_count": len(terms),
         "embedding_model": embed_model,
+        "embed_backend": embed_backend or "ollama",
         "build_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "owl_mtimes": owl_mtimes,
     }
-    tmp = MANIFEST_JSON.with_suffix(".json.tmp")
+    tmp = manifest_json.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    os.replace(tmp, MANIFEST_JSON)
+    os.replace(tmp, manifest_json)
 
 
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
-def build_index(force: bool = False) -> None:
+def build_index(force: bool = False, embed_backend: str | None = None) -> None:
     """Full build: download → parse → embed → persist."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    embed_npy, metadata_jsonl, _ = _index_paths(embed_backend)
 
-    if not force and _is_cache_fresh():
-        manifest = _read_manifest()
+    if not force and _is_cache_fresh(embed_backend):
+        manifest = _read_manifest(embed_backend)
         print(f"[KG] Ontology index is fresh ({manifest.get('term_count', '?')} terms). Loading from cache.")
         return
 
+    backend_label = (embed_backend or "ollama").upper()
     print(
-        "[KG] Building ontology index (uPheno + GO + ENVO). This will take 15–60 minutes.\n"
-        "     Subsequent runs will load from cache instantly."
+        f"[KG] Building ontology index (uPheno + GO + ENVO) with {backend_label} embeddings.\n"
+        "     This will take 15–60 minutes. Subsequent runs load from cache instantly."
     )
 
     download_all_owls(force=force)
@@ -314,41 +338,43 @@ def build_index(force: bool = False) -> None:
     if not terms:
         raise RuntimeError("[KG] No terms extracted from ontologies — aborting index build.")
 
-    print(f"[KG] Embedding {len(terms)} terms...")
+    print(f"[KG] Embedding {len(terms)} terms with {backend_label}...")
     import numpy as np
-    vecs = embed_terms(terms)
+    vecs = embed_terms(terms, embed_backend=embed_backend)
 
     # Persist embeddings
-    tmp_npy = EMBED_NPY.with_suffix(".npy.tmp")
+    tmp_npy = embed_npy.with_suffix(".npy.tmp")
     with open(tmp_npy, "wb") as _f:
         np.save(_f, vecs)
-    os.replace(tmp_npy, EMBED_NPY)
-    print(f"[KG] Saved embeddings: {EMBED_NPY}")
+    os.replace(tmp_npy, embed_npy)
+    print(f"[KG] Saved embeddings: {embed_npy}")
 
     # Persist metadata
-    tmp_jsonl = METADATA_JSONL.with_suffix(".jsonl.tmp")
+    tmp_jsonl = metadata_jsonl.with_suffix(".jsonl.tmp")
     with open(tmp_jsonl, "w", encoding="utf-8") as f:
         for t in terms:
             f.write(json.dumps(t, ensure_ascii=False) + "\n")
-    os.replace(tmp_jsonl, METADATA_JSONL)
-    print(f"[KG] Saved metadata: {METADATA_JSONL}")
+    os.replace(tmp_jsonl, metadata_jsonl)
+    print(f"[KG] Saved metadata: {metadata_jsonl}")
 
-    from core.llm_backend import resolve_embed_model
-    embed_model = resolve_embed_model()
-    _write_manifest(terms, embed_model)
+    from core.llm_backend import resolve_embed_model_name
+    embed_model = resolve_embed_model_name(embed_backend)
+    _write_manifest(terms, embed_model, embed_backend)
     print(f"[KG] Index build complete. {len(terms)} terms indexed.")
 
 
-def load_index() -> tuple["np.ndarray", list[dict]]:
+def load_index(embed_backend: str | None = None) -> tuple["np.ndarray", list[dict]]:
     """Load cached embeddings and metadata. Raises if cache missing."""
     import numpy as np
-    if not (EMBED_NPY.exists() and METADATA_JSONL.exists()):
+    embed_npy, metadata_jsonl, _ = _index_paths(embed_backend)
+    if not (embed_npy.exists() and metadata_jsonl.exists()):
         raise RuntimeError(
-            "[KG] Ontology index cache not found. Run: python -m kg.ontology_index --build"
+            "[KG] Ontology index cache not found. "
+            f"Run: python -m kg.ontology_index --build --embed-backend {embed_backend or 'ollama'}"
         )
-    vecs = np.load(EMBED_NPY)
+    vecs = np.load(embed_npy)
     terms = []
-    with open(METADATA_JSONL, encoding="utf-8") as f:
+    with open(metadata_jsonl, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -361,8 +387,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build uPheno + GO + ENVO ontology index.")
     parser.add_argument("--build", action="store_true", help="Build (or check) the index.")
     parser.add_argument("--force-rebuild", action="store_true", help="Force full rebuild even if cache is fresh.")
+    parser.add_argument(
+        "--embed-backend",
+        default=os.getenv("EMBED_BACKEND", "ollama"),
+        choices=["ollama", "openai"],
+        help="Embedding backend to use (default: ollama).",
+    )
     args = parser.parse_args()
     if args.build or args.force_rebuild:
-        build_index(force=args.force_rebuild)
+        build_index(force=args.force_rebuild, embed_backend=args.embed_backend)
     else:
         parser.print_help()

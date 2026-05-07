@@ -72,7 +72,7 @@ def _pull_entities_to_map(driver, species_norms: list[str], force: bool) -> list
         return []
 
 
-def _push_mapping(driver, entity_id: str, map_result: dict, world) -> int:
+def _push_mapping(driver, entity_id: str, map_result: dict, world, embed_model: str = "") -> int:
     """
     Push DOC_MAPPED_TO edge + IS_A ancestor edges for one entity.
     Returns number of ancestor terms added.
@@ -111,9 +111,9 @@ def _push_mapping(driver, entity_id: str, map_result: dict, world) -> int:
             session.run(
                 "MATCH (e:DocEntity {entity_id: $eid}), (t:OntologyTerm {term_id: $tid}) "
                 "MERGE (e)-[r:DOC_MAPPED_TO]->(t) "
-                "SET r.cosine_score = $score, r.confidence = $conf, r.broadened = $broad",
+                "SET r.cosine_score = $score, r.confidence = $conf, r.broadened = $broad, r.embed_model = $em",
                 eid=entity_id, tid=term_id,
-                score=cosine, conf=confidence, broad=broadened,
+                score=cosine, conf=confidence, broad=broadened, em=embed_model,
             )
             # Mark entity as enriched
             session.run(
@@ -187,6 +187,7 @@ def _run_upheno_mapping(
     species_norms: list[str],
     model: str | None,
     force: bool,
+    embed_backend: str | None = None,
 ) -> tuple[int, int, int]:
     """
     Map DocEntity nodes to uPheno. Returns (mapped, no_match, ancestors_added).
@@ -201,8 +202,8 @@ def _run_upheno_mapping(
     # Load ontology index
     try:
         from kg.ontology_index import build_index, load_index
-        build_index(force=False)
-        _embeddings, _terms = load_index()
+        build_index(force=False, embed_backend=embed_backend)
+        _embeddings, _terms = load_index(embed_backend=embed_backend)
     except Exception as exc:
         print(f"[GraphEnricher] Cannot load ontology index: {exc} — skipping uPheno mapping.")
         return 0, len(entities), 0
@@ -214,10 +215,13 @@ def _run_upheno_mapping(
     surface_forms = [e["sf"] for e in entities]
     try:
         from kg.trait_mapper import map_traits_batch
-        mapped_results = map_traits_batch(surface_forms, no_match_out_path=None, model=model)
+        mapped_results = map_traits_batch(surface_forms, no_match_out_path=None, model=model, embed_backend=embed_backend)
     except Exception as exc:
         print(f"[GraphEnricher] map_traits_batch failed: {exc}")
         return 0, len(entities), 0
+
+    from core.llm_backend import resolve_embed_model_name
+    em_name = resolve_embed_model_name(embed_backend)
 
     mapped_count = 0
     no_match_count = 0
@@ -226,11 +230,11 @@ def _run_upheno_mapping(
     for entity_row, map_result in zip(entities, mapped_results):
         eid = entity_row["eid"]
         if map_result.get("mapped"):
-            anc = _push_mapping(driver, eid, map_result, world)
+            anc = _push_mapping(driver, eid, map_result, world, embed_model=em_name)
             mapped_count += 1
             ancestors_total += anc
         else:
-            _push_mapping(driver, eid, map_result, world)  # marks upheno_enriched=true
+            _push_mapping(driver, eid, map_result, world, embed_model=em_name)  # marks upheno_enriched=true
             no_match_count += 1
 
     print(
@@ -249,6 +253,7 @@ def _run_similarity_edges(
     driver,
     species_norms: list[str],
     threshold: float,
+    embed_backend: str | None = None,
 ) -> int:
     """
     Compute cosine similarity between all DocEntity nodes (grouped by species),
@@ -279,8 +284,9 @@ def _run_similarity_edges(
 
     print(f"[GraphEnricher] Computing similarity for {len(eids)} entities...")
     try:
-        from core.llm_backend import make_embeddings
-        embedder = make_embeddings()
+        from core.llm_backend import make_embeddings, resolve_embed_model_name
+        embedder = make_embeddings(embed_backend=embed_backend)
+        em_name = resolve_embed_model_name(embed_backend)
         vecs = np.array(embedder.embed_documents(surface_forms), dtype="float32")
     except Exception as exc:
         print(f"[GraphEnricher] Embedding failed: {exc}")
@@ -309,9 +315,9 @@ def _run_similarity_edges(
                         session.run(
                             "MATCH (a:DocEntity {entity_id: $eid_a}), "
                             "      (b:DocEntity {entity_id: $eid_b}) "
-                            "MERGE (a)-[:DOC_SIMILAR_TO {score: $sc}]->(b) "
-                            "MERGE (b)-[:DOC_SIMILAR_TO {score: $sc}]->(a)",
-                            eid_a=eids[i], eid_b=eids[j], sc=score_r,
+                            "MERGE (a)-[:DOC_SIMILAR_TO {score: $sc, embed_model: $em}]->(b) "
+                            "MERGE (b)-[:DOC_SIMILAR_TO {score: $sc, embed_model: $em}]->(a)",
+                            eid_a=eids[i], eid_b=eids[j], sc=score_r, em=em_name,
                         )
                         pairs_added += 1
                     except Exception as exc:
@@ -334,6 +340,7 @@ def enrich_doc_entities(
     model: str | None = None,
     force_reenrich: bool = False,
     log_dir: pathlib.Path | None = None,
+    embed_backend: str | None = None,
 ) -> dict:
     """
     Enrich DocEntity nodes with uPheno ontology mapping and cross-species
@@ -368,14 +375,14 @@ def enrich_doc_entities(
         print(f"[GraphEnricher] Schema init failed (non-fatal): {exc}")
 
     # Sub-step 1: uPheno mapping
-    mapped, no_match, ancestors = _run_upheno_mapping(driver, species_norms, model, force_reenrich)
+    mapped, no_match, ancestors = _run_upheno_mapping(driver, species_norms, model, force_reenrich, embed_backend=embed_backend)
     summary["entities_seen"] = mapped + no_match
     summary["entities_mapped"] = mapped
     summary["entities_no_match"] = no_match
     summary["ancestor_terms_added"] = ancestors
 
     # Sub-step 2: similarity edges
-    pairs = _run_similarity_edges(driver, species_norms, similarity_threshold)
+    pairs = _run_similarity_edges(driver, species_norms, similarity_threshold, embed_backend=embed_backend)
     summary["similarity_pairs_added"] = pairs
 
     driver.close()
@@ -411,6 +418,12 @@ if __name__ == "__main__":
     parser.add_argument("--model", default=None)
     parser.add_argument("--force-reenrich", action="store_true")
     parser.add_argument("--log-dir", default=None)
+    parser.add_argument(
+        "--embed-backend",
+        default=None,
+        choices=["ollama", "openai"],
+        help="Embedding backend to use (default: from EMBED_BACKEND env var or ollama).",
+    )
     args = parser.parse_args()
 
     norms = [s.strip().lower() for s in args.species.split(",") if s.strip()]
@@ -422,5 +435,6 @@ if __name__ == "__main__":
         model=args.model,
         force_reenrich=args.force_reenrich,
         log_dir=log_dir,
+        embed_backend=args.embed_backend,
     )
     print(json.dumps(result, indent=2))

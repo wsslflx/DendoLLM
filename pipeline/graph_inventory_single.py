@@ -83,6 +83,7 @@ def run_graph_inventory(
     llm_model: str | None = None,
     temperature: float = 0.0,
     force_reindex: bool = False,
+    embed_backend: str | None = None,
 ) -> dict:
     """
     Ingest documents and index them into the Neo4j document graph.
@@ -95,6 +96,7 @@ def run_graph_inventory(
     rag = RAG(
         log_runs=log_runs,
         persist_dir=str(chroma_dir) if chroma_dir else "./chroma_store_ollama",
+        embed_backend=embed_backend,
     )
     if not skip_ingest:
         lock_ctx = v1.ingest_lock(ingest_lock_file) if ingest_lock_file else nullcontext()
@@ -155,6 +157,12 @@ def main() -> None:
                         help="Re-index all chunks even if already indexed.")
     parser.add_argument("--model", default=None)
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument(
+        "--embed-backend",
+        default=None,
+        choices=["ollama", "openai"],
+        help="Embedding backend to use (default: from EMBED_BACKEND env var or ollama).",
+    )
     args = parser.parse_args()
 
     explicit_log_dir = pathlib.Path(args.log_dir) if args.log_dir else None
@@ -188,6 +196,7 @@ def main() -> None:
                 llm_model=args.model,
                 temperature=args.temperature,
                 force_reindex=args.force_reindex,
+                embed_backend=args.embed_backend,
             )
             summaries[canonical] = summary
 
@@ -208,6 +217,7 @@ def main() -> None:
         llm_model=args.model,
         temperature=args.temperature,
         force_reindex=args.force_reindex,
+        embed_backend=args.embed_backend,
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 

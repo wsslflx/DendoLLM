@@ -22,7 +22,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from core.llm_backend import make_chat_llm, make_embeddings, resolve_embed_model
-from kg.ontology_index import CACHE_DIR, load_index
+from kg.ontology_index import CACHE_DIR, load_index  # CACHE_DIR kept for backward compat
 
 # ---------------------------------------------------------------------------
 # LLM helpers
@@ -74,9 +74,9 @@ def _cosine_similarity(a, b_matrix) -> "np.ndarray":
     return b_norms @ a_norm
 
 
-def find_top_candidates(normalized_trait: str, embeddings, terms: list[dict], top_k: int = 10) -> list[dict]:
+def find_top_candidates(normalized_trait: str, embeddings, terms: list[dict], top_k: int = 10, embed_backend: str | None = None) -> list[dict]:
     import numpy as np
-    embedder = make_embeddings()
+    embedder = make_embeddings(embed_backend=embed_backend)
     vec = np.array(embedder.embed_query(normalized_trait), dtype="float32")
     sims = _cosine_similarity(vec, embeddings)
     top_idx = np.argsort(sims)[::-1][:top_k]
@@ -199,6 +199,7 @@ def map_trait(
     embeddings,
     terms: list[dict],
     model=None,
+    embed_backend: str | None = None,
 ) -> dict:
     """
     Full three-stage mapping for a single raw trait string.
@@ -209,7 +210,7 @@ def map_trait(
     print(f"[KG]   Normalized: '{raw_trait}' → '{normalized}'")
 
     # Stage 2
-    candidates = find_top_candidates(normalized, embeddings, terms, top_k=10)
+    candidates = find_top_candidates(normalized, embeddings, terms, top_k=10, embed_backend=embed_backend)
     if not candidates:
         return _no_match_result(raw_trait, normalized)
 
@@ -293,15 +294,16 @@ def map_traits_batch(
     raw_traits: list[str],
     no_match_out_path: Path | None = None,
     model=None,
+    embed_backend: str | None = None,
 ) -> list[dict]:
     """Map a list of traits, writing no-matches to a JSONL file."""
-    embeddings, terms = load_index()
+    embeddings, terms = load_index(embed_backend=embed_backend)
     results = []
     no_matches = []
 
     for i, trait in enumerate(raw_traits):
         print(f"[KG] Mapping trait {i+1}/{len(raw_traits)}: '{trait}'")
-        result = map_trait(trait, embeddings, terms, model=model)
+        result = map_trait(trait, embeddings, terms, model=model, embed_backend=embed_backend)
         results.append(result)
         if not result["mapped"]:
             no_matches.append(result)

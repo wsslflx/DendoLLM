@@ -42,6 +42,7 @@ def run_inventory(
     chroma_dir: pathlib.Path,
     ingest_lock_file: pathlib.Path,
     llm_model: str,
+    embed_backend: str | None = None,
 ) -> list[pathlib.Path]:
     run_dirs: list[pathlib.Path] = []
     runs_root = bundle_dir / "runs"
@@ -62,6 +63,9 @@ def run_inventory(
             "--ingest-lock-file", str(ingest_lock_file),
             "--model", llm_model,
         ]
+
+        if embed_backend:
+            cmd.extend(["--embed-backend", embed_backend])
 
         if skip_ingest_after_first and i > 0:
             cmd.append("--skip-ingest")
@@ -137,6 +141,12 @@ def main() -> None:
     parser.add_argument("--ingest-lock-file", default=".ingest.lock")
     parser.add_argument("--model", default=DEFAULT_CHAT_MODEL)
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument(
+        "--embed-backend",
+        default=None,
+        choices=["ollama", "openai"],
+        help="Embedding backend for Chroma + uPheno + similarity (default: from EMBED_BACKEND env var or ollama).",
+    )
     parser.add_argument(
         "--skip-enrich",
         action="store_true",
@@ -215,6 +225,7 @@ def main() -> None:
         chroma_dir=chroma_dir,
         ingest_lock_file=ingest_lock_file,
         llm_model=args.model,
+        embed_backend=args.embed_backend,
     )
 
     # Parse species info from the species file for enrichment + synthesis
@@ -242,6 +253,7 @@ def main() -> None:
                 model=args.model,
                 force_reenrich=args.force_reenrich,
                 log_dir=bundle_dir,
+                embed_backend=args.embed_backend,
             )
             (bundle_dir / "graph_enricher_summary.json").write_text(
                 json.dumps(enrich_summary, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -312,6 +324,7 @@ def main() -> None:
         "skip_synthesis": args.skip_synthesis,
         "min_species": min_species,
         "species_norms": species_norms,
+        "embed_backend": args.embed_backend or "ollama",
     }
     (summary_dir / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
