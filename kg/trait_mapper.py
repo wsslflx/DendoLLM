@@ -15,6 +15,7 @@ Performance optimizations:
   - Persistent SQLite cache: seen surface forms skip all LLM calls
   - Cosine early exit: skip LLM verify for obvious matches (>= 0.95) or non-matches (< 0.50)
   - Parallel execution: ThreadPoolExecutor in map_traits_batch()
+  - Batch Stage 1 normalization: send N traits in one LLM call (norm_batch_size > 1)
 """
 from __future__ import annotations
 
@@ -139,6 +140,68 @@ _NORM_SYSTEM = (
 def normalize_trait(raw_trait: str, model=None) -> str:
     result = _invoke_llm(f'Trait: "{raw_trait}"', _NORM_SYSTEM, model=model)
     return result if result else raw_trait
+
+
+_NORM_BATCH_SYSTEM = (
+    "You are a biological ontology expert. Rewrite each numbered trait description "
+    "in the formal style used by phenotype ontology term names (e.g. uPheno, HPO, MP). "
+    "Use neutral, precise biological language. No articles, no trailing punctuation. "
+    'Reply with ONLY a JSON object like {"1": "...", "2": "...", ...} — no other text.'
+)
+
+_NORM_BATCH_TEMPLATE = """\
+Normalize these {n} biological trait descriptions into ontology-style phrases.
+Reply with ONLY a JSON object mapping each number (as string) to the rewritten phrase.
+
+{numbered_traits}
+"""
+
+
+def normalize_traits_batch(raw_traits: list[str], model=None, batch_size: int = 10) -> list[str]:
+    """
+    Normalize a list of traits using batched LLM calls.
+    batch_size=1 falls back to one-by-one (same as normalize_trait()).
+    Returns a list of normalized strings in the same order as raw_traits.
+    """
+    if batch_size <= 1:
+        return [normalize_trait(t, model=model) for t in raw_traits]
+
+    results: list[str] = []
+    for start in range(0, len(raw_traits), batch_size):
+        batch = raw_traits[start:start + batch_size]
+        normalized = _normalize_batch(batch, model=model)
+        results.extend(normalized)
+        print(f"[KG] Batch-normalized traits {start + 1}–{start + len(batch)}/{len(raw_traits)}")
+    return results
+
+
+def _normalize_batch(traits: list[str], model=None) -> list[str]:
+    """
+    Send a batch of traits to the LLM in a single call, parse the JSON response.
+    Falls back to individual normalize_trait() calls if the response is unparseable.
+    """
+    numbered = "\n".join(f'{i + 1}. "{t}"' for i, t in enumerate(traits))
+    prompt = _NORM_BATCH_TEMPLATE.format(n=len(traits), numbered_traits=numbered)
+    raw = _invoke_llm(prompt, _NORM_BATCH_SYSTEM, model=model)
+
+    # Strip markdown fences
+    raw = raw.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    raw = raw.strip()
+
+    try:
+        parsed = json.loads(raw)
+        normalized = []
+        for i, original in enumerate(traits):
+            val = parsed.get(str(i + 1), "")
+            normalized.append(val.strip() if val.strip() else original)
+        return normalized
+    except Exception as exc:
+        print(f"[KG] Batch normalization parse failed ({exc}) — falling back to individual calls.")
+        return [normalize_trait(t, model=model) for t in traits]
 
 
 # ---------------------------------------------------------------------------
@@ -291,6 +354,7 @@ def map_trait(
     model=None,
     embed_backend: str | None = None,
     embedder=None,
+    normalized_trait: str | None = None,
 ) -> dict:
     """
     Full three-stage mapping for a single raw trait string.
@@ -298,8 +362,9 @@ def map_trait(
 
     Performance shortcuts (in order):
       1. SQLite cache hit → return immediately, zero LLM calls
-      2. Cosine auto-accept (>= COSINE_AUTO_ACCEPT) → skip Stage 3 LLM call
-      3. Cosine auto-reject (< COSINE_AUTO_REJECT) → skip Stage 3 LLM call
+      2. normalized_trait provided → skip Stage 1 LLM call
+      3. Cosine auto-accept (>= COSINE_AUTO_ACCEPT) → skip Stage 3 LLM call
+      4. Cosine auto-reject (< COSINE_AUTO_REJECT) → skip Stage 3 LLM call
     """
     # --- Cache check (skip all stages if seen before) ---
     cached = _cache_get(raw_trait)
@@ -307,8 +372,11 @@ def map_trait(
         print(f"[KG]   Cache hit: '{raw_trait}'")
         return cached
 
-    # Stage 1 — normalize
-    normalized = normalize_trait(raw_trait, model=model)
+    # Stage 1 — normalize (skip if pre-normalized by batch call)
+    if normalized_trait is not None:
+        normalized = normalized_trait
+    else:
+        normalized = normalize_trait(raw_trait, model=model)
     print(f"[KG]   Normalized: '{raw_trait}' → '{normalized}'")
 
     # Stage 2 — cosine similarity
@@ -439,9 +507,14 @@ def map_traits_batch(
     model=None,
     embed_backend: str | None = None,
     max_workers: int = 1,
+    norm_batch_size: int = 1,
 ) -> list[dict]:
     """
     Map a list of traits in parallel, writing no-matches to a JSONL file.
+
+    norm_batch_size > 1: pre-normalize all non-cached traits in batches via a
+    single LLM call per batch before Stage 2/3, saving ~(batch_size-1)/batch_size
+    of Stage 1 LLM calls. norm_batch_size=1 behaves exactly as before.
 
     The embedder and ontology index are loaded once and shared across threads
     (both are read-only after initialisation).
@@ -451,14 +524,31 @@ def map_traits_batch(
     embedder = make_embeddings(embed_backend=embed_backend)
 
     n = len(raw_traits)
+
+    # --- Batch Stage 1: pre-normalize non-cached traits ---
+    # Check cache first so we don't waste LLM calls on already-known traits.
+    pre_normalized: dict[str, str] = {}  # raw_trait → normalized
+    if norm_batch_size > 1:
+        uncached = [t for t in raw_traits if _cache_get(t) is None]
+        if uncached:
+            print(f"[KG] Batch-normalizing {len(uncached)} uncached traits "
+                  f"(batch_size={norm_batch_size})...")
+            norm_results = normalize_traits_batch(uncached, model=model, batch_size=norm_batch_size)
+            pre_normalized = dict(zip(uncached, norm_results))
+        cached_count = n - len(uncached)
+        if cached_count:
+            print(f"[KG] Skipping normalization for {cached_count} cached traits.")
+
     results: list[dict | None] = [None] * n
     completed = 0
 
     def _map_one(idx_trait):
         idx, trait = idx_trait
+        norm = pre_normalized.get(trait)  # None if batch_size=1 or cache hit
         return idx, map_trait(
             trait, embeddings, terms,
             model=model, embed_backend=embed_backend, embedder=embedder,
+            normalized_trait=norm,
         )
 
     with ThreadPoolExecutor(max_workers=max_workers) as pool:

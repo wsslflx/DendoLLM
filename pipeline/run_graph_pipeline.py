@@ -164,6 +164,13 @@ def main() -> None:
         help="Parallel threads for uPheno entity mapping (default: 1). Increase if LLM server handles concurrency well.",
     )
     parser.add_argument(
+        "--norm-batch-size",
+        type=int,
+        default=1,
+        help="Traits per Stage 1 normalization LLM call (default: 1 = one-by-one). "
+             "Values > 1 batch multiple traits into a single call, e.g. --norm-batch-size 10.",
+    )
+    parser.add_argument(
         "--skip-enrich",
         action="store_true",
         default=False,
@@ -277,6 +284,7 @@ def main() -> None:
                 log_dir=bundle_dir,
                 embed_backend=args.embed_backend,
                 max_workers=args.map_workers,
+                norm_batch_size=args.norm_batch_size,
             )
             (bundle_dir / "graph_enricher_summary.json").write_text(
                 json.dumps(enrich_summary, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -349,6 +357,7 @@ def main() -> None:
         "species_norms": species_norms,
         "embed_backend": args.embed_backend or "ollama",
         "map_workers": args.map_workers,
+        "norm_batch_size": args.norm_batch_size,
         "shared_chroma_dir": str(chroma_dir) if args.shared_chroma_dir else None,
     }
     (summary_dir / "meta.json").write_text(

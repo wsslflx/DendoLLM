@@ -189,6 +189,7 @@ def _run_upheno_mapping(
     force: bool,
     embed_backend: str | None = None,
     max_workers: int = 1,
+    norm_batch_size: int = 1,
 ) -> tuple[int, int, int]:
     """
     Map DocEntity nodes to uPheno. Returns (mapped, no_match, ancestors_added).
@@ -227,6 +228,7 @@ def _run_upheno_mapping(
             model=model,
             embed_backend=embed_backend,
             max_workers=max_workers,
+            norm_batch_size=norm_batch_size,
         )
     except Exception as exc:
         print(f"[GraphEnricher] map_traits_batch failed: {exc}")
@@ -358,6 +360,7 @@ def enrich_doc_entities(
     log_dir: pathlib.Path | None = None,
     embed_backend: str | None = None,
     max_workers: int = 1,
+    norm_batch_size: int = 1,
 ) -> dict:
     """
     Enrich DocEntity nodes with uPheno ontology mapping and cross-species
@@ -392,7 +395,7 @@ def enrich_doc_entities(
         print(f"[GraphEnricher] Schema init failed (non-fatal): {exc}")
 
     # Sub-step 1: uPheno mapping
-    mapped, no_match, ancestors = _run_upheno_mapping(driver, species_norms, model, force_reenrich, embed_backend=embed_backend, max_workers=max_workers)
+    mapped, no_match, ancestors = _run_upheno_mapping(driver, species_norms, model, force_reenrich, embed_backend=embed_backend, max_workers=max_workers, norm_batch_size=norm_batch_size)
     summary["entities_seen"] = mapped + no_match
     summary["entities_mapped"] = mapped
     summary["entities_no_match"] = no_match
@@ -444,8 +447,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--map-workers",
         type=int,
-        default=4,
-        help="Number of parallel threads for uPheno mapping (default: 4).",
+        default=1,
+        help="Number of parallel threads for uPheno mapping (default: 1).",
+    )
+    parser.add_argument(
+        "--norm-batch-size",
+        type=int,
+        default=1,
+        help="Traits per Stage 1 normalization LLM call (default: 1 = one-by-one). "
+             "Values > 1 batch multiple traits into a single call.",
     )
     args = parser.parse_args()
 
@@ -460,5 +470,6 @@ if __name__ == "__main__":
         log_dir=log_dir,
         embed_backend=args.embed_backend,
         max_workers=args.map_workers,
+        norm_batch_size=args.norm_batch_size,
     )
     print(json.dumps(result, indent=2))
