@@ -188,6 +188,7 @@ def _run_upheno_mapping(
     model: str | None,
     force: bool,
     embed_backend: str | None = None,
+    max_workers: int = 1,
 ) -> tuple[int, int, int]:
     """
     Map DocEntity nodes to uPheno. Returns (mapped, no_match, ancestors_added).
@@ -197,7 +198,13 @@ def _run_upheno_mapping(
         print("[GraphEnricher] No entities to map (all already enriched or none found).")
         return 0, 0, 0
 
-    print(f"[GraphEnricher] Mapping {len(entities)} entities to uPheno...")
+    # Deduplicate by surface_form — mapping is text-only, so same sf always gives same result
+    unique_sfs = list(dict.fromkeys(e["sf"] for e in entities))
+    print(
+        f"[GraphEnricher] {len(entities)} entities to map "
+        f"({len(unique_sfs)} unique surface forms after deduplication, "
+        f"{len(entities) - len(unique_sfs)} duplicates skipped)."
+    )
 
     # Load ontology index
     try:
@@ -211,14 +218,22 @@ def _run_upheno_mapping(
     # Load owlready2 world for ancestor traversal
     world = _load_owl_world()
 
-    # Map all entities via trait_mapper
-    surface_forms = [e["sf"] for e in entities]
+    # Map unique surface forms only
     try:
         from kg.trait_mapper import map_traits_batch
-        mapped_results = map_traits_batch(surface_forms, no_match_out_path=None, model=model, embed_backend=embed_backend)
+        unique_results = map_traits_batch(
+            unique_sfs,
+            no_match_out_path=None,
+            model=model,
+            embed_backend=embed_backend,
+            max_workers=max_workers,
+        )
     except Exception as exc:
         print(f"[GraphEnricher] map_traits_batch failed: {exc}")
         return 0, len(entities), 0
+
+    # Build sf → result lookup
+    sf_to_result = {sf: result for sf, result in zip(unique_sfs, unique_results)}
 
     from core.llm_backend import resolve_embed_model_name
     em_name = resolve_embed_model_name(embed_backend)
@@ -227,8 +242,9 @@ def _run_upheno_mapping(
     no_match_count = 0
     ancestors_total = 0
 
-    for entity_row, map_result in zip(entities, mapped_results):
+    for entity_row in entities:
         eid = entity_row["eid"]
+        map_result = sf_to_result[entity_row["sf"]]
         if map_result.get("mapped"):
             anc = _push_mapping(driver, eid, map_result, world, embed_model=em_name)
             mapped_count += 1
@@ -341,6 +357,7 @@ def enrich_doc_entities(
     force_reenrich: bool = False,
     log_dir: pathlib.Path | None = None,
     embed_backend: str | None = None,
+    max_workers: int = 1,
 ) -> dict:
     """
     Enrich DocEntity nodes with uPheno ontology mapping and cross-species
@@ -375,7 +392,7 @@ def enrich_doc_entities(
         print(f"[GraphEnricher] Schema init failed (non-fatal): {exc}")
 
     # Sub-step 1: uPheno mapping
-    mapped, no_match, ancestors = _run_upheno_mapping(driver, species_norms, model, force_reenrich, embed_backend=embed_backend)
+    mapped, no_match, ancestors = _run_upheno_mapping(driver, species_norms, model, force_reenrich, embed_backend=embed_backend, max_workers=max_workers)
     summary["entities_seen"] = mapped + no_match
     summary["entities_mapped"] = mapped
     summary["entities_no_match"] = no_match
@@ -424,6 +441,12 @@ if __name__ == "__main__":
         choices=["ollama", "openai"],
         help="Embedding backend to use (default: from EMBED_BACKEND env var or ollama).",
     )
+    parser.add_argument(
+        "--map-workers",
+        type=int,
+        default=4,
+        help="Number of parallel threads for uPheno mapping (default: 4).",
+    )
     args = parser.parse_args()
 
     norms = [s.strip().lower() for s in args.species.split(",") if s.strip()]
@@ -436,5 +459,6 @@ if __name__ == "__main__":
         force_reenrich=args.force_reenrich,
         log_dir=log_dir,
         embed_backend=args.embed_backend,
+        max_workers=args.map_workers,
     )
     print(json.dumps(result, indent=2))

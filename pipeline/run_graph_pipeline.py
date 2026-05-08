@@ -158,6 +158,12 @@ def main() -> None:
         help="Embedding backend for Chroma + uPheno + similarity (default: from EMBED_BACKEND env var or ollama).",
     )
     parser.add_argument(
+        "--map-workers",
+        type=int,
+        default=1,
+        help="Parallel threads for uPheno entity mapping (default: 1). Increase if LLM server handles concurrency well.",
+    )
+    parser.add_argument(
         "--skip-enrich",
         action="store_true",
         default=False,
@@ -270,6 +276,7 @@ def main() -> None:
                 force_reenrich=args.force_reenrich,
                 log_dir=bundle_dir,
                 embed_backend=args.embed_backend,
+                max_workers=args.map_workers,
             )
             (bundle_dir / "graph_enricher_summary.json").write_text(
                 json.dumps(enrich_summary, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -341,6 +348,7 @@ def main() -> None:
         "min_species": min_species,
         "species_norms": species_norms,
         "embed_backend": args.embed_backend or "ollama",
+        "map_workers": args.map_workers,
         "shared_chroma_dir": str(chroma_dir) if args.shared_chroma_dir else None,
     }
     (summary_dir / "meta.json").write_text(

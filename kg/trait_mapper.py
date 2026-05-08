@@ -10,19 +10,97 @@ Confidence policy:
   high / medium → accept
   low           → try parent broadening via OAK; accept if high/medium; else no_match
   no_match      → no_match
+
+Performance optimizations:
+  - Persistent SQLite cache: seen surface forms skip all LLM calls
+  - Cosine early exit: skip LLM verify for obvious matches (>= 0.95) or non-matches (< 0.50)
+  - Parallel execution: ThreadPoolExecutor in map_traits_batch()
 """
 from __future__ import annotations
 
 import json
+import os
+import sqlite3
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from threading import Lock
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from core.llm_backend import make_chat_llm, make_embeddings, resolve_embed_model
 from kg.ontology_index import CACHE_DIR, load_index  # CACHE_DIR kept for backward compat
+
+# ---------------------------------------------------------------------------
+# Cosine early-exit thresholds
+# ---------------------------------------------------------------------------
+
+# Top-1 cosine >= this → auto-accept as "high" confidence, skip LLM verify
+COSINE_AUTO_ACCEPT = 0.95
+# Top-1 cosine < this → auto no_match, skip LLM verify
+COSINE_AUTO_REJECT = 0.50
+
+# ---------------------------------------------------------------------------
+# Persistent SQLite mapping cache
+# ---------------------------------------------------------------------------
+
+_CACHE_DB = CACHE_DIR / "trait_map_cache.db"
+_cache_lock = Lock()
+
+
+def _init_cache() -> None:
+    """Create the cache table if it doesn't exist. Called once at module level."""
+    _CACHE_DB.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(str(_CACHE_DB)) as con:
+        con.execute("PRAGMA journal_mode=WAL")
+        con.execute(
+            "CREATE TABLE IF NOT EXISTS trait_map ("
+            "  surface_form TEXT PRIMARY KEY,"
+            "  result_json  TEXT NOT NULL"
+            ")"
+        )
+        con.commit()
+
+
+def _cache_get(raw_trait: str) -> dict | None:
+    """Return cached mapping result for raw_trait, or None if not cached."""
+    try:
+        with sqlite3.connect(str(_CACHE_DB)) as con:
+            con.execute("PRAGMA journal_mode=WAL")
+            row = con.execute(
+                "SELECT result_json FROM trait_map WHERE surface_form = ?",
+                (raw_trait,),
+            ).fetchone()
+        if row:
+            return json.loads(row[0])
+    except Exception as exc:
+        print(f"[KG] Cache read error (non-fatal): {exc}")
+    return None
+
+
+def _cache_put(raw_trait: str, result: dict) -> None:
+    """Store a mapping result. Thread-safe via WAL + INSERT OR REPLACE."""
+    try:
+        with _cache_lock:
+            with sqlite3.connect(str(_CACHE_DB)) as con:
+                con.execute("PRAGMA journal_mode=WAL")
+                con.execute(
+                    "INSERT OR REPLACE INTO trait_map (surface_form, result_json) VALUES (?, ?)",
+                    (raw_trait, json.dumps(result, ensure_ascii=False)),
+                )
+                con.commit()
+    except Exception as exc:
+        print(f"[KG] Cache write error (non-fatal): {exc}")
+
+
+# Initialise cache DB on import
+try:
+    _init_cache()
+except Exception as _exc:
+    print(f"[KG] Could not initialise trait map cache (non-fatal): {_exc}")
+
 
 # ---------------------------------------------------------------------------
 # LLM helpers
@@ -74,9 +152,21 @@ def _cosine_similarity(a, b_matrix) -> "np.ndarray":
     return b_norms @ a_norm
 
 
-def find_top_candidates(normalized_trait: str, embeddings, terms: list[dict], top_k: int = 10, embed_backend: str | None = None) -> list[dict]:
+def find_top_candidates(
+    normalized_trait: str,
+    embeddings,
+    terms: list[dict],
+    top_k: int = 10,
+    embed_backend: str | None = None,
+    embedder=None,
+) -> list[dict]:
+    """
+    Return top_k ontology terms by cosine similarity.
+    Pass a pre-created `embedder` to avoid re-instantiating per call in parallel mode.
+    """
     import numpy as np
-    embedder = make_embeddings(embed_backend=embed_backend)
+    if embedder is None:
+        embedder = make_embeddings(embed_backend=embed_backend)
     vec = np.array(embedder.embed_query(normalized_trait), dtype="float32")
     sims = _cosine_similarity(vec, embeddings)
     top_idx = np.argsort(sims)[::-1][:top_k]
@@ -200,28 +290,75 @@ def map_trait(
     terms: list[dict],
     model=None,
     embed_backend: str | None = None,
+    embedder=None,
 ) -> dict:
     """
     Full three-stage mapping for a single raw trait string.
     Returns the standardized result dict.
+
+    Performance shortcuts (in order):
+      1. SQLite cache hit → return immediately, zero LLM calls
+      2. Cosine auto-accept (>= COSINE_AUTO_ACCEPT) → skip Stage 3 LLM call
+      3. Cosine auto-reject (< COSINE_AUTO_REJECT) → skip Stage 3 LLM call
     """
-    # Stage 1
+    # --- Cache check (skip all stages if seen before) ---
+    cached = _cache_get(raw_trait)
+    if cached is not None:
+        print(f"[KG]   Cache hit: '{raw_trait}'")
+        return cached
+
+    # Stage 1 — normalize
     normalized = normalize_trait(raw_trait, model=model)
     print(f"[KG]   Normalized: '{raw_trait}' → '{normalized}'")
 
-    # Stage 2
-    candidates = find_top_candidates(normalized, embeddings, terms, top_k=10, embed_backend=embed_backend)
+    # Stage 2 — cosine similarity
+    candidates = find_top_candidates(
+        normalized, embeddings, terms, top_k=10,
+        embed_backend=embed_backend, embedder=embedder,
+    )
     if not candidates:
-        return _no_match_result(raw_trait, normalized)
+        result = _no_match_result(raw_trait, normalized)
+        _cache_put(raw_trait, result)
+        return result
 
-    # Stage 3
+    top_score = candidates[0]["cosine_score"]
+
+    # Cosine early exit — auto-accept
+    if top_score >= COSINE_AUTO_ACCEPT:
+        best = candidates[0]
+        print(f"[KG]   Auto-accept (cosine={top_score:.3f}): '{raw_trait}' → {best['id']}")
+        result = {
+            "raw_trait": raw_trait,
+            "normalized_trait": normalized,
+            "term_id": best["id"],
+            "term_name": best.get("name", ""),
+            "confidence": "high",
+            "cosine_score": top_score,
+            "reasoning": f"auto-accepted: cosine score {top_score:.3f} >= {COSINE_AUTO_ACCEPT}",
+            "mapped": True,
+            "broadened": False,
+        }
+        _cache_put(raw_trait, result)
+        return result
+
+    # Cosine early exit — auto-reject
+    if top_score < COSINE_AUTO_REJECT:
+        print(f"[KG]   Auto-reject (cosine={top_score:.3f}): '{raw_trait}'")
+        result = _no_match_result(
+            raw_trait, normalized,
+            reasoning=f"auto-rejected: top cosine score {top_score:.3f} < {COSINE_AUTO_REJECT}",
+        )
+        _cache_put(raw_trait, result)
+        return result
+
+    # Stage 3 — LLM verification
     result = verify_candidate(raw_trait, normalized, candidates, model=model)
     confidence = result.get("confidence", "no_match")
 
     if confidence in ("high", "medium"):
         matched_term = _find_term(result.get("term_id"), terms)
         cosine = _find_cosine(result.get("term_id"), candidates)
-        return {
+        out = {
             "raw_trait": raw_trait,
             "normalized_trait": normalized,
             "term_id": result.get("term_id"),
@@ -232,6 +369,8 @@ def map_trait(
             "mapped": True,
             "broadened": False,
         }
+        _cache_put(raw_trait, out)
+        return out
 
     if confidence == "low" and result.get("term_id"):
         # Parent broadening
@@ -243,7 +382,7 @@ def map_trait(
             if confidence2 in ("high", "medium"):
                 matched_term = _find_term(result2.get("term_id"), terms)
                 cosine = _find_cosine(result2.get("term_id"), parent_candidates)
-                return {
+                out = {
                     "raw_trait": raw_trait,
                     "normalized_trait": normalized,
                     "term_id": result2.get("term_id"),
@@ -254,8 +393,12 @@ def map_trait(
                     "mapped": True,
                     "broadened": True,
                 }
+                _cache_put(raw_trait, out)
+                return out
 
-    return _no_match_result(raw_trait, normalized, reasoning=result.get("reasoning", ""))
+    out = _no_match_result(raw_trait, normalized, reasoning=result.get("reasoning", ""))
+    _cache_put(raw_trait, out)
+    return out
 
 
 def _no_match_result(raw_trait: str, normalized: str, reasoning: str = "") -> dict:
@@ -295,28 +438,59 @@ def map_traits_batch(
     no_match_out_path: Path | None = None,
     model=None,
     embed_backend: str | None = None,
+    max_workers: int = 1,
 ) -> list[dict]:
-    """Map a list of traits, writing no-matches to a JSONL file."""
-    embeddings, terms = load_index(embed_backend=embed_backend)
-    results = []
-    no_matches = []
+    """
+    Map a list of traits in parallel, writing no-matches to a JSONL file.
 
-    for i, trait in enumerate(raw_traits):
-        print(f"[KG] Mapping trait {i+1}/{len(raw_traits)}: '{trait}'")
-        result = map_trait(trait, embeddings, terms, model=model, embed_backend=embed_backend)
-        results.append(result)
-        if not result["mapped"]:
-            no_matches.append(result)
+    The embedder and ontology index are loaded once and shared across threads
+    (both are read-only after initialisation).
+    """
+    embeddings, terms = load_index(embed_backend=embed_backend)
+    # Pre-create embedder once — avoids re-instantiating per thread call
+    embedder = make_embeddings(embed_backend=embed_backend)
+
+    n = len(raw_traits)
+    results: list[dict | None] = [None] * n
+    completed = 0
+
+    def _map_one(idx_trait):
+        idx, trait = idx_trait
+        return idx, map_trait(
+            trait, embeddings, terms,
+            model=model, embed_backend=embed_backend, embedder=embedder,
+        )
+
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {pool.submit(_map_one, (i, t)): i for i, t in enumerate(raw_traits)}
+        for future in as_completed(futures):
+            try:
+                idx, result = future.result()
+                results[idx] = result
+            except Exception as exc:
+                idx = futures[future]
+                print(f"[KG] map_trait failed for trait index {idx}: {exc}")
+                results[idx] = _no_match_result(raw_traits[idx], raw_traits[idx], reasoning=str(exc))
+            completed += 1
+            if completed % 50 == 0 or completed == n:
+                mapped_so_far = sum(1 for r in results if r is not None and r.get("mapped"))
+                print(f"[KG] Progress: {completed}/{n} done, {mapped_so_far} mapped so far.")
+
+    # Fill any None slots that somehow slipped through
+    for i, r in enumerate(results):
+        if r is None:
+            results[i] = _no_match_result(raw_traits[i], raw_traits[i], reasoning="unknown error")
+
+    no_matches = [r for r in results if not r["mapped"]]
 
     if no_match_out_path and no_matches:
         tmp = Path(str(no_match_out_path) + ".tmp")
         with open(tmp, "w", encoding="utf-8") as f:
             for nm in no_matches:
                 f.write(json.dumps(nm, ensure_ascii=False) + "\n")
-        import os
         os.replace(tmp, no_match_out_path)
         print(f"[KG] {len(no_matches)} unmatched traits written to {no_match_out_path}")
 
     mapped = sum(1 for r in results if r["mapped"])
-    print(f"[KG] Mapped {mapped}/{len(results)} traits successfully.")
+    print(f"[KG] Mapped {mapped}/{n} traits successfully.")
     return results
