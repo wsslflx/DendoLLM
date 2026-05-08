@@ -159,6 +159,60 @@ def _push_chunk_graph(
 
 
 # ---------------------------------------------------------------------------
+# Junk chunk filter
+# ---------------------------------------------------------------------------
+
+def _is_junk_chunk(text: str) -> tuple[bool, str]:
+    """
+    Return (True, reason) if this chunk is unlikely to contain extractable
+    biological entities, (False, "") otherwise.
+
+    Uses a multi-signal approach: a chunk is junk only if it fires >= 2 signals,
+    so real content with incidentally high numbers (methods sections etc.) passes.
+    """
+    text = text.strip()
+    words = text.split()
+    n_words = len(words)
+    n_chars = len(text)
+
+    signals: list[str] = []
+
+    # Signal 1 — very low word count
+    if n_words < 20:
+        signals.append(f"S1:low_words({n_words})")
+
+    # Signal 2 — figure/table caption prefix (only suspicious if also short)
+    if n_words < 50 and re.match(
+        r"^(fig(ure)?s?\.?|table|supplementary\s+(fig(ure)?|table)|supp\.)\s*[\d\w]",
+        text,
+        re.IGNORECASE,
+    ):
+        signals.append("S2:fig_table_prefix")
+
+    # Signal 3 — high digit density (tables, data blocks, statistics sections)
+    if n_chars > 0:
+        digit_ratio = sum(1 for c in text if c.isdigit()) / n_chars
+        if digit_ratio > 0.30:
+            signals.append(f"S3:digit_density({digit_ratio:.0%})")
+
+    # Signal 4 — reference list (>= 40% of non-empty lines start with digit or bracket)
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    if len(lines) >= 3:
+        ref_lines = sum(1 for ln in lines if re.match(r"^[\d\[\{]", ln))
+        if ref_lines / len(lines) >= 0.40:
+            signals.append(f"S4:ref_list({ref_lines}/{len(lines)} lines)")
+
+    # Signal 5 — almost no sentence-ending punctuation (headings, labels)
+    sentence_ends = len(re.findall(r"[.!?][\s\n]", text)) + (1 if text.endswith((".", "!", "?")) else 0)
+    if sentence_ends < 2 and n_words < 40:
+        signals.append(f"S5:low_sentences({sentence_ends})")
+
+    if len(signals) >= 2:
+        return True, ", ".join(signals)
+    return False, ""
+
+
+# ---------------------------------------------------------------------------
 # LLM entity extraction
 # ---------------------------------------------------------------------------
 
@@ -285,6 +339,7 @@ def index_species(
         "species_norm": species_norm,
         "chunks_seen": 0,
         "chunks_skipped": 0,
+        "chunks_junk": 0,
         "chunks_indexed": 0,
         "entities_created": 0,
         "triples_created": 0,
@@ -348,6 +403,14 @@ def index_species(
             summary["chunks_skipped"] += 1
             continue
 
+        # Filter junk chunks (figures, headings, tables, reference lists)
+        junk, junk_reason = _is_junk_chunk(text or "")
+        if junk:
+            print(f"[GraphIndexer] [{i + 1}/{len(ids)}] Skipping junk chunk {chunk_id} "
+                  f"(source: {source_path}, idx: {chunk_index}) — {junk_reason}")
+            summary["chunks_junk"] += 1
+            continue
+
         # Build chunk node dict
         chunk_node = {
             "chunk_id": chunk_id,
@@ -389,7 +452,8 @@ def index_species(
 
     print(f"[GraphIndexer] Done for '{species_norm}': "
           f"{summary['chunks_indexed']} indexed, "
-          f"{summary['chunks_skipped']} skipped, "
+          f"{summary['chunks_skipped']} skipped (already done), "
+          f"{summary['chunks_junk']} skipped (junk filter), "
           f"{summary['entities_created']} entities, "
           f"{summary['triples_created']} triples.")
 
