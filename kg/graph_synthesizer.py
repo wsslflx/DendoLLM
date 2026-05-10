@@ -33,6 +33,11 @@ MAX_TIER1_RELATIONAL_RESULTS = 50
 MAX_TIER2_CLUSTERS = 30
 MAX_SYNTHESIS_RETRIES = 2
 
+# Only these entity types are considered for Tier 2 embedding-similarity clusters.
+# Process and Gene entities are excluded because they produce generic scientific
+# vocabulary clusters ("mutations", "DNA", "expression") that carry no trait signal.
+_TIER2_ALLOWED_ENTITY_TYPES = ["Phenotype", "Anatomy", "Habitat"]
+
 # Root and near-root ontology terms that are too generic for Tier 1 communities.
 # IS_A*0..3 traversal always reaches these — block them explicitly.
 _TIER1_GENERIC_TERMS = {
@@ -243,6 +248,8 @@ def _query_tier2_pairs(species_norms: list[str], score_threshold: float = 0.80) 
         "WHERE c1.species_norm IN $sn AND c2.species_norm IN $sn "
         "  AND c1.species_norm <> c2.species_norm "
         "  AND r.score >= $threshold "
+        "  AND e1.entity_type IN $allowed_types "
+        "  AND e2.entity_type IN $allowed_types "
         "RETURN DISTINCT "
         "  e1.entity_id AS eid1, e1.surface_form AS sf1, "
         "  e2.entity_id AS eid2, e2.surface_form AS sf2, "
@@ -253,8 +260,13 @@ def _query_tier2_pairs(species_norms: list[str], score_threshold: float = 0.80) 
     )
     try:
         from kg.neo4j_client import run_query
-        rows = run_query(cypher, {"sn": species_norms, "threshold": score_threshold})
-        print(f"[GraphSynthesizer] Tier 2: {len(rows)} pairs returned (score >= {score_threshold}).")
+        rows = run_query(cypher, {
+            "sn": species_norms,
+            "threshold": score_threshold,
+            "allowed_types": _TIER2_ALLOWED_ENTITY_TYPES,
+        })
+        print(f"[GraphSynthesizer] Tier 2: {len(rows)} pairs returned "
+              f"(score >= {score_threshold}, types: {_TIER2_ALLOWED_ENTITY_TYPES}).")
         return rows
     except Exception as exc:
         print(f"[GraphSynthesizer] Tier 2 query failed: {exc}")
