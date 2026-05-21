@@ -1,0 +1,9 @@
+{
+  "species_norm": "octopus vulgaris",
+  "chunks_seen": 469,
+  "chunks_skipped": 108,
+  "chunks_junk": 10,
+  "chunks_indexed": 351,
+  "entities_created": 3085,
+  "triples_created": 2780
+}

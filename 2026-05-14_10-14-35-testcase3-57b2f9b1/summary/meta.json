@@ -1,0 +1,36 @@
+{
+  "pipeline": "graph_rag",
+  "bundle_dir": "logs_graph/2026-05-14_10-14-35-testcase3-57b2f9b1",
+  "run_label": "testcase3",
+  "species_file": "testcases/testcase3.json",
+  "species_snapshot": "logs_graph/2026-05-14_10-14-35-testcase3-57b2f9b1/species_input.json",
+  "species_input_mode": "file",
+  "species_list": null,
+  "runs": 1,
+  "skip_ingest_after_first": true,
+  "pdf_dir": "logs_graph/2026-05-14_10-14-35-testcase3-57b2f9b1/cache/pdfs",
+  "chroma_dir": "logs_graph/2026-05-14_10-14-35-testcase3-57b2f9b1/cache/chroma_store_ollama",
+  "ingest_lock_file": ".ingest.lock",
+  "run_list": "logs_graph/2026-05-14_10-14-35-testcase3-57b2f9b1/run_list.txt",
+  "model": "qwen3.5:27b",
+  "temperature": 0.0,
+  "timestamp": "2026-05-14_10-14-35",
+  "run_dirs": [
+    "logs_graph/2026-05-14_10-14-35-testcase3-57b2f9b1/runs/run_01"
+  ],
+  "skip_enrich": false,
+  "force_reenrich": false,
+  "similarity_threshold": 0.78,
+  "skip_synthesis": false,
+  "min_species": 2,
+  "species_norms": [
+    "octopus vulgaris",
+    "furcifer pardalis",
+    "dryophytes versicolor",
+    "panulirus cygnus"
+  ],
+  "embed_backend": "ollama",
+  "map_workers": 1,
+  "norm_batch_size": 1,
+  "shared_chroma_dir": null
+}

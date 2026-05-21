@@ -200,6 +200,20 @@ def main() -> None:
         default=None,
         help="Minimum species count for synthesis communities (default: max(2, n_species//2)).",
     )
+    parser.add_argument(
+        "--tier1-max-entity-forms",
+        type=int,
+        default=50,
+        help="Tier 1 ancestors with more distinct entity forms than this are excluded as too "
+             "generic (default: 50). Lower values = stricter specificity filter.",
+    )
+    parser.add_argument(
+        "--no-summarize-subgraphs",
+        action="store_true",
+        default=False,
+        help="Disable per-species subgraph summarization before synthesis (passes raw triples "
+             "to synthesis LLM; may exceed context window for large runs).",
+    )
     args = parser.parse_args()
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -310,6 +324,8 @@ def main() -> None:
                 model=args.model,
                 log_dir=bundle_dir,
                 tier2_score_threshold=args.similarity_threshold,
+                tier1_max_entity_forms=args.tier1_max_entity_forms,
+                summarize_subgraphs=not args.no_summarize_subgraphs,
             )
             (bundle_dir / "graph_synthesis.json").write_text(
                 json.dumps(synthesis, ensure_ascii=False, indent=2), encoding="utf-8"

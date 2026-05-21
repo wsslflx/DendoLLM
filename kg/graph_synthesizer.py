@@ -28,10 +28,13 @@ from typing import Any
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
 SYNTHESIS_PROMPT_FILE = "Prompts/prompt_graph_synthesis.txt"
+SUBGRAPH_SUMMARY_PROMPT_FILE = "Prompts/prompt_subgraph_summary.txt"
+MAX_TRIPLES_FOR_SUMMARY = 50   # triples fed to per-species summarizer (fits in 16k ctx)
 MAX_TIER1_RESULTS = 30
 MAX_TIER1_RELATIONAL_RESULTS = 50
 MAX_TIER2_CLUSTERS = 30
 MAX_SYNTHESIS_RETRIES = 2
+MAX_TIER1_ENTITY_FORMS = 50   # ancestors with more entity_forms than this are too generic
 
 # Only these entity types are considered for Tier 2 embedding-similarity clusters.
 # Process and Gene entities are excluded because they produce generic scientific
@@ -77,10 +80,14 @@ def _normalize_rel_type(s: str) -> str:
     return re.sub(r'[\s\-]+', '_', s.strip().lower())
 
 
-def _query_tier1(species_norms: list[str], min_species: int) -> list[dict]:
+def _query_tier1(species_norms: list[str], min_species: int,
+                 max_entity_forms: int = MAX_TIER1_ENTITY_FORMS) -> list[dict]:
     """
     Find OntologyTerm ancestors shared by entities from >= min_species species.
     Returns list of {term_id, term_name, species_list, entity_forms, term_names}.
+
+    max_entity_forms: ancestors matched by more than this many distinct surface forms
+    are too generic to be useful (e.g. root phenotype nodes) and are excluded.
     """
     cypher = (
         "MATCH (e:DocEntity)-[:DOC_MAPPED_TO]->(t:OntologyTerm)-[:IS_A*0..3]->(ancestor:OntologyTerm) "
@@ -91,6 +98,7 @@ def _query_tier1(species_norms: list[str], min_species: int) -> list[dict]:
         "     collect(DISTINCT e.surface_form) AS entity_forms, "
         "     collect(DISTINCT t.term_name)    AS term_names "
         "WHERE size(species_list) >= $min_sp "
+        "  AND size(entity_forms) <= $max_ef "
         "RETURN ancestor.term_id  AS term_id, "
         "       ancestor.term_name AS term_name, "
         "       species_list, entity_forms, term_names "
@@ -99,7 +107,8 @@ def _query_tier1(species_norms: list[str], min_species: int) -> list[dict]:
     )
     try:
         from kg.neo4j_client import run_query
-        rows = run_query(cypher, {"sn": species_norms, "min_sp": min_species})
+        rows = run_query(cypher, {"sn": species_norms, "min_sp": min_species,
+                                  "max_ef": max_entity_forms})
     except Exception as exc:
         print(f"[GraphSynthesizer] Tier 1 query failed: {exc}")
         return []
@@ -112,7 +121,8 @@ def _query_tier1(species_norms: list[str], min_species: int) -> list[dict]:
         filtered.append(r)
 
     print(f"[GraphSynthesizer] Tier 1: {len(filtered)} communities found "
-          f"(after filtering {len(rows) - len(filtered)} generic terms).")
+          f"(max_entity_forms={max_entity_forms}, "
+          f"after filtering {len(rows) - len(filtered)} generic terms).")
     return filtered
 
 
@@ -273,6 +283,12 @@ def _query_tier2_pairs(species_norms: list[str], score_threshold: float = 0.80) 
         return []
 
 
+def _is_plural_only(sf1: str, sf2: str) -> bool:
+    """Return True if sf1 and sf2 differ only by a trailing 's' (case-insensitive)."""
+    a, b = sf1.lower().strip(), sf2.lower().strip()
+    return a + "s" == b or b + "s" == a
+
+
 def _cluster_tier2(pairs: list[dict], min_species: int) -> list[dict]:
     """
     Greedy clustering of similar entity pairs.
@@ -300,6 +316,13 @@ def _cluster_tier2(pairs: list[dict], min_species: int) -> list[dict]:
     # Filter to pairs spanning >= min_species
     valid_pairs = [v for v in pair_info.values() if len(v["species_set"]) >= min_species]
     valid_pairs.sort(key=lambda x: (-len(x["species_set"]), -x["score"]))
+
+    # Drop pairs that are just singular/plural variants (e.g. "bone" / "bones")
+    before_plural_filter = len(valid_pairs)
+    valid_pairs = [p for p in valid_pairs if not _is_plural_only(p["sf_a"], p["sf_b"])]
+    if before_plural_filter != len(valid_pairs):
+        print(f"[GraphSynthesizer] Tier 2: dropped {before_plural_filter - len(valid_pairs)} "
+              f"plural-only pairs.")
 
     # Greedy clustering: merge pairs that share an entity
     clusters: list[dict] = []
@@ -471,16 +494,56 @@ def _deduplicate_subgraph_entities(result) -> "SubgraphResult":
     )
 
 
+def _summarize_subgraph(species_display: str, raw_context: str,
+                        model: str | None) -> str:
+    """
+    Compress a serialized species subgraph to a short bullet-point summary via LLM.
+    Falls back to returning raw_context unchanged if the prompt file is missing or
+    the LLM call fails.
+    """
+    try:
+        prompt_text = pathlib.Path(SUBGRAPH_SUMMARY_PROMPT_FILE).read_text(encoding="utf-8")
+    except Exception as exc:
+        print(f"[GraphSynthesizer] Cannot load summary prompt: {exc} — skipping summarization.")
+        return raw_context
+
+    prompt = (
+        prompt_text
+        .replace("{species_name}", species_display)
+        .replace("{subgraph_context}", raw_context)
+    )
+
+    from core.llm_backend import make_chat_llm
+    from langchain_core.messages import HumanMessage
+    llm = make_chat_llm(model=model, temperature=0.0)
+    try:
+        resp = llm.invoke([HumanMessage(content=prompt)])
+        summary = (resp.content if hasattr(resp, "content") else str(resp)).strip()
+        print(f"[GraphSynthesizer]   Summarized '{species_display}': "
+              f"{len(raw_context)} → {len(summary)} chars.")
+        return summary
+    except Exception as exc:
+        print(f"[GraphSynthesizer] Summarization failed for '{species_display}': {exc} "
+              f"— using raw context.")
+        return raw_context
+
+
 def _build_subgraph_context(
     species_norms: list[str],
     species_display_map: dict[str, str],
     max_triples_per_species: int = 150,
+    summarize: bool = True,
+    model: str | None = None,
 ) -> str:
     """
     Retrieve and serialize the enriched subgraph for each species.
     Returns a single string with all species subgraphs concatenated,
     each prefixed with a species header. Source chunk text is excluded
     to keep synthesis context compact.
+
+    summarize: if True, each species subgraph is compressed to a short LLM-generated
+    bullet summary before being passed to the synthesis prompt. This reduces context
+    from ~100k chars per species to ~500-800 chars, mirroring the GraphRAG pattern.
     """
     from kg.graph_retriever import retrieve_subgraph, serialize_subgraph_to_context
     sections = []
@@ -494,13 +557,16 @@ def _build_subgraph_context(
                 sections.append(f"### {display}\n  (no graph data available)\n")
                 continue
             result = _deduplicate_subgraph_entities(result)
+            triples_limit = MAX_TRIPLES_FOR_SUMMARY if summarize else max_triples_per_species
             context = serialize_subgraph_to_context(
                 result,
                 include_source_chunks=False,
-                max_triples_in_context=max_triples_per_species,
+                max_triples_in_context=triples_limit,
             )
             print(f"[GraphSynthesizer]   {result.n_entities} entities (after dedup), "
-                  f"{min(result.n_triples, max_triples_per_species)} triples.")
+                  f"{min(result.n_triples, triples_limit)} triples.")
+            if summarize:
+                context = _summarize_subgraph(display, context, model)
             sections.append(f"### {display}\n{context}")
         except Exception as exc:
             print(f"[GraphSynthesizer] Subgraph retrieval failed for '{display}': {exc}")
@@ -626,6 +692,8 @@ def run_synthesis(
     model: str | None = None,
     log_dir: pathlib.Path | None = None,
     tier2_score_threshold: float = 0.80,
+    tier1_max_entity_forms: int = MAX_TIER1_ENTITY_FORMS,
+    summarize_subgraphs: bool = True,
 ) -> dict:
     """
     Three-tier cross-species synthesis.
@@ -634,19 +702,26 @@ def run_synthesis(
     species_display_names: display names (same order as species_norms)
     min_species: minimum species a community must span to be included
     tier2_score_threshold: minimum DOC_SIMILAR_TO score for Tier 2 pairs (default 0.80)
+    tier1_max_entity_forms: Tier 1 ancestors matched by more than this many distinct
+        surface forms are excluded as too generic (default 50)
+    summarize_subgraphs: if True (default), each species subgraph is compressed to a
+        short LLM-generated bullet summary before synthesis, reducing context from
+        ~100k chars per species to ~500-800 chars
 
     Returns communities dict.
     """
     print(f"\n[GraphSynthesizer] ================================================")
     print(f"[GraphSynthesizer] Starting synthesis for {len(species_norms)} species.")
     print(f"[GraphSynthesizer] Min species threshold: {min_species}")
+    print(f"[GraphSynthesizer] Tier 1 max entity forms: {tier1_max_entity_forms}")
+    print(f"[GraphSynthesizer] Subgraph summarization: {'on' if summarize_subgraphs else 'off'}")
     print(f"[GraphSynthesizer] ================================================")
 
     species_display_map = dict(zip(species_norms, species_display_names))
 
     # Tier 1 (node-level)
     print("[GraphSynthesizer] Running Tier 1 (uPheno convergence)...")
-    tier1 = _query_tier1(species_norms, min_species)
+    tier1 = _query_tier1(species_norms, min_species, max_entity_forms=tier1_max_entity_forms)
 
     # Tier 1B (relational patterns)
     print("[GraphSynthesizer] Running Tier 1B (RELATED_TO relational patterns)...")
@@ -659,7 +734,10 @@ def run_synthesis(
 
     # Per-species subgraphs for Tier 3
     print("[GraphSynthesizer] Retrieving per-species subgraphs for Tier 3...")
-    subgraph_context = _build_subgraph_context(species_norms, species_display_map)
+    subgraph_context = _build_subgraph_context(
+        species_norms, species_display_map,
+        summarize=summarize_subgraphs, model=model,
+    )
 
     if not tier1 and not tier1_relational and not tier2_clusters:
         print("[GraphSynthesizer] No Tier 1/1B or Tier 2 evidence — enrichment may not have run.")
@@ -732,6 +810,12 @@ if __name__ == "__main__":
     parser.add_argument("--min-species", type=int, default=2)
     parser.add_argument("--model", default=None)
     parser.add_argument("--log-dir", default=None)
+    parser.add_argument("--tier1-max-entity-forms", type=int, default=MAX_TIER1_ENTITY_FORMS,
+                        help=f"Tier 1 ancestors with more than this many distinct entity forms "
+                             f"are excluded as too generic (default: {MAX_TIER1_ENTITY_FORMS}).")
+    parser.add_argument("--no-summarize-subgraphs", action="store_true", default=False,
+                        help="Disable per-species subgraph summarization (passes raw triples "
+                             "to synthesis LLM; may exceed context window for large runs).")
     args = parser.parse_args()
 
     norms = [s.strip().lower() for s in args.species.split(",") if s.strip()]
@@ -744,5 +828,7 @@ if __name__ == "__main__":
         min_species=args.min_species,
         model=args.model,
         log_dir=log_dir,
+        tier1_max_entity_forms=args.tier1_max_entity_forms,
+        summarize_subgraphs=not args.no_summarize_subgraphs,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))

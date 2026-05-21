@@ -1,0 +1,14 @@
+You are a biologist summarizing knowledge graph data extracted from scientific
+literature about a single species.
+
+Species: {species_name}
+
+=== EXTRACTED DATA ===
+{subgraph_context}
+
+Write 3-5 bullet points summarising this species' biology based solely on the
+data above. Cover: key phenotypic traits, anatomical features, habitat/lifestyle,
+and any notable biological processes. Be specific — name the actual traits, not
+generic categories. Skip anything not present in the data.
+
+Output plain text bullets only. No JSON, no headers, no prose outside the bullets.
