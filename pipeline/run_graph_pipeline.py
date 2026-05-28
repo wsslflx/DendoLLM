@@ -43,6 +43,8 @@ def run_inventory(
     ingest_lock_file: pathlib.Path,
     llm_model: str,
     embed_backend: str | None = None,
+    index_workers: int = 1,
+    index_model: str | None = None,
 ) -> list[pathlib.Path]:
     run_dirs: list[pathlib.Path] = []
     runs_root = bundle_dir / "runs"
@@ -66,6 +68,10 @@ def run_inventory(
 
         if embed_backend:
             cmd.extend(["--embed-backend", embed_backend])
+
+        cmd.extend(["--index-workers", str(index_workers)])
+        if index_model:
+            cmd.extend(["--index-model", index_model])
 
         if skip_ingest_after_first and i > 0:
             cmd.append("--skip-ingest")
@@ -162,6 +168,18 @@ def main() -> None:
         type=int,
         default=1,
         help="Parallel threads for uPheno entity mapping (default: 1). Increase if LLM server handles concurrency well.",
+    )
+    parser.add_argument(
+        "--index-workers",
+        type=int,
+        default=1,
+        help="Parallel threads for chunk entity extraction during graph indexing (default: 1).",
+    )
+    parser.add_argument(
+        "--index-model",
+        default=None,
+        help="LLM model for chunk entity extraction (default: qwen2.5:7b). "
+             "Smaller/faster than the main synthesis model.",
     )
     parser.add_argument(
         "--norm-batch-size",
@@ -269,6 +287,8 @@ def main() -> None:
         ingest_lock_file=ingest_lock_file,
         llm_model=args.model,
         embed_backend=args.embed_backend,
+        index_workers=args.index_workers,
+        index_model=args.index_model,
     )
 
     # Parse species info from the species file for enrichment + synthesis
@@ -374,6 +394,8 @@ def main() -> None:
         "embed_backend": args.embed_backend or "ollama",
         "map_workers": args.map_workers,
         "norm_batch_size": args.norm_batch_size,
+        "index_workers": args.index_workers,
+        "index_model": args.index_model or "qwen2.5:7b",
         "shared_chroma_dir": str(chroma_dir) if args.shared_chroma_dir else None,
     }
     (summary_dir / "meta.json").write_text(

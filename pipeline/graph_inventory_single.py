@@ -81,6 +81,8 @@ def run_graph_inventory(
     chroma_dir: pathlib.Path | None = None,
     ingest_lock_file: pathlib.Path | None = None,
     llm_model: str | None = None,
+    index_model: str | None = None,
+    index_workers: int = 1,
     temperature: float = 0.0,
     force_reindex: bool = False,
     embed_backend: str | None = None,
@@ -120,9 +122,11 @@ def run_graph_inventory(
             species_norm=species_norm,
             chroma_vectorstore=rag.vectorstore,
             llm_model=llm_model,
+            index_llm_model=index_model,
             temperature=temperature,
             force_reindex=force_reindex,
             log_dir=log_dir,
+            max_workers=index_workers,
         )
         if log_dir and index_summary:
             (log_dir / "graph_indexer_summary.json").write_text(
@@ -156,6 +160,10 @@ def main() -> None:
     parser.add_argument("--force-reindex", action="store_true",
                         help="Re-index all chunks even if already indexed.")
     parser.add_argument("--model", default=None)
+    parser.add_argument("--index-model", default=None,
+                        help="LLM model for chunk entity extraction (default: qwen2.5:7b).")
+    parser.add_argument("--index-workers", type=int, default=1,
+                        help="Parallel threads for chunk indexing (default: 1).")
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument(
         "--embed-backend",
@@ -194,6 +202,8 @@ def main() -> None:
                 chroma_dir=chroma_dir,
                 ingest_lock_file=ingest_lock_file,
                 llm_model=args.model,
+                index_model=args.index_model,
+                index_workers=args.index_workers,
                 temperature=args.temperature,
                 force_reindex=args.force_reindex,
                 embed_backend=args.embed_backend,
@@ -215,6 +225,8 @@ def main() -> None:
         chroma_dir=chroma_dir,
         ingest_lock_file=ingest_lock_file,
         llm_model=args.model,
+        index_model=args.index_model,
+        index_workers=args.index_workers,
         temperature=args.temperature,
         force_reindex=args.force_reindex,
         embed_backend=args.embed_backend,

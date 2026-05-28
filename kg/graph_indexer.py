@@ -21,6 +21,7 @@ import json
 import pathlib
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any
 
@@ -91,6 +92,20 @@ def _already_indexed(driver, chunk_id: str) -> bool:
         return False
 
 
+def _batch_already_indexed(driver, chunk_ids: list[str]) -> set[str]:
+    """Single query returning the set of chunk_ids already present in Neo4j."""
+    try:
+        with driver.session() as session:
+            result = session.run(
+                "MATCH (c:DocChunk) WHERE c.chunk_id IN $ids RETURN c.chunk_id AS cid",
+                ids=chunk_ids,
+            )
+            return {record["cid"] for record in result}
+    except Exception as exc:
+        print(f"[GraphIndexer] Batch indexed check failed (assuming none indexed): {exc}")
+        return set()
+
+
 def _push_chunk_graph(
     driver,
     chunk_node: dict,
@@ -136,22 +151,21 @@ def _push_chunk_graph(
                 )
 
             if triples:
-                # 4. Merge RELATED_TO edges (entity → entity)
-                for t in triples:
-                    try:
-                        session.run(
-                            "MATCH (a:DocEntity {entity_id: $sid}), (b:DocEntity {entity_id: $oid}) "
-                            "MERGE (a)-[r:RELATED_TO {relation_type: $rel, chunk_id: $cid}]->(b) "
-                            "SET r.species_norm = $sn",
-                            sid=t["subj_entity_id"],
-                            oid=t["obj_entity_id"],
-                            rel=t["relation"],
-                            cid=chunk_id,
-                            sn=chunk_node["species_norm"],
-                        )
-                        triples_merged += 1
-                    except Exception as exc:
-                        print(f"[GraphIndexer] RELATED_TO merge failed for triple {t}: {exc}")
+                # 4. Merge RELATED_TO edges (entity → entity) — single UNWIND call
+                try:
+                    session.run(
+                        "UNWIND $triples AS t "
+                        "MATCH (a:DocEntity {entity_id: t.subj_entity_id}), "
+                              "(b:DocEntity {entity_id: t.obj_entity_id}) "
+                        "MERGE (a)-[r:RELATED_TO {relation_type: t.relation, chunk_id: $cid}]->(b) "
+                        "SET r.species_norm = $sn",
+                        triples=triples,
+                        cid=chunk_id,
+                        sn=chunk_node["species_norm"],
+                    )
+                    triples_merged = len(triples)
+                except Exception as exc:
+                    print(f"[GraphIndexer] RELATED_TO UNWIND failed for chunk {chunk_id}: {exc}")
     except Exception as exc:
         print(f"[GraphIndexer] _push_chunk_graph failed for chunk {chunk_id} (non-fatal): {exc}")
 
@@ -310,6 +324,78 @@ def _extract_entities_from_chunk(
 
 
 # ---------------------------------------------------------------------------
+# Per-chunk worker (called from ThreadPoolExecutor)
+# ---------------------------------------------------------------------------
+
+def _index_one_chunk(
+    i: int,
+    doc_id_chroma: str,
+    text: str,
+    meta: dict,
+    species_norm: str,
+    prompt_template: str,
+    llm,
+    driver,
+    already_indexed_ids: set,
+    indexed_at: str,
+    total: int,
+) -> dict:
+    """
+    Process a single chunk: junk filter → LLM extraction → Neo4j push.
+    Returns a result dict with keys: status, chunk_id, entities, triples.
+    Thread-safe: llm is a stateless HTTP client; driver supports concurrent sessions.
+    already_indexed_ids is computed once upfront via _batch_already_indexed.
+    """
+    meta = meta or {}
+    source_path = meta.get("source_path", doc_id_chroma)
+    chunk_index = int(meta.get("chunk_index", i))
+    chunk_id = _make_chunk_id(species_norm, source_path, chunk_index)
+
+    if chunk_id in already_indexed_ids:
+        return {"status": "skipped", "chunk_id": chunk_id, "entities": 0, "triples": 0}
+
+    junk, junk_reason = _is_junk_chunk(text or "")
+    if junk:
+        print(f"[GraphIndexer] [{i + 1}/{total}] Skipping junk chunk {chunk_id} "
+              f"(source: {source_path}, idx: {chunk_index}) — {junk_reason}")
+        return {"status": "junk", "chunk_id": chunk_id, "entities": 0, "triples": 0}
+
+    chunk_node = {
+        "chunk_id": chunk_id,
+        "species_norm": species_norm,
+        "source_path": source_path,
+        "doc_id": str(meta.get("doc_id", "")),
+        "chunk_index": chunk_index,
+        "title": str(meta.get("title", "")),
+        "publication_year": meta.get("publication_year") or 0,
+        "text_snippet": (text or "")[:300],
+        "indexed_at": indexed_at,
+    }
+
+    print(f"[GraphIndexer] [{i + 1}/{total}] Indexing chunk {chunk_id} "
+          f"(source: {source_path}, idx: {chunk_index})")
+
+    extracted = _extract_entities_from_chunk(
+        chunk_text=text or "",
+        species_norm=species_norm,
+        llm=llm,
+        prompt_template=prompt_template,
+    )
+
+    ents_merged, triples_merged = _push_chunk_graph(
+        driver,
+        chunk_node,
+        extracted["entities"],
+        extracted["triples"],
+    )
+
+    print(f"[GraphIndexer]   → {len(extracted['entities'])} entities, "
+          f"{len(extracted['triples'])} triples")
+
+    return {"status": "indexed", "chunk_id": chunk_id, "entities": ents_merged, "triples": triples_merged}
+
+
+# ---------------------------------------------------------------------------
 # Main public function
 # ---------------------------------------------------------------------------
 
@@ -317,9 +403,11 @@ def index_species(
     species_norm: str,
     chroma_vectorstore,
     llm_model: str | None = None,
+    index_llm_model: str | None = None,
     temperature: float = 0.0,
     force_reindex: bool = False,
     log_dir: pathlib.Path | None = None,
+    max_workers: int = 1,
 ) -> dict:
     """
     Pull all Chroma chunks for species_norm, run LLM entity extraction per chunk,
@@ -387,66 +475,51 @@ def index_species(
         driver.close()
         return summary
 
-    # Build LLM
+    # Build LLM — use dedicated index model (smaller/faster) if provided, else default to qwen2.5:7b
     from core.llm_backend import make_chat_llm
-    llm = make_chat_llm(model=llm_model, temperature=temperature)
+    _index_model = index_llm_model or "qwen2.5:7b"
+    print(f"[GraphIndexer] Using model '{_index_model}' for entity extraction "
+          f"({max_workers} worker(s)).")
+    llm = make_chat_llm(model=_index_model, temperature=temperature)
 
     indexed_at = datetime.now(timezone.utc).isoformat()
+    total = len(ids)
 
-    for i, (doc_id_chroma, text, meta) in enumerate(zip(ids, documents, metadatas)):
-        meta = meta or {}
-        source_path = meta.get("source_path", doc_id_chroma)
-        chunk_index = int(meta.get("chunk_index", i))
-        chunk_id = _make_chunk_id(species_norm, source_path, chunk_index)
+    # Compute all chunk IDs upfront for the batch check
+    all_chunk_ids = [
+        _make_chunk_id(species_norm, (m or {}).get("source_path", did), int((m or {}).get("chunk_index", i)))
+        for i, (did, m) in enumerate(zip(ids, metadatas))
+    ]
 
-        if not force_reindex and _already_indexed(driver, chunk_id):
-            summary["chunks_skipped"] += 1
-            continue
+    if force_reindex:
+        already_indexed_ids: set[str] = set()
+    else:
+        print(f"[GraphIndexer] Checking which chunks are already indexed (single batch query)...")
+        already_indexed_ids = _batch_already_indexed(driver, all_chunk_ids)
+        if already_indexed_ids:
+            print(f"[GraphIndexer] {len(already_indexed_ids)}/{total} chunks already indexed, skipping.")
 
-        # Filter junk chunks (figures, headings, tables, reference lists)
-        junk, junk_reason = _is_junk_chunk(text or "")
-        if junk:
-            print(f"[GraphIndexer] [{i + 1}/{len(ids)}] Skipping junk chunk {chunk_id} "
-                  f"(source: {source_path}, idx: {chunk_index}) — {junk_reason}")
-            summary["chunks_junk"] += 1
-            continue
+    chunk_args = [
+        (i, did, txt, meta, species_norm, prompt_template, llm, driver, already_indexed_ids, indexed_at, total)
+        for i, (did, txt, meta) in enumerate(zip(ids, documents, metadatas))
+    ]
 
-        # Build chunk node dict
-        chunk_node = {
-            "chunk_id": chunk_id,
-            "species_norm": species_norm,
-            "source_path": source_path,
-            "doc_id": str(meta.get("doc_id", "")),
-            "chunk_index": chunk_index,
-            "title": str(meta.get("title", "")),
-            "publication_year": meta.get("publication_year") or 0,
-            "text_snippet": (text or "")[:300],
-            "indexed_at": indexed_at,
-        }
-
-        print(f"[GraphIndexer] [{i + 1}/{len(ids)}] Indexing chunk {chunk_id} "
-              f"(source: {source_path}, idx: {chunk_index})")
-
-        extracted = _extract_entities_from_chunk(
-            chunk_text=text or "",
-            species_norm=species_norm,
-            llm=llm,
-            prompt_template=prompt_template,
-        )
-
-        ents_merged, triples_merged = _push_chunk_graph(
-            driver,
-            chunk_node,
-            extracted["entities"],
-            extracted["triples"],
-        )
-
-        summary["chunks_indexed"] += 1
-        summary["entities_created"] += ents_merged
-        summary["triples_created"] += triples_merged
-
-        print(f"[GraphIndexer]   → {len(extracted['entities'])} entities, "
-              f"{len(extracted['triples'])} triples")
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {pool.submit(_index_one_chunk, *a): a[0] for a in chunk_args}
+        for future in as_completed(futures):
+            try:
+                r = future.result()
+                if r["status"] == "indexed":
+                    summary["chunks_indexed"] += 1
+                    summary["entities_created"] += r["entities"]
+                    summary["triples_created"] += r["triples"]
+                elif r["status"] == "skipped":
+                    summary["chunks_skipped"] += 1
+                elif r["status"] == "junk":
+                    summary["chunks_junk"] += 1
+            except Exception as exc:
+                chunk_i = futures[future]
+                print(f"[GraphIndexer] Chunk {chunk_i + 1}/{total} failed unexpectedly: {exc}")
 
     driver.close()
 
@@ -476,7 +549,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Index species chunks into Neo4j document graph.")
     parser.add_argument("--species", required=True, help="Species name (normalized, e.g. 'talpa europaea').")
     parser.add_argument("--chroma-dir", default="./chroma_store_ollama", help="Chroma persistence directory.")
-    parser.add_argument("--model", default=None, help="Override LLM model for entity extraction.")
+    parser.add_argument("--model", default=None, help="LLM model for entity extraction (default: qwen2.5:7b).")
+    parser.add_argument("--index-workers", type=int, default=1,
+                        help="Parallel threads for chunk indexing (default: 1).")
     parser.add_argument("--force-reindex", action="store_true", help="Re-index even if chunk already in Neo4j.")
     parser.add_argument("--log-dir", default=None, help="Directory to write graph_indexer_summary.json.")
     args = parser.parse_args()
@@ -488,8 +563,9 @@ if __name__ == "__main__":
     result = index_species(
         species_norm=args.species.lower().strip(),
         chroma_vectorstore=rag.vectorstore,
-        llm_model=args.model,
+        index_llm_model=args.model,
         force_reindex=args.force_reindex,
         log_dir=log_dir,
+        max_workers=args.index_workers,
     )
     print(json.dumps(result, indent=2))
