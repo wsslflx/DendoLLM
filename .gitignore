@@ -5,6 +5,7 @@ logs/
 logs_v1
 logs_v2
 logs_v3
+logs_graph
 logs*
 traits/
 specs

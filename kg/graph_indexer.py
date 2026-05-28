@@ -250,6 +250,9 @@ def _extract_entities_from_chunk(
             raw = resp.content if hasattr(resp, "content") else str(resp)
             raw = raw.strip()
 
+            # Strip thinking-mode tags (qwen3/qwen3.5 family wraps output in <think>...</think>)
+            raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL).strip()
+
             # Strip markdown fences if present
             fence = re.search(r"```(?:json)?\s*(.*?)```", raw, re.DOTALL)
             if fence:
@@ -477,7 +480,7 @@ def index_species(
 
     # Build LLM — use dedicated index model (smaller/faster) if provided, else default to qwen2.5:7b
     from core.llm_backend import make_chat_llm
-    _index_model = index_llm_model or "qwen2.5:7b"
+    _index_model = index_llm_model or "granite4.1:8b"
     print(f"[GraphIndexer] Using model '{_index_model}' for entity extraction "
           f"({max_workers} worker(s)).")
     llm = make_chat_llm(model=_index_model, temperature=temperature)
