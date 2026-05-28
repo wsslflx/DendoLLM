@@ -45,6 +45,7 @@ def run_inventory(
     embed_backend: str | None = None,
     index_workers: int = 1,
     index_model: str | None = None,
+    force_reindex: bool = False,
 ) -> list[pathlib.Path]:
     run_dirs: list[pathlib.Path] = []
     runs_root = bundle_dir / "runs"
@@ -72,6 +73,8 @@ def run_inventory(
         cmd.extend(["--index-workers", str(index_workers)])
         if index_model:
             cmd.extend(["--index-model", index_model])
+        if force_reindex:
+            cmd.append("--force-reindex")
 
         if skip_ingest_after_first and i > 0:
             cmd.append("--skip-ingest")
@@ -189,6 +192,12 @@ def main() -> None:
              "Values > 1 batch multiple traits into a single call, e.g. --norm-batch-size 10.",
     )
     parser.add_argument(
+        "--force-reindex",
+        action="store_true",
+        default=False,
+        help="Re-index all chunks even if already in Neo4j (use when fixing entity extraction).",
+    )
+    parser.add_argument(
         "--skip-enrich",
         action="store_true",
         default=False,
@@ -289,6 +298,7 @@ def main() -> None:
         embed_backend=args.embed_backend,
         index_workers=args.index_workers,
         index_model=args.index_model,
+        force_reindex=args.force_reindex,
     )
 
     # Parse species info from the species file for enrichment + synthesis
