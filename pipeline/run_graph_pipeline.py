@@ -22,6 +22,7 @@ import argparse
 import json
 import pathlib
 import subprocess
+import time
 from datetime import datetime
 from uuid import uuid4
 
@@ -286,6 +287,10 @@ def main() -> None:
     print(f"[GraphPipeline] Species file: {species_file}")
     print(f"[GraphPipeline] Runs: {args.runs}")
 
+    pipeline_start = time.monotonic()
+    stage_timings: dict[str, float] = {}
+
+    t0 = time.monotonic()
     run_dirs = run_inventory(
         species_file=species_file,
         bundle_dir=bundle_dir,
@@ -300,6 +305,7 @@ def main() -> None:
         index_model=args.index_model,
         force_reindex=args.force_reindex,
     )
+    stage_timings["indexing_s"] = round(time.monotonic() - t0, 1)
 
     # Parse species info from the species file for enrichment + synthesis
     try:
@@ -318,6 +324,7 @@ def main() -> None:
         print(f"\n[GraphPipeline] ========================================")
         print(f"[GraphPipeline] Running enrichment for {len(species_norms)} species...")
         print(f"[GraphPipeline] ========================================")
+        t0 = time.monotonic()
         try:
             from kg.graph_enricher import enrich_doc_entities
             enrich_summary = enrich_doc_entities(
@@ -333,9 +340,12 @@ def main() -> None:
             (bundle_dir / "graph_enricher_summary.json").write_text(
                 json.dumps(enrich_summary, ensure_ascii=False, indent=2), encoding="utf-8"
             )
+            stage_timings["enrichment_s"] = round(time.monotonic() - t0, 1)
             print(f"[GraphPipeline] Enrichment complete: {enrich_summary.get('entities_mapped', 0)} mapped, "
-                  f"{enrich_summary.get('similarity_pairs_added', 0)} similarity pairs.")
+                  f"{enrich_summary.get('similarity_pairs_added', 0)} similarity pairs. "
+                  f"({stage_timings['enrichment_s']}s)")
         except Exception as exc:
+            stage_timings["enrichment_s"] = round(time.monotonic() - t0, 1)
             print(f"[GraphPipeline] Enrichment failed (non-fatal): {exc}")
     elif args.skip_enrich:
         print(f"[GraphPipeline] Skipping enrichment step (--skip-enrich).")
@@ -345,6 +355,7 @@ def main() -> None:
         print(f"\n[GraphPipeline] ========================================")
         print(f"[GraphPipeline] Running three-tier synthesis (min_species={min_species})...")
         print(f"[GraphPipeline] ========================================")
+        t0 = time.monotonic()
         try:
             from kg.graph_synthesizer import run_synthesis
             synthesis = run_synthesis(
@@ -360,16 +371,21 @@ def main() -> None:
             (bundle_dir / "graph_synthesis.json").write_text(
                 json.dumps(synthesis, ensure_ascii=False, indent=2), encoding="utf-8"
             )
+            stage_timings["synthesis_s"] = round(time.monotonic() - t0, 1)
             n_communities = len(synthesis.get("communities", []))
-            print(f"[GraphPipeline] Synthesis complete: {n_communities} communities found.")
+            print(f"[GraphPipeline] Synthesis complete: {n_communities} communities found. "
+                  f"({stage_timings['synthesis_s']}s)")
             if n_communities:
                 for comm in synthesis["communities"]:
                     print(f"[GraphPipeline]   [{comm.get('tier','?')}] {comm.get('label','?')} "
                           f"({comm.get('species_count',0)} species)")
         except Exception as exc:
+            stage_timings["synthesis_s"] = round(time.monotonic() - t0, 1)
             print(f"[GraphPipeline] Synthesis failed (non-fatal): {exc}")
     elif args.skip_synthesis:
         print(f"[GraphPipeline] Skipping synthesis step (--skip-synthesis).")
+
+    stage_timings["total_s"] = round(time.monotonic() - pipeline_start, 1)
 
     run_list_path = (
         pathlib.Path(args.run_list_out) if args.run_list_out else bundle_dir / "run_list.txt"
@@ -405,13 +421,15 @@ def main() -> None:
         "map_workers": args.map_workers,
         "norm_batch_size": args.norm_batch_size,
         "index_workers": args.index_workers,
-        "index_model": args.index_model or "qwen2.5:7b",
+        "index_model": args.index_model or "granite4.1:8b",
         "shared_chroma_dir": str(chroma_dir) if args.shared_chroma_dir else None,
+        "stage_timings": stage_timings,
     }
     (summary_dir / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    print(f"[GraphPipeline] Done. Bundle: {bundle_dir}")
+    total_str = f"{int(stage_timings['total_s'] // 60)}m {int(stage_timings['total_s'] % 60)}s"
+    print(f"[GraphPipeline] Done in {total_str}. Bundle: {bundle_dir}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,67 @@
+Gene	Birch #	Qn	N insertions	Species
+SPATC1L	1	16.73	8	Mustela_erminea, Lepisosteus_oculatus, Ovis_ammon_polii_x_Ovis_aries, Damaliscus_lunatus, Ovis_ammon_polii, Hyaena_hyaena, Pithecia_pithecia, Meles_meles
+UBAC1	1	13.38	8	Hemibagrus_wyckioides, Hippopotamus_amphibius_kiboko, Hippopotamus_amphibius, Cyprinus_carpio, Paracanthobrama_guichenoti, Anas_zonorhyncha, Cebus_imitator, Callithrix_jacchus
+NELFA	1	11.82	5	Ursus_americanus, Zalophus_californianus, Acipenser_oxyrinchus_oxyrinchus, Puma_concolor, Acipenser_oxyrinchus_oxyrinchus
+KRBA2	1	11.11	10	Dallia_pectoralis, Xenopus_tropicalis, Merluccius_polli, Dallia_pectoralis, Merluccius_polli, Coilia_nasus, Xenopus_laevis, Gekko_japonicus, Coilia_nasus, Dallia_pectoralis
+FDXR	1	9.37	8	Megaderma_spasma, Muntiacus_muntjak, Bradypus_torquatus, Aix_galericulata, Ranitomeya_imitator, Nomascus_leucogenys, Colinus_virginianus, Mauremys_mutica
+CRYM	1	8.7	8	Pseudorca_crassidens, Equus_asinus, Rattus_norvegicus, Hydropotes_inermis, Sturnira_hondurensis, Phyllostomus_discolor, Sagmatias_obliquidens, Bradypus_torquatus
+WWP1	1	8.57	7	Ursus_arctos_horribilis, Bos_indicus_x_Bos_taurus, Corynorhinus_townsendii, Colobus_angolensis_palliatus, Carlito_syrichta, Capra_hircus, Sagmatias_obliquidens
+DCAF7	1	8.57	7	Carassius_gibelio, Paracanthobrama_guichenoti, Menidia_menidia, Atlantisia_rogersi, Anoplopoma_fimbria, Ceratotherium_simum_simum, Colinus_virginianus
+USP54	1	8.55	6	Vulpes_lagopus, Ctenodactylus_gundi, Nomascus_leucogenys, Pongo_abelii, Onychomys_torridus, Monodelphis_domestica
+BPIFB1	1	8.44	5	Neotoma_lepida, Panthera_leo, Eudorcas_thomsonii, Eira_barbara, Rhinoceros_unicornis
+SEMA4A	1	7.33	6	Oreocharis_arfaki, Syrrhaptes_paradoxus, Brachypteracias_leptosomus, Galemys_pyrenaicus, Lamprotornis_superbus, Rhynchomys_soricoides
+RBM18	1	6.02	8	Ursus_arctos_horribilis, Lasiurus_cinereus, Ailuropoda_melanoleuca, Axis_porcinus, Rousettus_aegyptiacus, Thryonomys_swinderianus, Ictalurus_furcatus, Lerista_edwardsae
+INO80C	1	6.0	7	Bos_indicus_x_Bos_taurus, Caretta_caretta, Dermochelys_coriacea, Reinhardtius_hippoglossoides, Sagmatias_obliquidens, Chelonia_mydas, Anarrhichthys_ocellatus
+TADA1	1	5.5	6	Caranx_melampygus, Ursus_americanus, Coryphaenoides_rupestris, Callorhinus_ursinus, Silurus_aristotelis, Ranitomeya_imitator
+TP53INP1	1	5.35	8	Culter_alburnus, Clarias_magur, Caranx_melampygus, Clupea_harengus, Chanos_chanos, Coilia_nasus, Alosa_sapidissima, Electrophorus_electricus
+CPSF4L	1	5.14	7	Solenodon_paradoxus, Mus_musculus, Bettongia_penicillata_ogilbyi, Steno_bredanensis, Syncerus_caffer, Canis_lupus, Sagmatias_obliquidens
+PGAM5	1	5.14	7	Salvelinus_alpinus, Oncorhynchus_gorbuscha, Macaca_thibetana_thibetana, Setophaga_kirtlandii, Coregonus_sp._'balchen', Callipepla_squamata, Oncorhynchus_keta
+CHMP5	1	5.06	5	Culter_alburnus, Triplophysa_tibetana, Menidia_menidia, Suncus_etruscus, Echinops_telfairi
+TRAIP	1	4.68	8	Lynx_pardinus, Prolemur_simus, Okapia_johnstoni, Serinus_canaria, Bison_bonasus, Paralichthys_olivaceus, Cavia_porcellus, Litocranius_walleri
+ILRUN	1	4.68	8	Doryrhamphus_excisus, Symphalangus_syndactylus, Hylobates_moloch, Hoolock_leuconedys, Lynx_rufus, Gorilla_gorilla_gorilla, Caracal_caracal, Ameiurus_melas
+CARMIL2	1	4.28	7	Moschus_berezovskii, Mus_musculus, Bos_indicus_x_Bos_taurus, Tursiops_truncatus, Galemys_pyrenaicus, Sciurus_carolinensis, Rousettus_aegyptiacus
+MSH5	1	4.28	7	Myodes_glareolus, Halichoerus_grypus, Mirounga_angustirostris, Dicentrarchus_labrax, Alexandromys_fortis, Myripristis_murdjan, Sphaeramia_orbicularis
+COMMD7	1	4.28	7	Buceros_rhinoceros_silvestris, Callipepla_squamata, Galemys_pyrenaicus, Macaca_thibetana_thibetana, Microcebus_murinus, Macaca_mulatta, Nothocercus_julius
+ADCK5	1	4.28	6	Cervus_canadensis, Phocoena_sinus, Neofelis_nebulosa, Prochilodus_magdalenae, Physeter_macrocephalus, Tursiops_truncatus
+MED21	1	4.01	8	Panthera_pardus, Limosa_lapponica_baueri, Balaenoptera_physalus, Lates_calcarifer, Oreochromis_niloticus, Electrophorus_electricus, Thunnus_orientalis, Agelaius_phoeniceus
+COL20A1	1	3.38	5	Psammomys_obesus, Dugong_dugon, Steno_bredanensis, Neodon_shergylaensis, Ovibos_moschatus
+SERPINE2	1	3.34	8	Cricetulus_griseus, Chrysochloris_asiatica, Malurus_cyaneus_samueli, Piliocolobus_tephrosceles, Indicator_indicator, Phrynosoma_platyrhinos, Colobus_guereza, Chlorocebus_sabaeus
+TSPYL2	1	2.68	8	Vespertilio_murinus, Myotis_davidii, Myotis_brandtii, Plecotus_auritus, Rhizomys_pruinosus, Cnephaeus_nilssonii, Nyctalus_leisleri, Pipistrellus_kuhlii
+PCNX3	2	2.68	8	Dipodomys_ordii, Alexandromys_fortis, Phodopus_roborovskii, Rhinoceros_unicornis, Perognathus_longimembris_pacificus, Myodes_glareolus, Ailuropoda_melanoleuca, Microtus_oregoni
+LMNTD2	1	2.68	8	Felis_catus, Hoolock_leuconedys, Camelus_dromedarius, Perognathus_longimembris_pacificus, Camelus_ferus, Vulpes_vulpes, Pongo_pygmaeus, Camelus_bactrianus
+BBS7	1	2.57	7	Hypomesus_transpacificus, Syngnathus_acus, Corynorhinus_townsendii, Synchiropus_splendidus, Ia_io, Dunckerocampus_dactyliophorus, Gopherus_evgoodei
+FDXR	2	2.57	7	Pteropus_vampyrus, Rhinopithecus_bieti, Vulpes_vulpes, Arvicanthis_niloticus, Pimephales_promelas, Nomascus_leucogenys, Urocyon_cinereoargenteus
+HEATR9	1	2.57	7	Trichosurus_vulpecula, Pelodiscus_sinensis, Chelydra_serpentina, Chrysemys_picta_bellii, Chelonoidis_abingdonii, Muscardinus_avellanarius, Bradypus_torquatus
+CWF19L1	1	2.53	5	Stenella_coeruleoalba, Chloropsis_cyanopogon, Glossophaga_mutica, Tetraodon_nigroviridis, Inia_geoffrensis
+GPS1	1	2.44	6	Hippoglossus_stenolepis, Oryzias_latipes, Perca_flavescens, Paralichthys_olivaceus, Larimichthys_crocea, Syngnathus_acus
+ZNF699	1	2.22	12	Choloepus_didactylus, Rhynchonycteris_naso, Rhynchonycteris_naso, Rhynchonycteris_naso, Bradypus_torquatus, Hoolock_leuconedys, Rhynchonycteris_naso, Rhynchonycteris_naso, Rhynchonycteris_naso, Saccopteryx_bilineata, Fukomys_damarensis, Saccopteryx_bilineata
+ZNF57	1	2.22	12	Choloepus_didactylus, Rhynchonycteris_naso, Rhynchonycteris_naso, Rhynchonycteris_naso, Bradypus_torquatus, Hoolock_leuconedys, Rhynchonycteris_naso, Rhynchonycteris_naso, Rhynchonycteris_naso, Saccopteryx_bilineata, Fukomys_damarensis, Saccopteryx_bilineata
+ZNF555	1	2.22	12	Choloepus_didactylus, Rhynchonycteris_naso, Rhynchonycteris_naso, Rhynchonycteris_naso, Bradypus_torquatus, Hoolock_leuconedys, Rhynchonycteris_naso, Rhynchonycteris_naso, Rhynchonycteris_naso, Saccopteryx_bilineata, Fukomys_damarensis, Saccopteryx_bilineata
+BRMS1	1	1.83	6	Mustela_lutreola, Marmota_flaviventris, Bos_taurus, Cervus_elaphus_hippelaphus, Dicerorhinus_sumatrensis_harrissoni, Balaenoptera_physalus
+SYN1	1	1.83	6	Mus_pahari, Lepus_europaeus, Ochotona_princeps, Sorex_araneus, Alexandromys_oeconomus, Alexandromys_fortis
+HAND2	1	1.83	6	Protobothrops_mucrosquamatus, Phrynosoma_platyrhinos, Phrynocephalus_forsythii, Anolis_carolinensis, Sceloporus_undulatus, Alligator_mississippiensis
+LUC7L3	1	1.83	6	Coturnix_japonica, Synaphobranchus_kaupii, Castor_canadensis, Alosa_sapidissima, Lerista_edwardsae, Aldrovandia_affinis
+TUBE1	1	1.83	6	Ficedula_albicollis, Aptenodytes_forsteri, Macaca_nemestrina, Nibea_albiflora, Jacana_jacana, Anabarilius_grahami
+GABRP	1	1.83	6	Lamprotornis_superbus, Panthera_pardus, Oenanthe_melanoleuca, Poecile_atricapillus, Parus_major, Sapajus_apella
+RGL2	1	1.71	7	Macaca_fascicularis, Marmota_monax, Nomascus_leucogenys, Rattus_norvegicus, Sciurus_carolinensis, Rousettus_aegyptiacus, Rhizomys_pruinosus
+FBXO17	1	1.34	8	Neophocaena_asiaeorientalis_asiaeorientalis, Delphinus_delphis, Hipposideros_armiger, Myodes_glareolus, Stenella_coeruleoalba, Tursiops_truncatus, Elephas_maximus_indicus, Pipistrellus_kuhlii
+NRK	1	1.22	6	Mus_spretus, Acomys_cahirinus, Mus_minutoides, Mus_musculus_musculus, Mus_pahari, Mus_musculus_molossinus
+TSPYL2	2	1.22	6	Stenella_coeruleoalba, Canis_lupus, Cervus_elaphus_hippelaphus, Ctenodactylus_gundi, Macaca_thibetana_thibetana, Aselliscus_stoliczkanus
+PLEKHG2	1	1.22	6	Panthera_pardus, Marmota_flaviventris, Macaca_nemestrina, Panthera_leo, Neotoma_lepida, Galemys_pyrenaicus
+FAXC	1	1.22	6	Hipposideros_armiger, Felis_catus, Panthera_uncia, Glossophaga_mutica, Tetraodon_nigroviridis, Lynx_rufus
+OR6C1	1	1.22	6	Sylvilagus_floridanus, Budorcas_taxicolor, Mirounga_leonina, Vicugna_vicugna_mensalis, Pipistrellus_kuhlii, Ammotragus_lervia
+PRSS36	1	0.87	9	Dromiciops_gliroides, Antechinus_flavipes, Trichosurus_vulpecula, Antechinus_flavipes, Sarcophilus_harrisii, Antechinus_flavipes, Trichosurus_vulpecula, Sarcophilus_harrisii, Sarcophilus_harrisii
+KRBA2	2	0.87	9	Triplophysa_tibetana, Dallia_pectoralis, Xenopus_tropicalis, Merluccius_polli, Dallia_pectoralis, Merluccius_polli, Coilia_nasus, Xenopus_laevis, Dallia_pectoralis
+SOX1	1	0.87	9	Staurois_parvus, Bombina_bombina, Xenopus_laevis, Eleutherodactylus_coqui, Xenopus_laevis, Rana_temporaria, Pelobates_cultripes, Xenopus_tropicalis, Spea_bombifrons
+HOXB13	1	0.86	7	Eira_barbara, Mustela_lutreola, Solenodon_paradoxus, Taphozous_melanopogon, Phyllostomus_discolor, Lutra_lutra, Glossophaga_mutica
+SKOR1	1	0.86	7	Stegostoma_tigrinum, Pristis_pectinata, Scyliorhinus_canicula, Thymallus_thymallus, Scleropages_formosus, Callorhinchus_milii, Salvelinus_namaycush
+MAGEL2	1	0.86	7	Ictidomys_tridecemlineatus, Dipodomys_ordii, Neotoma_lepida, Peromyscus_maniculatus_bairdii, Cnephaeus_nilssonii, Lasiurus_cinereus, Mesocricetus_auratus
+CARMIL2	2	0.84	5	Antechinus_stuartii, Sarcophilus_harrisii, Mustela_nigripes, Ornithorhynchus_anatinus, Trichosurus_vulpecula
+GAP43	1	0.84	5	Balaenoptera_musculus, Vulpes_ferrilata, Urocyon_cinereoargenteus, Macroglossus_sobrinus, Lyroderma_lyra
+DCAF17	1	0.84	5	Falco_biarmicus, Chelmon_rostratus, Cyanistes_caeruleus, Pipra_filicauda, Camarhynchus_parvulus
+ZBED3	1	0.67	8	Peromyscus_californicus_insignis, Mus_pahari, Psammomys_obesus, Phataginus_tricuspis, Peromyscus_leucopus, Peromyscus_maniculatus_bairdii, Peromyscus_eremicus, Onychomys_torridus
+SHISA7	1	0.67	8	Mus_musculus_castaneus, Phascolarctos_cinereus, Thymallus_thymallus, Muraenolepis_orangiensis, Tachyglossus_aculeatus, Trichechus_manatus_latirostris, Ornithorhynchus_anatinus, Mus_minutoides
+APEX2	1	0.61	6	Salmo_salar, Malaclemys_terrapin_pileata, Hypomesus_transpacificus, Petromyzon_marinus, Terrapene_triunguis, Chelonoidis_abingdonii
+NELFA	3	0.61	6	Nematolebias_whitei, Morone_saxatilis, Centropristis_striata, Trematomus_bernacchii, Solea_solea, Gymnodraco_acuticeps
+SOSTDC1	1	0.61	6	Harpagifer_antarcticus, Lepisosteus_oculatus, Menidia_menidia, Trachurus_trachurus, Anabas_testudineus, Denticeps_clupeoides
+PPP1R3F	2	0.61	6	Antechinus_flavipes, Mauremys_reevesii, Phrynocephalus_forsythii, Bettongia_penicillata_ogilbyi, Pogona_vitticeps, Tachyglossus_aculeatus
