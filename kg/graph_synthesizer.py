@@ -637,6 +637,7 @@ def _run_llm_synthesis(
     species_display_map: dict[str, str],
     min_species: int,
     model: str | None,
+    log_dir: pathlib.Path | None = None,
 ) -> dict:
     """Call LLM with structured Tier 1 + Tier 1B relational + Tier 2 evidence + per-species subgraphs."""
     try:
@@ -659,6 +660,14 @@ def _run_llm_synthesis(
         .replace("{subgraph_context_text}", subgraph_context)
         .replace("{min_species}", str(min_species))
     )
+
+    if log_dir:
+        try:
+            (log_dir / "synthesis_prompt.txt").write_text(prompt, encoding="utf-8")
+            print(f"[GraphSynthesizer] Synthesis prompt logged to {log_dir / 'synthesis_prompt.txt'} "
+                  f"({len(prompt)} chars).")
+        except Exception as exc:
+            print(f"[GraphSynthesizer] Could not write synthesis prompt log: {exc}")
 
     from core.llm_backend import make_chat_llm
     from langchain_core.messages import HumanMessage
@@ -754,6 +763,7 @@ def run_synthesis(
         species_display_map=species_display_map,
         min_species=min_species,
         model=model,
+        log_dir=log_dir,
     )
 
     # Attach metadata
