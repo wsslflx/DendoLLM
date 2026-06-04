@@ -176,9 +176,51 @@ The two high-altitude species (phrynocephalus, triplophysa) are data-sparse with
 | Stress Response and Metabolism | llm | 10/11 | — | — |
 
 ### Assessment
-**Poor — expected signal missed.** The hypoxia signal is partially present but buried: `hypoxia` appears as a supporting entity inside "Integumentary and Thermal Adaptation", and "Stress Response and Metabolism" (Tier 3 only) mentions hypoxia, mitochondria, and glucocorticoid — which is essentially the correct signal but unlabeled and without ontology support.
+**Poor — expected signal buried, not surfaced.** The hypoxia signal is present in the data but diluted across two communities:
 
-Compare with testcase1 where hypoxia formed a dedicated, well-evidenced community. The difference: in testcase1 all 4 species had dense, focused underground-oxygen literature. Here the signal is split between diving physiology (whales, dugong — "breath-hold diving", "myoglobin") and high-altitude physiology (phrynocephalus, triplophysa — "altitude hypoxia") which use different vocabulary and don't cluster together at the entity level. Additionally the high-altitude species are data-sparse, so the high-altitude half of the hypothesis barely registers.
+- **"Integumentary and Thermal Adaptation"** (Tier 1, 11/11 species): `hypoxia` appears as a *supporting entity* buried inside a community dominated by skin/coat phenotypes. The community label and Tier 1 anchor are about integument, not oxygen tolerance — the hypoxia entity was swept into this community because the diving mammals' skin literature co-occurs with metabolic adaptation text.
+- **"Stress Response and Metabolism"** (Tier 3 / LLM only, 10/11 species): explicitly mentions hypoxia, mitochondria, and glucocorticoid — essentially the correct signal — but has no ontology backing (Tier 1/2 absent) and was ranked last. The LLM correctly identified the shared pattern but the graph evidence was too weak to produce a named community.
+
+Why the signal got buried: the testcase mixes two vocabularies for the same underlying biology. Diving species (whales, dugong) use terms like "myoglobin", "breath-hold diving", "diving reflex"; high-altitude species (phrynocephalus, triplophysa) use "altitude hypoxia", "erythrocyte count", "HIF pathway". These don't cluster in Tier 1 because their surface forms differ — and Tier 2 (embedding similarity) is broken (see recurring problems). Additionally the high-altitude species have only 83–98 chunks each, so their vocabulary is too sparse to anchor a community. The result is the correct signal split into fragments that individually fall below the `min_species` threshold for a standalone community.
+
+---
+
+## Testcase 7 — SPATC1L (production run)
+**Species:** stoat, spotted gar, Ovis ammon polii (×2 including hybrid), topi, striped hyena, monk saki, European badger
+**Expected signal:** inner ear hair cell development / stereocilia organization / hearing
+**Run time:** 6.1 h total (indexing 63 min, enrichment 300 min, synthesis 3 min)
+
+### Entity extraction
+| Species | Docs | Chunks | Entities | Triples |
+|---|---|---|---|---|
+| Damaliscus lunatus | 7 | 678 | 3176 | 1111 |
+| Lepisosteus oculatus | 7 | 405 | 1948 | 724 |
+| Ovis ammon polii | 10 | 388 | 1386 | 545 |
+| Mustela erminea | 5 | 334 | 1320 | 474 |
+| Hyaena hyaena | 7 | 377 | 1044 | 372 |
+| Meles meles | 6 | 209 | 757 | 408 |
+| Pithecia pithecia | 5 | 216 | 652 | 233 |
+| Ovis ammon polii × Ovis aries | 4 | 124 | 579 | 257 |
+
+Document counts are very low (4–10 per species). The hybrid subspecies *Ovis ammon polii × Ovis aries* is particularly sparse at 4 docs.
+
+### Enrichment
+3894 entities seen, 820 mapped to uPheno (21%). Similarity pairs added: 0 (Tier 2 still broken).
+
+### Communities
+| Label | Tier | Species | Tier 1 | Tier 2 |
+|---|---|---|---|---|
+| Neurological and Craniofacial Defects | merged | 8/8 | abnormal anatomical structure | — |
+| Integumentary and Pigmentation Disorders | merged | 8/8 | integument phenotype | — |
+| Systemic Inflammation and Immune Response | merged | 8/8 | abnormal blood/immune | — |
+| Musculoskeletal and Locomotor Defects | merged | 8/8 | musculoskeletal | — |
+
+### Assessment
+**Poor — expected signal absent.** All 4 communities cover all 8 species, a clear sign of generic output. SPATC1L is associated with inner ear hair cell development and stereocilia; no community related to hearing, ciliary structure, or mechanosensation appeared.
+
+The most likely cause is insufficient literature: 4–10 documents per species is too few to produce species-specific signal. With so little text, the entities extracted are dominated by generic biology (anatomy, inflammation, skeletal defects) that appears in any vertebrate's Wikipedia/PMC profile. A SPATC1L-relevant article would need to be among the handful of documents retrieved for each species — an unlikely coincidence at this document count.
+
+The run also confirms the enrichment time problem: 5 hours for 8 species with only ~2,700 chunks total is far too slow for the 66-testcase batch.
 
 ---
 
@@ -190,7 +232,8 @@ Compare with testcase1 where hypoxia formed a dedicated, well-evidenced communit
 | 3 — Color-change | 4 | Pigmentation/chromatophores | Yes | Tier 1+2 | Good |
 | 4 — Electroreception | 7 | Electrosensory organs | Yes (5/7 species) | Tier 1 | Moderate |
 | 5 — Mixed mammals | 12 | Unknown | N/A — all generic | — | Poor |
-| 6 — Hypoxia adaptation | 11 | Low-oxygen tolerance | Buried/diluted | LLM only | Poor |
+| 6 — Hypoxia adaptation | 11 | Low-oxygen tolerance | Buried in wrong community | LLM only | Poor |
+| 7 — SPATC1L (production) | 8 | Stereocilia / hearing | Not found | — | Poor |
 
 ---
 
@@ -210,3 +253,47 @@ Species with <100 chunks (phrynocephalus, triplophysa in TC6) barely register in
 
 ### 5. Vocabulary fragmentation
 The same biological concept expressed in different vocabulary across species (diving: "myoglobin", "breath-hold"; altitude: "hypoxia tolerance", "erythrocyte count") does not cluster in Tier 1 because the surface forms differ. Tier 2 (embedding similarity) is designed to bridge this — but it is not working (see point 2).
+
+---
+
+## Current production problems and discussed solutions
+
+### Problem A — Output quality: too many species produces generic traits
+
+**Root cause:** With N species, `min_species = N//2` requires a trait to appear in half of them. For N=8+ this filter is so strict that only pan-mammalian biology (craniofacial anatomy, growth, CNS) survives. The synthesis LLM further dilutes signal by averaging across all species' subgraph summaries. SPATC1L (N=8) and TC5 (N=12) both produced all-species communities with no gene-specific signal.
+
+**Observed threshold:** Results are useful up to ~N=7 (TC4 electroreception, moderate quality). At N=8 (SPATC1L) and above, output becomes generic. The production dataset has 66 testcases with ≤8 unique species, so many are near or at this limit.
+
+**Discussed solutions:**
+
+1. **Species sub-clustering (preferred):** For testcases with N>7, split species into overlapping sub-groups of 3–5, run synthesis on each sub-group independently, then merge/deduplicate the resulting communities. This keeps `min_species` at a level where specific signal can survive while still covering all species.
+
+2. **Lower `min_species` threshold:** Pass `--min-species 2` to require only 2 species to agree. This recovers more specific signals but increases noise — communities may reflect one species' idiosyncratic literature rather than a shared trait.
+
+3. **Fix Tier 2 (DOC_SIMILAR_TO edges):** Tier 2 is designed to bridge vocabulary fragmentation across species. If it worked, the same concept expressed differently (e.g. "stereocilia" vs "hair bundle") would still cluster. All runs so far show `similarity_pairs_added: 0` — root cause not yet investigated.
+
+---
+
+### Problem B — Speed: enrichment is the dominant bottleneck
+
+**Root cause:** The SPATC1L run took 6.1h total, of which **5h was enrichment** for just 3,894 entities across 8 species. The bottleneck is `_push_mapping()` in `graph_enricher.py`: it opens **3 separate Neo4j sessions per entity** (MERGE OntologyTerm node, MERGE DOC_MAPPED_TO edge, SET upheno_enriched flag), plus **2 more sessions per IS_A ancestor**. At ~10k entities with ~3 ancestors each, that is ~40,000 individual Neo4j round trips run serially. The similarity edge step (`_run_similarity_edges`) similarly writes one session per passing pair inside an O(n²) loop.
+
+**Already implemented optimizations:**
+- SQLite persistent cache in `trait_mapper.py` — cache hits skip all 3 LLM stages; reused across all testcases
+- Cosine early-exit: auto-accept ≥0.95, auto-reject <0.50 — skips Stage 3 LLM for obvious cases
+- `--map-workers` for parallel trait mapping (ThreadPoolExecutor)
+- `--norm-batch-size` for batched Stage 1 normalization (N traits per LLM call)
+- `--index-workers` for parallel chunk entity extraction
+- UNWIND batch writes for triple creation in indexer
+- Batch already-indexed check (single Neo4j query)
+- Surface form deduplication (same text mapped once)
+
+**Discussed solutions (not yet implemented):**
+
+1. **Batch Neo4j writes in enricher using UNWIND (highest impact):** Collect all (entity → ontology term) mappings first, then push in 2 UNWIND queries (one for all OntologyTerm nodes, one for all DOC_MAPPED_TO edges + upheno_enriched flags). Same pattern already used in the indexer. Estimated impact: 10–50× fewer round trips, likely cuts enrichment from 5h to ~15–30 min.
+
+2. **Batch similarity edge writes using UNWIND:** Collect all pairs above threshold into a list, write as a single UNWIND query instead of one session per pair.
+
+3. **Increase `--map-workers`:** Run was executed with default of 1 worker. Increasing to 4 would parallelize the LLM-heavy Stage 1/3 mapping calls. Stages 2 (cosine, CPU) and cache hits would benefit immediately regardless of LLM server capacity.
+
+4. **Pre-filter generic entity surface forms:** Entities like `"cell"`, `"tissue"`, `"protein"` are too generic to produce useful uPheno mappings and will auto-reject or map to high-level useless ancestors. Skipping them reduces LLM call count and Neo4j noise.

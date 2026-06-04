@@ -72,10 +72,12 @@ def _pull_entities_to_map(driver, species_norms: list[str], force: bool) -> list
         return []
 
 
-def _push_mapping(driver, entity_id: str, map_result: dict, world, embed_model: str = "") -> int:
+def _push_mapping(driver, entity_id: str, map_result: dict, world, embed_model: str = "",
+                  term_name_lookup: dict | None = None) -> int:
     """
     Push DOC_MAPPED_TO edge + IS_A ancestor edges for one entity.
     Returns number of ancestor terms added.
+    term_name_lookup: optional {term_id: name} dict used to write term_name on ancestor nodes.
     """
     ancestors_added = 0
     term_id = map_result.get("term_id")
@@ -135,12 +137,13 @@ def _push_mapping(driver, entity_id: str, map_result: dict, world, embed_model: 
                 continue
             seen.add(anc_id)
             anc_src = anc_id.split(":")[0] if ":" in anc_id else "UNKNOWN"
+            anc_name = (term_name_lookup or {}).get(anc_id, "")
             try:
                 with driver.session() as session:
                     session.run(
                         "MERGE (t:OntologyTerm {term_id: $tid}) "
-                        "SET t.ontology_source = $src",
-                        tid=anc_id, src=anc_src,
+                        "SET t.ontology_source = $src, t.term_name = CASE WHEN t.term_name IS NULL OR t.term_name = '' THEN $tname ELSE t.term_name END",
+                        tid=anc_id, src=anc_src, tname=anc_name,
                     )
                     session.run(
                         "MATCH (a:OntologyTerm {term_id: $from_id}), "
@@ -237,6 +240,11 @@ def _run_upheno_mapping(
     # Build sf → result lookup
     sf_to_result = {sf: result for sf, result in zip(unique_sfs, unique_results)}
 
+    # Build term_id → name lookup from ontology index for ancestor name resolution
+    term_name_lookup: dict[str, str] = {
+        t["id"]: t.get("name", "") for t in _terms if t.get("id")
+    }
+
     from core.llm_backend import resolve_embed_model_name
     em_name = resolve_embed_model_name(embed_backend)
 
@@ -248,11 +256,13 @@ def _run_upheno_mapping(
         eid = entity_row["eid"]
         map_result = sf_to_result[entity_row["sf"]]
         if map_result.get("mapped"):
-            anc = _push_mapping(driver, eid, map_result, world, embed_model=em_name)
+            anc = _push_mapping(driver, eid, map_result, world, embed_model=em_name,
+                                term_name_lookup=term_name_lookup)
             mapped_count += 1
             ancestors_total += anc
         else:
-            _push_mapping(driver, eid, map_result, world, embed_model=em_name)  # marks upheno_enriched=true
+            _push_mapping(driver, eid, map_result, world, embed_model=em_name,
+                          term_name_lookup=term_name_lookup)
             no_match_count += 1
 
     print(
