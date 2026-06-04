@@ -248,27 +248,125 @@ def _run_upheno_mapping(
     from core.llm_backend import resolve_embed_model_name
     em_name = resolve_embed_model_name(embed_backend)
 
-    mapped_count = 0
-    no_match_count = 0
-    ancestors_total = 0
+    # ---- Collect rows for bulk writes ----
+    mapped_rows = []
+    no_match_eids = []
 
     for entity_row in entities:
         eid = entity_row["eid"]
+        if not eid:
+            continue
         map_result = sf_to_result[entity_row["sf"]]
         if map_result.get("mapped"):
-            anc = _push_mapping(driver, eid, map_result, world, embed_model=em_name,
-                                term_name_lookup=term_name_lookup)
-            mapped_count += 1
-            ancestors_total += anc
+            term_id = map_result.get("term_id")
+            if not term_id:
+                no_match_eids.append(eid)
+                continue
+            ontology_source = term_id.split(":")[0] if ":" in term_id else "UNKNOWN"
+            mapped_rows.append({
+                "eid": eid,
+                "term_id": term_id,
+                "term_name": map_result.get("term_name") or "",
+                "cosine": map_result.get("cosine_score") or 0.0,
+                "confidence": map_result.get("confidence", "no_match"),
+                "broadened": map_result.get("broadened", False),
+                "ontology_source": ontology_source,
+                "embed_model": em_name,
+            })
         else:
-            _push_mapping(driver, eid, map_result, world, embed_model=em_name,
-                          term_name_lookup=term_name_lookup)
-            no_match_count += 1
+            no_match_eids.append(eid)
+
+    # ---- Build ancestor rows — deduplicated by term_id before owlready2 lookup ----
+    ancestor_rows = []
+    if world is not None:
+        from kg.kg_builder import _load_ancestors
+        seen_term_ids: set[str] = set()
+        for row in mapped_rows:
+            tid = row["term_id"]
+            if tid in seen_term_ids:
+                continue
+            seen_term_ids.add(tid)
+            ancestors = _load_ancestors(tid, world, depth=3)
+            for anc_id, rel_type in ancestors:
+                anc_name = term_name_lookup.get(anc_id, "")
+                anc_src = anc_id.split(":")[0] if ":" in anc_id else "UNKNOWN"
+                ancestor_rows.append({
+                    "from_id": tid,
+                    "to_id": anc_id,
+                    "rel_type": rel_type,
+                    "name": anc_name,
+                    "src": anc_src,
+                })
+
+    mapped_count = len(mapped_rows)
+    no_match_count = len(no_match_eids)
+    ancestors_total = 0
+
+    # ---- UNWIND bulk writes ----
+    try:
+        with driver.session() as session:
+            # Query A: MERGE unique OntologyTerm nodes (mapped terms only)
+            unique_terms = list({r["term_id"]: r for r in mapped_rows}.values())
+            if unique_terms:
+                session.run(
+                    "UNWIND $rows AS r "
+                    "MERGE (t:OntologyTerm {term_id: r.term_id}) "
+                    "SET t.term_name = r.term_name, t.ontology_source = r.ontology_source",
+                    rows=[{"term_id": r["term_id"], "term_name": r["term_name"],
+                           "ontology_source": r["ontology_source"]} for r in unique_terms],
+                )
+                print(f"[GraphEnricher] Query A: merged {len(unique_terms)} OntologyTerm nodes.")
+
+            # Query B: MERGE DOC_MAPPED_TO edges + mark enriched for matched entities
+            if mapped_rows:
+                session.run(
+                    "UNWIND $rows AS r "
+                    "MATCH (e:DocEntity {entity_id: r.eid}), (t:OntologyTerm {term_id: r.term_id}) "
+                    "MERGE (e)-[rel:DOC_MAPPED_TO]->(t) "
+                    "SET rel.cosine_score = r.cosine, rel.confidence = r.confidence, "
+                    "    rel.broadened = r.broadened, rel.embed_model = r.embed_model, "
+                    "    e.upheno_enriched = true, e.upheno_mapped = true",
+                    rows=mapped_rows,
+                )
+                print(f"[GraphEnricher] Query B: merged {len(mapped_rows)} DOC_MAPPED_TO edges.")
+
+            # Query C: mark no-match entities
+            if no_match_eids:
+                session.run(
+                    "UNWIND $eids AS eid "
+                    "MATCH (e:DocEntity {entity_id: eid}) "
+                    "SET e.upheno_enriched = true, e.upheno_mapped = false",
+                    eids=no_match_eids,
+                )
+                print(f"[GraphEnricher] Query C: marked {len(no_match_eids)} no-match entities.")
+
+            # Query D: MERGE ancestor OntologyTerm nodes + IS_A edges, grouped by rel_type
+            if ancestor_rows:
+                by_rel: dict[str, list] = {}
+                for r in ancestor_rows:
+                    by_rel.setdefault(r["rel_type"], []).append(r)
+                for rel_type, rows in by_rel.items():
+                    session.run(
+                        "UNWIND $rows AS r "
+                        "MERGE (t:OntologyTerm {term_id: r.to_id}) "
+                        "SET t.ontology_source = r.src, "
+                        "    t.term_name = CASE WHEN t.term_name IS NULL OR t.term_name = '' "
+                        "                  THEN r.name ELSE t.term_name END "
+                        "WITH r "
+                        "MATCH (a:OntologyTerm {term_id: r.from_id}), (b:OntologyTerm {term_id: r.to_id}) "
+                        f"MERGE (a)-[:{rel_type}]->(b)",
+                        rows=rows,
+                    )
+                ancestors_total = len(ancestor_rows)
+                print(f"[GraphEnricher] Query D: merged {ancestors_total} ancestor edges "
+                      f"({len(by_rel)} rel type(s)).")
+    except Exception as exc:
+        print(f"[GraphEnricher] Bulk write failed: {exc}")
 
     print(
         f"[GraphEnricher] uPheno mapping done: "
         f"{mapped_count} mapped, {no_match_count} no-match, "
-        f"{ancestors_total} ancestor IS_A edges added."
+        f"{ancestors_total} ancestor IS_A edges written."
     )
     return mapped_count, no_match_count, ancestors_total
 
@@ -325,33 +423,42 @@ def _run_similarity_edges(
     norms[norms == 0] = 1.0
     vecs = vecs / norms
 
-    pairs_added = 0
+    # Collect all passing pairs first, then write in batches
+    pairs_to_write = []
     n = len(eids)
 
-    try:
-        with driver.session() as session:
-            for i in range(n):
-                for j in range(i + 1, n):
-                    # Only cross-species: species sets must not be identical
-                    if species_sets[i] == species_sets[j]:
-                        continue
-                    score = float(np.dot(vecs[i], vecs[j]))
-                    if score < threshold:
-                        continue
-                    score_r = round(score, 4)
-                    try:
-                        session.run(
-                            "MATCH (a:DocEntity {entity_id: $eid_a}), "
-                            "      (b:DocEntity {entity_id: $eid_b}) "
-                            "MERGE (a)-[:DOC_SIMILAR_TO {score: $sc, embed_model: $em}]->(b) "
-                            "MERGE (b)-[:DOC_SIMILAR_TO {score: $sc, embed_model: $em}]->(a)",
-                            eid_a=eids[i], eid_b=eids[j], sc=score_r, em=em_name,
-                        )
-                        pairs_added += 1
-                    except Exception as exc:
-                        print(f"[GraphEnricher] DOC_SIMILAR_TO merge failed: {exc}")
-    except Exception as exc:
-        print(f"[GraphEnricher] Similarity session failed: {exc}")
+    for i in range(n):
+        for j in range(i + 1, n):
+            if species_sets[i] == species_sets[j]:
+                continue
+            score = float(np.dot(vecs[i], vecs[j]))
+            if score < threshold:
+                continue
+            pairs_to_write.append({
+                "eid_a": eids[i],
+                "eid_b": eids[j],
+                "score": round(score, 4),
+                "em": em_name,
+            })
+
+    print(f"[GraphEnricher] {len(pairs_to_write)} cross-species pairs above threshold {threshold}.")
+
+    pairs_added = 0
+    CHUNK_SIZE = 1000
+    for start in range(0, len(pairs_to_write), CHUNK_SIZE):
+        chunk = pairs_to_write[start:start + CHUNK_SIZE]
+        try:
+            with driver.session() as session:
+                session.run(
+                    "UNWIND $pairs AS p "
+                    "MATCH (a:DocEntity {entity_id: p.eid_a}), (b:DocEntity {entity_id: p.eid_b}) "
+                    "MERGE (a)-[:DOC_SIMILAR_TO {score: p.score, embed_model: p.em}]->(b) "
+                    "MERGE (b)-[:DOC_SIMILAR_TO {score: p.score, embed_model: p.em}]->(a)",
+                    pairs=chunk,
+                )
+                pairs_added += len(chunk)
+        except Exception as exc:
+            print(f"[GraphEnricher] DOC_SIMILAR_TO batch failed (chunk {start}): {exc}")
 
     print(f"[GraphEnricher] DOC_SIMILAR_TO edges added: {pairs_added} cross-species pairs "
           f"above threshold {threshold}.")
