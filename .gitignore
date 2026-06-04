@@ -9,7 +9,7 @@ logs_graph
 logs*
 traits/
 figures
-specs
+docs/specs
 analyze_report/
 group_reports/
 CLAUDE.md

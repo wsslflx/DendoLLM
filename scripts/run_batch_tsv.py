@@ -76,6 +76,10 @@ def main() -> None:
         help="Traits per normalization LLM call (default: 10).",
     )
     parser.add_argument(
+        "--map-workers", type=int, default=1,
+        help="Parallel threads for uPheno mapping (default: 1).",
+    )
+    parser.add_argument(
         "--force-reindex", action="store_true",
         help="Re-index all chunks even if already in Neo4j.",
     )
@@ -166,6 +170,7 @@ def main() -> None:
             "--pdf-dir", str(pdf_dir),
             "--index-workers", str(args.index_workers),
             "--norm-batch-size", str(args.norm_batch_size),
+            "--map-workers", str(args.map_workers),
         ]
 
         if args.model:
