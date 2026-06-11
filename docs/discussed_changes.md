@@ -23,6 +23,12 @@ Mark as done with `**Done YYYY-MM-DD**` when implemented.
 **File:** `scripts/run_batch_tsv.py`, `pipeline/run_graph_pipeline.py`\
 **Expected impact:** Medium. All batch runs so far used default of 1 worker. The trait mapper has Stage 2 (cosine, CPU-only) and cache-hit paths that don't touch the LLM at all and benefit immediately from parallelism. Even LLM-bound Stage 1/3 benefit if the server handles light concurrency. Needs testing to find the right value without overloading the server.\
 
+### P5 — Batch Stage 3 LLM verification calls (verify_candidate)
+**File:** `kg/trait_mapper.py` → `verify_candidate()` and `map_traits_batch()`\
+**Expected impact:** High. Stage 3 (`verify_candidate`) is the primary enrichment bottleneck — one HTTP round trip per entity (~2–4s each). Stage 1 normalization is already batched (`norm_batch_size`). Stage 3 is not. Fix: collect N entities that reach Stage 3 (after cosine early-exit filtering), send all N (entity + candidate list) in a single LLM prompt, parse a JSON array of N decisions. Batch size of 5–10 would reduce round trips 5–10×, estimated impact 2–4× reduction in total Stage 3 time.\
+**Risks:** (1) LLM attention dilution at large batch sizes — safe range is ~5, risky above ~15. (2) A malformed JSON response from the LLM loses the whole batch; needs fallback to individual calls on parse failure. (3) Parent broadening (`confidence: low` → re-verify with parent candidates) needs a two-pass design: batch-verify all entities first, then collect low-confidence ones for a second batch pass. (4) Token budget per entity shrinks — may need to reduce candidate definitions or top-k to keep prompt size manageable.\
+**Notes:** P4 (pre-filter generic entities) is a prerequisite that reduces the entity population before Stage 3 and should be implemented first. Pilot at batch_size=5 with full fallback before increasing.\
+
 ### P4 — Pre-filter generic entity surface forms before uPheno mapping
 **File:** `kg/graph_enricher.py` → `_run_upheno_mapping()`\
 **Expected impact:** Low-medium. Entities like `"cell"`, `"tissue"`, `"protein"`, `"gene"` are too generic to map to a useful specific uPheno term. They consume LLM calls and produce high-level useless ancestors that add noise to Tier 1. A blocklist or length/frequency filter applied before `map_traits_batch()` would skip them. Also improves Tier 1 signal quality.\
@@ -51,6 +57,8 @@ Mark as done with `**Done YYYY-MM-DD**` when implemented.
 **File:** `kg/graph_enricher.py` → `_run_similarity_edges()`\
 **What:** Zero DOC_SIMILAR_TO edges have been created across all runs. Root cause not yet investigated. Tier 2 is designed to bridge vocabulary fragmentation — the same concept expressed differently across species (e.g. "myoglobin" vs "breath-hold diving") would cluster via embedding similarity. Without it, the hypoxia signal in TC6 split into fragments that individually fell below `min_species`. Fixing this is prerequisite for meaningful `"merged"` tier communities.\
 **Status:** Root cause unknown. Needs investigation before implementation.\
+-> Lower Threshold, rest makes sense as implemented \
+
 
 ### Q4 — Species sub-clustering for large testcases (N > 7)
 **File:** New module or extension to `pipeline/run_graph_pipeline.py`\
