@@ -152,6 +152,25 @@ def run_query(cypher: str, params: dict = {}) -> list[dict]:
         driver.close()
 
 
+def run_write_query(cypher: str, params: dict = {}) -> None:
+    """Execute a write query (SET/MERGE/CREATE). Used for precomputation steps."""
+    driver = _get_driver()
+    if driver is None:
+        print("[KG] run_write_query: Neo4j not reachable, skipping.")
+        return
+    try:
+        with driver.session() as session:
+            session.run(cypher, **params)
+    except Exception as exc:
+        print(f"[KG] Write query failed (non-fatal): {exc}")
+    finally:
+        driver.close()
+
+
+# Public alias so external scripts can import without the leading underscore
+get_driver = _get_driver
+
+
 def clear_run(run_id: str) -> None:
     """Delete all nodes/edges tagged with this run_id."""
     driver = _get_driver()

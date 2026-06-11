@@ -231,9 +231,9 @@ def main() -> None:
     parser.add_argument(
         "--tier1-max-entity-forms",
         type=int,
-        default=50,
-        help="Tier 1 ancestors with more distinct entity forms than this are excluded as too "
-             "generic (default: 50). Lower values = stricter specificity filter.",
+        default=200,
+        help="Hard safety-net cap: Tier 1 ancestors with more distinct entity forms than this "
+             "are excluded (default: 200). IC scoring handles specificity below this threshold.",
     )
     parser.add_argument(
         "--no-summarize-subgraphs",

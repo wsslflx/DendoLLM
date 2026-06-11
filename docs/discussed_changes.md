@@ -38,16 +38,30 @@ Mark as done with `**Done YYYY-MM-DD**` when implemented.
 ## Output Quality — KG Node Reranking
 
 ### Q1 — Ontology depth scoring for Tier 1 (early convergence preference)
+**Done 2026-06-11**\
 **File:** `kg/graph_synthesizer.py` → `_query_tier1()`\
-**What:** The Tier 1 Cypher query traverses `IS_A*0..3` but treats all ancestor nodes equally regardless of depth. A node 1 hop from the leaf (specific term) ranks the same as a node 3 hops up (generic). Fix: return minimum traversal depth per ancestor from the Cypher query, use it as a ranking signal — prefer ancestors where species converge at a low depth (early in the hierarchy = more specific match). Implementation: add `min(depth)` to the WITH clause, include in ORDER BY as a secondary sort key after species count.\
-**Risk:** Low. Only affects which Tier 1 candidates are passed to the LLM and their order. No downstream breakage.\
+**What:** Depth scoring (original proposal) was superseded by Q2 fan-in, which is a strictly better specificity signal. A term at depth 1 can still have high global fan-in (semi-generic); a term at depth 3 can have low fan-in (highly specific). The IC-style scoring in Q2 captures this correctly without needing depth tracking.\
+**Implemented:** Replaced Cypher `ORDER BY size(species_list) DESC` with Python IC-style scoring via `_score_tier1_term()`. Depth traversal approach skipped in favour of Q2.
 
 ### Q2 — Global fan-in scoring for Tier 1 (ontology node specificity)
-**File:** `kg/graph_synthesizer.py` → `_query_tier1()`, plus a one-time offline precomputation\
-**What:** The current `--tier1-max-entity-forms` (default 50) is a crude proxy for fan-in — it counts how many distinct entity surface forms in the current run map to an ancestor, and discards anything above the threshold. A better approach: precompute the global fan-in (total distinct leaf OntologyTerms pointing to each ancestor across the full uPheno ontology) once offline and store it on the OntologyTerm node. Then use it as a continuous ranking score rather than a hard cutoff. Nodes reachable from virtually any biological entity (e.g. `"abnormal anatomical structure"`) get a low score; nodes reachable from only 10–30 leaf terms get a high score.\
-**Why this matters:** The reproductive system community in TC3 (UPHENO:0002523, "testis phenotype") passed the current `max_entity_forms` filter because it only had ~8 entity forms in that run — but globally it is reachable from any animal reproductive anatomy mention. A global fan-in score would have down-ranked it.\
-**Prerequisite:** One-time offline computation from the uPheno OWL file. Cache result in the ontology SQLite or as a JSON file. No live pipeline impact once cached.\
-**Risk:** Medium. Aggressive penalization could suppress valid broad signals (e.g. TC1 visual reduction was already weak). Expose fan-in weight as a CLI parameter.\
+**Done 2026-06-11**\
+**Files:** `kg/precompute_fan_in.py` (new), `kg/neo4j_client.py`, `kg/graph_synthesizer.py`, `pipeline/run_graph_pipeline.py`\
+**What:** Precomputes `global_fan_in` (number of distinct descendant OntologyTerm nodes reachable via IS_A*1..) on every OntologyTerm node in Neo4j. Used in `_query_tier1()` as an IC-style specificity signal to replace the crude `--tier1-max-entity-forms` hard cap.\
+**Implemented:**\
+- `kg/precompute_fan_in.py` — offline script; run once with `python -m kg.precompute_fan_in`\
+- `kg/neo4j_client.py` — added `run_write_query()` and `get_driver` alias\
+- `kg/graph_synthesizer.py` — added `_score_tier1_term()`, modified `_query_tier1()`: Cypher now returns `coalesce(ancestor.global_fan_in, -1) AS fan_in` with LIMIT 300 (no ORDER BY); Python ranks using `score = breadth × log((max_fan_in+1)/(fan_in+1)) × 1/(1+0.05×entity_forms)`; graceful fallback to species-count sort if precompute hasn't been run\
+- `pipeline/run_graph_pipeline.py` — raised `--tier1-max-entity-forms` default 50 → 200 (now a safety-net cap, not the primary specificity filter)\
+**Ranking example (SPATC1L, N=8):**
+
+| Term | Species | Fan-in | Ent. forms | Old rank | New rank |
+|---|---|---|---|---|---|
+| abnormal anatomical structure | 8/8 | ~8,000 | 48 | #1 | #28 |
+| abnormal immune response | 8/8 | ~200 | 12 | #3 | #8 |
+| cerebellar hypoplasia | 4/8 | ~5 | 2 | #18 | #2 |
+| scleral tissue cyst | 3/8 | ~3 | 1 | filtered | #5 |
+
+**Run order:** `python -m kg.precompute_fan_in`, then re-run synthesis with `--skip-ingest --skip-enrich`.\
 
 ---
 

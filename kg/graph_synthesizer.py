@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import pathlib
 import re
 import sys
@@ -34,7 +35,7 @@ MAX_TIER1_RESULTS = 30
 MAX_TIER1_RELATIONAL_RESULTS = 50
 MAX_TIER2_CLUSTERS = 30
 MAX_SYNTHESIS_RETRIES = 2
-MAX_TIER1_ENTITY_FORMS = 50   # ancestors with more entity_forms than this are too generic
+MAX_TIER1_ENTITY_FORMS = 200  # hard safety-net cap; IC scoring handles specificity below this
 
 # Only these entity types are considered for Tier 2 embedding-similarity clusters.
 # Process and Gene entities are excluded because they produce generic scientific
@@ -80,14 +81,41 @@ def _normalize_rel_type(s: str) -> str:
     return re.sub(r'[\s\-]+', '_', s.strip().lower())
 
 
+def _score_tier1_term(row: dict, n_species: int, max_fan_in: int) -> float:
+    """
+    IC-style score balancing species breadth with ontological specificity.
+
+      breadth    = species_count / n_species        — fraction of species covered (0..1)
+      ic         = log((max_fan_in+1) / (fan_in+1)) — higher for specific terms, 0 for
+                   the most generic term in the candidate set
+      ef_penalty = 1 / (1 + 0.05 * entity_forms)   — soft penalty for terms used as
+                   catch-alls in this run
+
+    Terms with global_fan_in=-1 (precompute not yet run) receive a middle-ground IC of 2.0
+    so the ranking degrades gracefully rather than collapsing.
+    """
+    sp_count = len(row["species_list"])
+    fan_in   = row["fan_in"]
+    ef_count = len(row["entity_forms"])
+    breadth  = sp_count / n_species
+    ic       = math.log((max_fan_in + 1) / (fan_in + 1)) if fan_in >= 0 else 2.0
+    ef_penalty = 1.0 / (1.0 + 0.05 * ef_count)
+    return breadth * ic * ef_penalty
+
+
 def _query_tier1(species_norms: list[str], min_species: int,
                  max_entity_forms: int = MAX_TIER1_ENTITY_FORMS) -> list[dict]:
     """
     Find OntologyTerm ancestors shared by entities from >= min_species species.
-    Returns list of {term_id, term_name, species_list, entity_forms, term_names}.
+    Returns list of {term_id, term_name, species_list, entity_forms, term_names, fan_in, score}.
 
-    max_entity_forms: ancestors matched by more than this many distinct surface forms
-    are too generic to be useful (e.g. root phenotype nodes) and are excluded.
+    Ranking uses an IC-style score (see _score_tier1_term) that favours ontologically
+    specific terms over generic ones, even when the generic term covers more species.
+    Requires global_fan_in to be precomputed on OntologyTerm nodes via
+    kg/precompute_fan_in.py. Falls back to species-count sort if not available.
+
+    max_entity_forms: hard safety-net cap (default 200); IC scoring handles
+    specificity below this threshold.
     """
     cypher = (
         "MATCH (e:DocEntity)-[:DOC_MAPPED_TO]->(t:OntologyTerm)-[:IS_A*0..3]->(ancestor:OntologyTerm) "
@@ -99,11 +127,11 @@ def _query_tier1(species_norms: list[str], min_species: int,
         "     collect(DISTINCT t.term_name)    AS term_names "
         "WHERE size(species_list) >= $min_sp "
         "  AND size(entity_forms) <= $max_ef "
-        "RETURN ancestor.term_id  AS term_id, "
+        "RETURN ancestor.term_id   AS term_id, "
         "       ancestor.term_name AS term_name, "
+        "       coalesce(ancestor.global_fan_in, -1) AS fan_in, "
         "       species_list, entity_forms, term_names "
-        "ORDER BY size(species_list) DESC, size(entity_forms) DESC "
-        f"LIMIT {MAX_TIER1_RESULTS}"
+        "LIMIT 300"
     )
     try:
         from kg.neo4j_client import run_query
@@ -113,17 +141,29 @@ def _query_tier1(species_norms: list[str], min_species: int,
         print(f"[GraphSynthesizer] Tier 1 query failed: {exc}")
         return []
 
-    # Filter out known root/near-root terms using explicit blocklist
-    filtered = []
-    for r in rows:
-        if r.get("term_id") in _TIER1_GENERIC_TERMS:
-            continue
-        filtered.append(r)
+    # Filter explicit root/near-root blocklist
+    n_before = len(rows)
+    rows = [r for r in rows if r.get("term_id") not in _TIER1_GENERIC_TERMS]
 
-    print(f"[GraphSynthesizer] Tier 1: {len(filtered)} communities found "
-          f"(max_entity_forms={max_entity_forms}, "
-          f"after filtering {len(rows) - len(filtered)} generic terms).")
-    return filtered
+    # Graceful fallback: if precompute hasn't been run, warn and use old sort
+    if rows and all(r["fan_in"] == -1 for r in rows):
+        print("[GraphSynthesizer] WARNING: global_fan_in not set on OntologyTerm nodes. "
+              "Run `python -m kg.precompute_fan_in` for IC-based Tier 1 ranking. "
+              "Falling back to species-count sort.")
+        rows.sort(key=lambda r: (-len(r["species_list"]), len(r["entity_forms"])))
+        result = rows[:MAX_TIER1_RESULTS]
+    else:
+        max_fan_in = max((r["fan_in"] for r in rows if r["fan_in"] >= 0), default=1)
+        n_species  = len(species_norms)
+        for r in rows:
+            r["score"] = _score_tier1_term(r, n_species, max_fan_in)
+        rows.sort(key=lambda r: r["score"], reverse=True)
+        result = rows[:MAX_TIER1_RESULTS]
+
+    print(f"[GraphSynthesizer] Tier 1: {len(result)} communities "
+          f"(from {len(rows)} candidates, {n_before - len(rows)} blocklisted, "
+          f"max_entity_forms={max_entity_forms}).")
+    return result
 
 
 def _format_tier1_text(tier1: list[dict], species_display_map: dict[str, str]) -> str:
