@@ -18,6 +18,9 @@ import sys
 import time
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parents[1] / ".env")
+
 # Allow running from project root or kg/ subdirectory
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
