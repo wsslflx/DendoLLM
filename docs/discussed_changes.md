@@ -44,24 +44,63 @@ Mark as done with `**Done YYYY-MM-DD**` when implemented.
 **Implemented:** Replaced Cypher `ORDER BY size(species_list) DESC` with Python IC-style scoring via `_score_tier1_term()`. Depth traversal approach skipped in favour of Q2.
 
 ### Q2 — Global fan-in scoring for Tier 1 (ontology node specificity)
-**Done 2026-06-11**\
+**Done 2026-06-11 | Option B integrated 2026-06-17**\
 **Files:** `kg/precompute_fan_in.py` (new), `kg/neo4j_client.py`, `kg/graph_synthesizer.py`, `pipeline/run_graph_pipeline.py`\
-**What:** Precomputes `global_fan_in` (number of distinct descendant OntologyTerm nodes reachable via IS_A*1..) on every OntologyTerm node in Neo4j. Used in `_query_tier1()` as an IC-style specificity signal to replace the crude `--tier1-max-entity-forms` hard cap.\
+**What:** Precomputes `global_fan_in` (number of distinct descendant OntologyTerm nodes reachable via IS_A*1..) on every OntologyTerm node in Neo4j. Used in `_query_tier1()` as an IC-style specificity signal to replace the crude `--tier1-max-entity-forms` hard cap.
+
+**Root problem:** The old Cypher `ORDER BY size(species_list) DESC` always surfaced pan-biological terms (e.g. "abnormal anatomical structure", 8/8 species, fan_in ~8000) at position #1, while gene-relevant specific terms ("cerebellar hypoplasia", 4/8 species, fan_in ~5) ranked #18 or got cut by LIMIT 30. Every N=8 synthesis produced the same generic communities regardless of which gene was being studied.
+
+**How the reranking works:**
+
+1. **Precompute (offline):** `kg/precompute_fan_in.py` runs a single traversal query across all OntologyTerm IS_A edges:
+   ```cypher
+   MATCH (descendant:OntologyTerm)-[:IS_A*1..]->(ancestor:OntologyTerm)
+   WITH ancestor, count(DISTINCT descendant) AS fan_in
+   RETURN ancestor.term_id AS term_id, fan_in
+   ```
+   Results are written back onto each node as `global_fan_in` in 1000-node UNWIND chunks via `run_write_query()`. High fan_in = generic ("abnormal anatomical structure" ~8000); low fan_in = specific ("cerebellar hypoplasia" ~5).
+
+2. **Cypher change:** `_query_tier1()` now fetches a larger pool (LIMIT 300, no ORDER BY) and includes `coalesce(ancestor.global_fan_in, -1) AS fan_in` in the return. `-1` means precompute hasn't been run yet.
+
+3. **IC-style Python scoring** via `_score_tier1_term()`:
+   ```
+   breadth    = species_count / n_species           (0..1 — how many species share this term)
+   ic         = log((max_fan_in + 1) / (fan_in + 1)) (higher = more specific in the ontology)
+   ef_penalty = 1 / (1 + 0.05 × entity_forms)       (soft penalty for catch-all terms)
+   score      = breadth × ic × ef_penalty
+   ```
+   Top 30 by score are kept (`MAX_TIER1_RESULTS = 30`).
+
+4. **Graceful fallback:** If `fan_in == -1` for all candidates (precompute not run), a warning is printed and the old species-count sort is used instead — synthesis still works, just with generic rankings.
+
+5. **Option B — automatic integration (2026-06-17):** `pipeline/run_graph_pipeline.py` now calls `precompute_fan_in.run()` automatically between enrichment and synthesis (when both are active):
+   ```python
+   if not args.skip_enrich and not args.skip_synthesis and species_norms:
+       print("[GraphPipeline] Updating global_fan_in on OntologyTerm nodes...")
+       try:
+           from kg.precompute_fan_in import run as _run_fan_in
+           _run_fan_in()
+       except Exception as exc:
+           print(f"[GraphPipeline] precompute_fan_in failed (non-fatal, synthesis will use fallback ranking): {exc}")
+   ```
+   No manual step required — the first full pipeline run writes `global_fan_in` before synthesis executes. Re-runs that use `--skip-enrich` still benefit because the values persist in Neo4j from the last full run.
+
 **Implemented:**\
-- `kg/precompute_fan_in.py` — offline script; run once with `python -m kg.precompute_fan_in`\
-- `kg/neo4j_client.py` — added `run_write_query()` and `get_driver` alias\
-- `kg/graph_synthesizer.py` — added `_score_tier1_term()`, modified `_query_tier1()`: Cypher now returns `coalesce(ancestor.global_fan_in, -1) AS fan_in` with LIMIT 300 (no ORDER BY); Python ranks using `score = breadth × log((max_fan_in+1)/(fan_in+1)) × 1/(1+0.05×entity_forms)`; graceful fallback to species-count sort if precompute hasn't been run\
-- `pipeline/run_graph_pipeline.py` — raised `--tier1-max-entity-forms` default 50 → 200 (now a safety-net cap, not the primary specificity filter)\
-**Ranking example (SPATC1L, N=8):**
+- `kg/precompute_fan_in.py` — offline script; also called automatically by the pipeline\
+- `kg/neo4j_client.py` — added `run_write_query()` (write-capable counterpart to `run_query()`) and `get_driver` public alias\
+- `kg/graph_synthesizer.py` — added `_score_tier1_term()`, modified `_query_tier1()`: Cypher returns `coalesce(ancestor.global_fan_in, -1) AS fan_in` with LIMIT 300 (no ORDER BY); Python ranks with IC scoring; graceful fallback to species-count sort if precompute hasn't been run\
+- `pipeline/run_graph_pipeline.py` — raised `--tier1-max-entity-forms` default 50 → 200 (now a safety-net cap, not the primary specificity filter); added automatic `precompute_fan_in.run()` call between enrichment and synthesis\
 
-| Term | Species | Fan-in | Ent. forms | Old rank | New rank |
-|---|---|---|---|---|---|
-| abnormal anatomical structure | 8/8 | ~8,000 | 48 | #1 | #28 |
-| abnormal immune response | 8/8 | ~200 | 12 | #3 | #8 |
-| cerebellar hypoplasia | 4/8 | ~5 | 2 | #18 | #2 |
-| scleral tissue cyst | 3/8 | ~3 | 1 | filtered | #5 |
+**Ranking example (SPATC1L, N=8, max_fan_in ~8000):**
 
-**Run order:** `python -m kg.precompute_fan_in`, then re-run synthesis with `--skip-ingest --skip-enrich`.\
+| Term | Species | Fan-in | Ent. forms | Old rank | IC score | New rank |
+|---|---|---|---|---|---|---|
+| abnormal anatomical structure | 8/8 | ~8,000 | 48 | #1 | 1.0 × log(1) × 0.51 ≈ **0.00** | **#28** |
+| abnormal immune response | 8/8 | ~200 | 12 | #3 | 1.0 × log(40) × 0.70 ≈ **2.60** | #8 |
+| cerebellar hypoplasia | 4/8 | ~5 | 2 | #18 | 0.5 × log(1600) × 0.91 ≈ **3.30** | **#2** |
+| scleral tissue cyst | 3/8 | ~3 | 1 | filtered | 0.38 × log(2667) × 0.95 ≈ **2.96** | **#5** |
+
+**Run order:** Full pipeline run (`run_graph_pipeline.py` without `--skip-enrich`) triggers precompute automatically. To rerun synthesis only: `python -m kg.precompute_fan_in` first, then `--skip-ingest --skip-enrich`.\
 
 ---
 

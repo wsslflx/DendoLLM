@@ -350,6 +350,16 @@ def main() -> None:
     elif args.skip_enrich:
         print(f"[GraphPipeline] Skipping enrichment step (--skip-enrich).")
 
+    # Precompute global_fan_in on OntologyTerm nodes so Tier 1 IC-based ranking
+    # has up-to-date scores before synthesis queries the graph.
+    if not args.skip_enrich and not args.skip_synthesis and species_norms:
+        print(f"\n[GraphPipeline] Updating global_fan_in on OntologyTerm nodes...")
+        try:
+            from kg.precompute_fan_in import run as _run_fan_in
+            _run_fan_in()
+        except Exception as exc:
+            print(f"[GraphPipeline] precompute_fan_in failed (non-fatal, synthesis will use fallback ranking): {exc}")
+
     # Three-tier synthesis step
     if not args.skip_synthesis and species_norms:
         print(f"\n[GraphPipeline] ========================================")
