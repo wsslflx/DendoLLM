@@ -76,8 +76,8 @@ def main() -> None:
         help="Traits per normalization LLM call (default: 10).",
     )
     parser.add_argument(
-        "--map-workers", type=int, default=1,
-        help="Parallel threads for uPheno mapping (default: 1).",
+        "--map-workers", type=int, default=4,
+        help="Parallel threads for uPheno mapping (default: 4).",
     )
     parser.add_argument(
         "--force-reindex", action="store_true",

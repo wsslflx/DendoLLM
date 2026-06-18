@@ -155,17 +155,20 @@ def run_query(cypher: str, params: dict = {}) -> list[dict]:
         driver.close()
 
 
-def run_write_query(cypher: str, params: dict = {}) -> None:
-    """Execute a write query (SET/MERGE/CREATE). Used for precomputation steps."""
+def run_write_query(cypher: str, params: dict = {}) -> int:
+    """Execute a write query (SET/MERGE/CREATE). Returns nodes_set counter or 0 on failure."""
     driver = _get_driver()
     if driver is None:
         print("[KG] run_write_query: Neo4j not reachable, skipping.")
-        return
+        return 0
     try:
         with driver.session() as session:
-            session.run(cypher, **params)
+            result = session.run(cypher, **params)
+            summary = result.consume()  # ensures the write transaction commits on the server
+            return summary.counters.properties_set
     except Exception as exc:
         print(f"[KG] Write query failed (non-fatal): {exc}")
+        return 0
     finally:
         driver.close()
 

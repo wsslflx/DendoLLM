@@ -356,9 +356,15 @@ def main() -> None:
         print(f"\n[GraphPipeline] Updating global_fan_in on OntologyTerm nodes...")
         try:
             from kg.precompute_fan_in import run as _run_fan_in
-            _run_fan_in()
+            fan_in_stats = _run_fan_in()
+            (bundle_dir / "fan_in_precompute.json").write_text(
+                json.dumps(fan_in_stats, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
         except Exception as exc:
             print(f"[GraphPipeline] precompute_fan_in failed (non-fatal, synthesis will use fallback ranking): {exc}")
+            (bundle_dir / "fan_in_precompute.json").write_text(
+                json.dumps({"status": "exception", "error": str(exc)}, indent=2), encoding="utf-8"
+            )
 
     # Three-tier synthesis step
     if not args.skip_synthesis and species_norms:

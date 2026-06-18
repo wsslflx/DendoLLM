@@ -46,27 +46,52 @@ SET t.global_fan_in = row.fan_in
 _CHUNK_SIZE = 1000
 
 
-def run() -> None:
+_VERIFY_CYPHER = """
+MATCH (t:OntologyTerm) WHERE t.global_fan_in IS NOT NULL RETURN count(t) AS n
+"""
+
+
+def run() -> dict:
+    """
+    Compute and write global_fan_in for all OntologyTerm nodes.
+    Returns a stats dict so the pipeline can log and save it.
+    """
     print("[FanIn] Counting IS_A descendants for all OntologyTerm nodes...")
     rows = run_query(_COUNT_CYPHER, {})
     if not rows:
-        print("[FanIn] No OntologyTerm nodes found — is Neo4j running and the ontology imported?")
-        return
+        print("[FanIn] No IS_A paths found — enrichment may not have run yet, or Neo4j is empty.")
+        print("[FanIn] Verify Neo4j contains IS_A edges: MATCH ()-[:IS_A]->() RETURN count(*)")
+        return {"status": "no_rows", "terms_found": 0, "properties_set": 0, "verified_count": 0}
 
-    print(f"[FanIn] {len(rows)} ancestor terms to annotate.")
-    if rows:
-        print(f"[FanIn] Most generic term: {rows[0]['term_id']} fan_in={rows[0]['fan_in']}")
-        print(f"[FanIn] Most specific term: {rows[-1]['term_id']} fan_in={rows[-1]['fan_in']}")
+    print(f"[FanIn] {len(rows)} ancestor terms found via IS_A traversal.")
+    print(f"[FanIn] Most generic:  {rows[0]['term_id']}  fan_in={rows[0]['fan_in']}")
+    print(f"[FanIn] Most specific: {rows[-1]['term_id']} fan_in={rows[-1]['fan_in']}")
 
+    total_props_set = 0
     written = 0
     for i in range(0, len(rows), _CHUNK_SIZE):
         chunk = rows[i : i + _CHUNK_SIZE]
-        run_write_query(_WRITE_CYPHER, {"rows": chunk})
+        props_set = run_write_query(_WRITE_CYPHER, {"rows": chunk})
+        total_props_set += props_set
         written += len(chunk)
-        print(f"[FanIn] Written {written}/{len(rows)}")
+        print(f"[FanIn] Written {written}/{len(rows)}  (properties_set so far: {total_props_set})")
 
-    print("[FanIn] Done. global_fan_in is now set on all OntologyTerm nodes.")
-    print("[FanIn] Verify with: MATCH (t:OntologyTerm) WHERE t.global_fan_in IS NOT NULL RETURN count(t)")
+    # Verify how many nodes now have the property
+    verify = run_query(_VERIFY_CYPHER, {})
+    verified_count = verify[0]["n"] if verify else 0
+    print(f"[FanIn] Done. global_fan_in set on {verified_count} OntologyTerm nodes "
+          f"({total_props_set} property writes).")
+    if verified_count == 0:
+        print("[FanIn] WARNING: 0 nodes verified — writes may not have committed. "
+              "Check Neo4j connectivity and driver version.")
+    return {
+        "status": "ok",
+        "terms_found": len(rows),
+        "properties_set": total_props_set,
+        "verified_count": verified_count,
+        "max_fan_in": rows[0]["fan_in"] if rows else 0,
+        "min_fan_in": rows[-1]["fan_in"] if rows else 0,
+    }
 
 
 if __name__ == "__main__":
