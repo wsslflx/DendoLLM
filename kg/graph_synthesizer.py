@@ -85,22 +85,18 @@ def _score_tier1_term(row: dict, n_species: int, max_fan_in: int) -> float:
     """
     IC-style score balancing species breadth with ontological specificity.
 
-      breadth    = species_count / n_species        — fraction of species covered (0..1)
-      ic         = log((max_fan_in+1) / (fan_in+1)) — higher for specific terms, 0 for
-                   the most generic term in the candidate set
-      ef_penalty = 1 / (1 + 0.05 * entity_forms)   — soft penalty for terms used as
-                   catch-alls in this run
+      breadth = species_count / n_species        — fraction of species covered (0..1)
+      ic      = log((max_fan_in+1) / (fan_in+1)) — higher for specific terms, 0 for
+                the most generic term in the candidate set
 
     Terms with global_fan_in=-1 (precompute not yet run) receive a middle-ground IC of 2.0
     so the ranking degrades gracefully rather than collapsing.
     """
     sp_count = len(row["species_list"])
     fan_in   = row["fan_in"]
-    ef_count = len(row["entity_forms"])
     breadth  = sp_count / n_species
     ic       = math.log((max_fan_in + 1) / (fan_in + 1)) if fan_in >= 0 else 2.0
-    ef_penalty = 1.0 / (1.0 + 0.05 * ef_count)
-    return breadth * ic * ef_penalty
+    return breadth * ic
 
 
 def _query_tier1(species_norms: list[str], min_species: int,
