@@ -473,6 +473,7 @@ def enrich_doc_entities(
     species_norms: list[str],
     similarity_threshold: float = 0.78,
     model: str | None = None,
+    mapping_model: str | None = None,
     force_reenrich: bool = False,
     log_dir: pathlib.Path | None = None,
     embed_backend: str | None = None,
@@ -511,8 +512,10 @@ def enrich_doc_entities(
     except Exception as exc:
         print(f"[GraphEnricher] Schema init failed (non-fatal): {exc}")
 
-    # Sub-step 1: uPheno mapping
-    mapped, no_match, ancestors = _run_upheno_mapping(driver, species_norms, model, force_reenrich, embed_backend=embed_backend, max_workers=max_workers, norm_batch_size=norm_batch_size)
+    # Sub-step 1: uPheno mapping — uses mapping_model if set, falls back to synthesis model
+    _map_model = mapping_model or model
+    print(f"[GraphEnricher] Mapping model: {_map_model or 'default'}")
+    mapped, no_match, ancestors = _run_upheno_mapping(driver, species_norms, _map_model, force_reenrich, embed_backend=embed_backend, max_workers=max_workers, norm_batch_size=norm_batch_size)
     summary["entities_seen"] = mapped + no_match
     summary["entities_mapped"] = mapped
     summary["entities_no_match"] = no_match

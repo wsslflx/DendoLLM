@@ -186,6 +186,13 @@ def main() -> None:
              "Smaller/faster than the main synthesis model.",
     )
     parser.add_argument(
+        "--mapping-model",
+        default="granite4.1:8b",
+        help="LLM model for uPheno entity normalization and Stage 3 verification "
+             "(default: granite4.1:8b). Separate from the synthesis model so a "
+             "smaller/faster model can be used without affecting output quality.",
+    )
+    parser.add_argument(
         "--norm-batch-size",
         type=int,
         default=1,
@@ -331,6 +338,7 @@ def main() -> None:
                 species_norms=species_norms,
                 similarity_threshold=args.similarity_threshold,
                 model=args.model,
+                mapping_model=args.mapping_model,
                 force_reenrich=args.force_reenrich,
                 log_dir=bundle_dir,
                 embed_backend=args.embed_backend,
@@ -438,6 +446,7 @@ def main() -> None:
         "norm_batch_size": args.norm_batch_size,
         "index_workers": args.index_workers,
         "index_model": args.index_model or "granite4.1:8b",
+        "mapping_model": args.mapping_model,
         "shared_chroma_dir": str(chroma_dir) if args.shared_chroma_dir else None,
         "stage_timings": stage_timings,
     }

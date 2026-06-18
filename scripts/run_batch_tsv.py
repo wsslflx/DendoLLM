@@ -67,6 +67,7 @@ def main() -> None:
     )
     parser.add_argument("--model", default=None, help="Override synthesis LLM model.")
     parser.add_argument("--index-model", default=None, help="Override entity extraction model.")
+    parser.add_argument("--mapping-model", default="granite4.1:8b", help="LLM model for uPheno entity normalization and Stage 3 verification (default: granite4.1:8b).")
     parser.add_argument(
         "--index-workers", type=int, default=4,
         help="Parallel threads for chunk entity extraction (default: 4).",
@@ -177,6 +178,7 @@ def main() -> None:
             cmd += ["--model", args.model]
         if args.index_model:
             cmd += ["--index-model", args.index_model]
+        cmd += ["--mapping-model", args.mapping_model]
         if args.force_reindex:
             cmd.append("--force-reindex")
         if args.force_reenrich:
