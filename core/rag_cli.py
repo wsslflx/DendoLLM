@@ -458,6 +458,18 @@ class RAG:
         self.log_dir: pathlib.Path | None = None
         self._restore_ingested_from_store()
 
+    def _add_documents_with_retry(self, splits: list) -> None:
+        """Add documents to Chroma with a single 30s retry on 503 server-busy errors."""
+        try:
+            self.vectorstore.add_documents(splits)
+        except Exception as exc:
+            if "503" in str(exc) or "server busy" in str(exc).lower() or "maximum pending" in str(exc).lower():
+                print(f"[RAG] Embedding server busy (503) — waiting 30s then retrying once...")
+                time.sleep(30)
+                self.vectorstore.add_documents(splits)  # raises on second failure → shuts down run
+            else:
+                raise
+
     def _restore_ingested_from_store(self) -> None:
         """
         Pre-populate ingested_per_species from an existing Chroma store.
@@ -634,7 +646,7 @@ class RAG:
                 )
             doc.metadata = metadata
 
-        self.vectorstore.add_documents(splits)
+        self._add_documents_with_retry(splits)
         # persist to disk so future runs can reuse without re-embedding
         return splits
 
@@ -683,7 +695,7 @@ class RAG:
                     }
                 )
 
-            self.vectorstore.add_documents(splits)
+            self._add_documents_with_retry(splits)
             self.ingested_per_species[specie_norm].add(source_path)
 
     def ingest_wikipedia(
@@ -718,7 +730,7 @@ class RAG:
                     "source": "wikipedia",
                 }
             )
-        self.vectorstore.add_documents(splits)
+        self._add_documents_with_retry(splits)
         self.ingested_per_species[specie_norm].add(source_path)
         return True
 
