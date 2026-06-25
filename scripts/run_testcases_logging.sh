@@ -38,7 +38,7 @@ for TC in "${TESTCASES[@]}"; do
     echo "[run_testcases_logging] === Starting $TC ==="
     TC_START=$SECONDS
 
-    if python "$PIPELINE" --species-file "$SPECIES_FILE" --run-label "$TC" --bundle-root "$BATCH_ROOT" --shared-chroma-dir "$SHARED_CHROMA" --pdf-dir "$SHARED_PDF" --map-workers 4 --index-workers 4 --mapping-model "granite4.1:8b" >"$LOG_FILE" 2>&1; then
+    if python "$PIPELINE" --species-file "$SPECIES_FILE" --run-label "$TC" --bundle-root "$BATCH_ROOT" --shared-chroma-dir "$SHARED_CHROMA" --pdf-dir "$SHARED_PDF" --map-workers 4 --index-workers 4 --mapping-model "granite4.1:8b" --force-reindex --force-reenrich >"$LOG_FILE" 2>&1; then
         ELAPSED=$((SECONDS - TC_START))
         echo "[run_testcases_logging] $TC done in $((ELAPSED / 60))m $((ELAPSED % 60))s. Log: $LOG_FILE"
     else

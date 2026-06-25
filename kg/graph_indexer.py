@@ -28,7 +28,7 @@ from typing import Any
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
 ENTITY_EXTRACTION_PROMPT_FILE = "Prompts/prompt_entity_extraction.txt"
-MAX_ENTITY_RETRIES = 2
+MAX_ENTITY_RETRIES = 1
 CHUNK_ID_LEN = 16  # hex chars from sha256
 
 ALLOWED_ENTITY_TYPES = {"Species", "Anatomy", "Phenotype", "Habitat", "Process", "Gene"}
@@ -260,6 +260,10 @@ def _extract_entities_from_chunk(
 
             parsed = json.loads(raw)
         except Exception as exc:
+            exc_str = str(exc)
+            # Server crash (segfault, OOM, 500) — retrying won't help; abort the run
+            if "500" in exc_str or "segmentation fault" in exc_str.lower() or "terminated" in exc_str.lower():
+                raise RuntimeError(f"[GraphIndexer] LLM server crashed — aborting run: {exc}") from exc
             if attempt <= MAX_ENTITY_RETRIES:
                 print(f"[GraphIndexer] Parse attempt {attempt} failed: {exc}. Retrying...")
                 continue
@@ -520,6 +524,10 @@ def index_species(
                     summary["chunks_skipped"] += 1
                 elif r["status"] == "junk":
                     summary["chunks_junk"] += 1
+            except RuntimeError as exc:
+                # Server crash propagated from _extract_entities_from_chunk — abort immediately
+                pool.shutdown(wait=False, cancel_futures=True)
+                raise
             except Exception as exc:
                 chunk_i = futures[future]
                 print(f"[GraphIndexer] Chunk {chunk_i + 1}/{total} failed unexpectedly: {exc}")
