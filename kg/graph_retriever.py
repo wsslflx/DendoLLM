@@ -148,9 +148,13 @@ def retrieve_subgraph(
 
     source_chunk_ids = list(chunk_texts.keys())
 
+    cap_warning = (
+        f" [WARNING: chunk cap hit ({max_chunks}), earlier-ingested chunks only — consider raising max_chunks]"
+        if len(source_chunk_ids) >= max_chunks else ""
+    )
     print(
         f"[GraphRetriever] '{species_norm}': "
-        f"{len(source_chunk_ids)} chunks, {len(entities)} entities, {len(triples)} triples."
+        f"{len(source_chunk_ids)} chunks, {len(entities)} entities, {len(triples)} triples.{cap_warning}"
     )
 
     return SubgraphResult(

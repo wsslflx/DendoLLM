@@ -44,6 +44,36 @@ COSINE_AUTO_ACCEPT = 0.95
 COSINE_AUTO_REJECT = 0.50
 
 # ---------------------------------------------------------------------------
+# Thread-safe per-batch stats (reset at start of each map_traits_batch call)
+# ---------------------------------------------------------------------------
+
+_bstats_lock = Lock()
+_bstats: dict = {
+    "cache_hits": 0,
+    "stage1_calls": 0,
+    "stage1_time_s": 0.0,
+    "stage2_calls": 0,
+    "stage2_time_s": 0.0,
+    "stage3_calls": 0,
+    "stage3_time_s": 0.0,
+    "auto_accept": 0,
+    "auto_reject": 0,
+}
+
+
+def _reset_bstats() -> None:
+    global _bstats
+    with _bstats_lock:
+        _bstats = {k: type(v)() for k, v in _bstats.items()}
+
+
+def _bstats_add(**kwargs) -> None:
+    with _bstats_lock:
+        for k, v in kwargs.items():
+            _bstats[k] = _bstats.get(k, type(v)()) + v
+
+
+# ---------------------------------------------------------------------------
 # Persistent SQLite mapping cache
 # ---------------------------------------------------------------------------
 
@@ -369,6 +399,7 @@ def map_trait(
     # --- Cache check (skip all stages if seen before) ---
     cached = _cache_get(raw_trait)
     if cached is not None:
+        _bstats_add(cache_hits=1)
         print(f"[KG]   Cache hit: '{raw_trait}'")
         return cached
 
@@ -376,14 +407,18 @@ def map_trait(
     if normalized_trait is not None:
         normalized = normalized_trait
     else:
+        _t1 = time.monotonic()
         normalized = normalize_trait(raw_trait, model=model)
+        _bstats_add(stage1_calls=1, stage1_time_s=time.monotonic() - _t1)
     print(f"[KG]   Normalized: '{raw_trait}' → '{normalized}'")
 
     # Stage 2 — cosine similarity
+    _t2 = time.monotonic()
     candidates = find_top_candidates(
         normalized, embeddings, terms, top_k=10,
         embed_backend=embed_backend, embedder=embedder,
     )
+    _bstats_add(stage2_calls=1, stage2_time_s=time.monotonic() - _t2)
     if not candidates:
         result = _no_match_result(raw_trait, normalized)
         _cache_put(raw_trait, result)
@@ -394,6 +429,7 @@ def map_trait(
     # Cosine early exit — auto-accept
     if top_score >= COSINE_AUTO_ACCEPT:
         best = candidates[0]
+        _bstats_add(auto_accept=1)
         print(f"[KG]   Auto-accept (cosine={top_score:.3f}): '{raw_trait}' → {best['id']}")
         result = {
             "raw_trait": raw_trait,
@@ -411,6 +447,7 @@ def map_trait(
 
     # Cosine early exit — auto-reject
     if top_score < COSINE_AUTO_REJECT:
+        _bstats_add(auto_reject=1)
         print(f"[KG]   Auto-reject (cosine={top_score:.3f}): '{raw_trait}'")
         result = _no_match_result(
             raw_trait, normalized,
@@ -420,7 +457,9 @@ def map_trait(
         return result
 
     # Stage 3 — LLM verification
+    _t3 = time.monotonic()
     result = verify_candidate(raw_trait, normalized, candidates, model=model)
+    _bstats_add(stage3_calls=1, stage3_time_s=time.monotonic() - _t3)
     confidence = result.get("confidence", "no_match")
 
     if confidence in ("high", "medium"):
@@ -519,6 +558,9 @@ def map_traits_batch(
     The embedder and ontology index are loaded once and shared across threads
     (both are read-only after initialisation).
     """
+    _reset_bstats()
+    _batch_wall_start = time.monotonic()
+
     embeddings, terms = load_index(embed_backend=embed_backend)
     # Pre-create embedder once — avoids re-instantiating per thread call
     embedder = make_embeddings(embed_backend=embed_backend)
@@ -533,7 +575,9 @@ def map_traits_batch(
         if uncached:
             print(f"[KG] Batch-normalizing {len(uncached)} uncached traits "
                   f"(batch_size={norm_batch_size})...")
+            _t1_batch = time.monotonic()
             norm_results = normalize_traits_batch(uncached, model=model, batch_size=norm_batch_size)
+            _bstats_add(stage1_calls=len(uncached), stage1_time_s=time.monotonic() - _t1_batch)
             pre_normalized = dict(zip(uncached, norm_results))
         cached_count = n - len(uncached)
         if cached_count:
@@ -583,4 +627,21 @@ def map_traits_batch(
 
     mapped = sum(1 for r in results if r["mapped"])
     print(f"[KG] Mapped {mapped}/{n} traits successfully.")
+
+    # Per-stage timing and outcome summary
+    with _bstats_lock:
+        st = dict(_bstats)
+    batch_wall_s = time.monotonic() - _batch_wall_start
+    non_cached = n - st["cache_hits"]
+    stage3_trigger_rate = st["stage3_calls"] / non_cached if non_cached > 0 else 0.0
+    s1s, s2s, s3s = st["stage1_time_s"], st["stage2_time_s"], st["stage3_time_s"]
+    stage_total = s1s + s2s + s3s
+    print(f"[KG] ── Mapping stage stats (thread-summed time) ──────────────────")
+    print(f"[KG]   Total traits:      {n}  |  cache hits: {st['cache_hits']} ({st['cache_hits']/n:.0%})  |  wall time: {batch_wall_s:.1f}s")
+    print(f"[KG]   Stage 1 (LLM norm):   {st['stage1_calls']:4d} calls  {s1s:7.1f}s  ({s1s/stage_total:.0%} of stage time)" if stage_total else f"[KG]   Stage 1 (LLM norm):   {st['stage1_calls']:4d} calls")
+    print(f"[KG]   Stage 2 (cosine):     {st['stage2_calls']:4d} calls  {s2s:7.1f}s  ({s2s/stage_total:.0%} of stage time)" if stage_total else f"[KG]   Stage 2 (cosine):     {st['stage2_calls']:4d} calls")
+    print(f"[KG]   Stage 3 (LLM verify): {st['stage3_calls']:4d} calls  {s3s:7.1f}s  ({s3s/stage_total:.0%} of stage time)  trigger rate: {stage3_trigger_rate:.0%}" if stage_total else f"[KG]   Stage 3 (LLM verify): {st['stage3_calls']:4d} calls  trigger rate: {stage3_trigger_rate:.0%}")
+    print(f"[KG]   Auto-accept: {st['auto_accept']}  |  auto-reject: {st['auto_reject']}  |  stage time total: {stage_total:.1f}s")
+    print(f"[KG] ────────────────────────────────────────────────────────────────")
+
     return results

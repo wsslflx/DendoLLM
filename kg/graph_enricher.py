@@ -200,10 +200,34 @@ def _run_upheno_mapping(
     entities = _pull_entities_to_map(driver, species_norms, force)
     if not entities:
         print("[GraphEnricher] No entities to map (all already enriched or none found).")
-        return 0, 0, 0
+        return 0, 0, 0, {}, {}, {}
+
+    # Per-species entity count
+    per_species_entity_counts: dict[str, int] = {}
+    try:
+        from kg.neo4j_client import run_query as _rq
+        _cond = "" if force else "AND (e.upheno_enriched IS NULL OR e.upheno_enriched = false) "
+        _per_sp_rows = _rq(
+            "MATCH (c:DocChunk)-[:MENTIONS]->(e:DocEntity) "
+            f"WHERE c.species_norm IN $sn {_cond}"
+            "RETURN c.species_norm AS sp, count(DISTINCT e.entity_id) AS n "
+            "ORDER BY n DESC",
+            {"sn": species_norms},
+        )
+        per_species_entity_counts = {_r["sp"]: _r["n"] for _r in _per_sp_rows}
+        print(f"[GraphEnricher] Entities to map per species:")
+        for _r in _per_sp_rows:
+            print(f"[GraphEnricher]   {_r['sp']}: {_r['n']} entities")
+    except Exception as _exc:
+        print(f"[GraphEnricher] Per-species entity count failed (non-fatal): {_exc}")
 
     # Deduplicate by surface_form — mapping is text-only, so same sf always gives same result
-    unique_sfs = list(dict.fromkeys(e["sf"] for e in entities))
+    # Keep sf → etype mapping for per-type stats after results come back
+    sf_to_etype: dict[str, str] = {}
+    for e in entities:
+        if e["sf"] not in sf_to_etype:
+            sf_to_etype[e["sf"]] = e.get("etype", "Unknown")
+    unique_sfs = list(sf_to_etype.keys())
     print(
         f"[GraphEnricher] {len(entities)} entities to map "
         f"({len(unique_sfs)} unique surface forms after deduplication, "
@@ -217,14 +241,15 @@ def _run_upheno_mapping(
         _embeddings, _terms = load_index(embed_backend=embed_backend)
     except Exception as exc:
         print(f"[GraphEnricher] Cannot load ontology index: {exc} — skipping uPheno mapping.")
-        return 0, len(entities), 0
+        return 0, len(entities), 0, {}, {}, {}
 
     # Load owlready2 world for ancestor traversal
     world = _load_owl_world()
 
     # Map unique surface forms only
     try:
-        from kg.trait_mapper import map_traits_batch
+        from kg.trait_mapper import map_traits_batch, _bstats, _bstats_lock
+        import threading as _threading
         unique_results = map_traits_batch(
             unique_sfs,
             no_match_out_path=None,
@@ -233,9 +258,11 @@ def _run_upheno_mapping(
             max_workers=max_workers,
             norm_batch_size=norm_batch_size,
         )
+        with _bstats_lock:
+            mapping_stage_stats = dict(_bstats)
     except Exception as exc:
         print(f"[GraphEnricher] map_traits_batch failed: {exc}")
-        return 0, len(entities), 0
+        return 0, len(entities), 0, {}, {}, {}
 
     # Build sf → result lookup
     sf_to_result = {sf: result for sf, result in zip(unique_sfs, unique_results)}
@@ -301,6 +328,77 @@ def _run_upheno_mapping(
     mapped_count = len(mapped_rows)
     no_match_count = len(no_match_eids)
     ancestors_total = 0
+
+    # ---- Per-entity-type stats (for logging and future pre-filtering decisions) ----
+    type_stats: dict[str, dict] = {}
+    for sf, result in sf_to_result.items():
+        etype = sf_to_etype.get(sf, "Unknown")
+        if etype not in type_stats:
+            type_stats[etype] = {"seen": 0, "mapped": 0, "no_match": 0, "cosine_scores": []}
+        type_stats[etype]["seen"] += 1
+        if result.get("mapped") and result.get("term_id"):
+            type_stats[etype]["mapped"] += 1
+            if result.get("cosine_score"):
+                type_stats[etype]["cosine_scores"].append(result["cosine_score"])
+        else:
+            type_stats[etype]["no_match"] += 1
+
+    type_stats_clean = {}
+    for etype, s in sorted(type_stats.items()):
+        cosines = s["cosine_scores"]
+        map_rate = s["mapped"] / s["seen"] if s["seen"] else 0.0
+        type_stats_clean[etype] = {
+            "seen": s["seen"],
+            "mapped": s["mapped"],
+            "no_match": s["no_match"],
+            "map_rate": round(map_rate, 3),
+            "avg_cosine_mapped": round(sum(cosines) / len(cosines), 3) if cosines else None,
+        }
+        print(f"[GraphEnricher] Type {etype:12s}: {s['seen']:5d} seen, "
+              f"{s['mapped']:5d} mapped ({map_rate:.0%}), "
+              f"avg cosine={sum(cosines)/len(cosines):.3f}" if cosines else
+              f"[GraphEnricher] Type {etype:12s}: {s['seen']:5d} seen, "
+              f"{s['mapped']:5d} mapped ({map_rate:.0%}), avg cosine=n/a")
+
+    # ---- Deduplication / redundancy stats ----
+    # Mapped side: how many unique surface forms collapsed onto the same OntologyTerm?
+    term_to_sfs: dict[str, list[str]] = {}
+    for sf, result in sf_to_result.items():
+        if result.get("mapped") and result.get("term_id"):
+            term_to_sfs.setdefault(result["term_id"], []).append(sf)
+
+    unique_sfs_mapped    = sum(1 for r in sf_to_result.values() if r.get("mapped") and r.get("term_id"))
+    unique_sfs_no_match  = sum(1 for r in sf_to_result.values() if not (r.get("mapped") and r.get("term_id")))
+    unique_ontology_terms_hit = len(term_to_sfs)
+    redundant_sfs_mapped = sum(len(sfs) - 1 for sfs in term_to_sfs.values() if len(sfs) > 1)
+    terms_hit_by_multiple = sum(1 for sfs in term_to_sfs.values() if len(sfs) > 1)
+    avg_sfs_per_term = round(unique_sfs_mapped / unique_ontology_terms_hit, 2) if unique_ontology_terms_hit else 0.0
+    cosines_by_term = {
+        tid: [sf_to_result[sf]["cosine_score"] for sf in sfs if sf_to_result[sf].get("cosine_score")]
+        for tid, sfs in term_to_sfs.items() if len(sfs) > 1
+    }
+    cosine_spreads = [max(c) - min(c) for c in cosines_by_term.values() if len(c) > 1]
+    avg_cosine_spread = round(sum(cosine_spreads) / len(cosine_spreads), 3) if cosine_spreads else None
+
+    dedup_stats = {
+        "unique_sfs_mapped":          unique_sfs_mapped,
+        "unique_sfs_no_match":        unique_sfs_no_match,
+        "unique_ontology_terms_hit":  unique_ontology_terms_hit,
+        "avg_sfs_per_ontology_term":  avg_sfs_per_term,
+        "terms_hit_by_multiple_sfs":  terms_hit_by_multiple,
+        "redundant_sfs_mapped":       redundant_sfs_mapped,
+        "avg_cosine_spread_in_groups": avg_cosine_spread,
+    }
+    print(f"[GraphEnricher] Dedup stats:")
+    print(f"[GraphEnricher]   Unique SFs mapped:            {unique_sfs_mapped}")
+    print(f"[GraphEnricher]   Unique SFs no-match:          {unique_sfs_no_match}")
+    print(f"[GraphEnricher]   Unique OntologyTerms hit:     {unique_ontology_terms_hit}")
+    print(f"[GraphEnricher]   Avg SFs per OntologyTerm:     {avg_sfs_per_term}")
+    print(f"[GraphEnricher]   Terms hit by 2+ SFs:          {terms_hit_by_multiple}")
+    print(f"[GraphEnricher]   Redundant mapped SFs:         {redundant_sfs_mapped}  "
+          f"({redundant_sfs_mapped / unique_sfs_mapped:.0%} of mapped calls were duplicates)"
+          if unique_sfs_mapped else "")
+    print(f"[GraphEnricher]   Avg cosine spread in groups:  {avg_cosine_spread}")
 
     # ---- UNWIND bulk writes ----
     try:
@@ -368,7 +466,7 @@ def _run_upheno_mapping(
         f"{mapped_count} mapped, {no_match_count} no-match, "
         f"{ancestors_total} ancestor IS_A edges written."
     )
-    return mapped_count, no_match_count, ancestors_total
+    return mapped_count, no_match_count, ancestors_total, type_stats_clean, dedup_stats, {"mapping_stage_stats": mapping_stage_stats, "per_species_entity_counts": per_species_entity_counts}
 
 
 # ---------------------------------------------------------------------------
@@ -515,11 +613,15 @@ def enrich_doc_entities(
     # Sub-step 1: uPheno mapping — uses mapping_model if set, falls back to synthesis model
     _map_model = mapping_model or model
     print(f"[GraphEnricher] Mapping model: {_map_model or 'default'}")
-    mapped, no_match, ancestors = _run_upheno_mapping(driver, species_norms, _map_model, force_reenrich, embed_backend=embed_backend, max_workers=max_workers, norm_batch_size=norm_batch_size)
+    mapped, no_match, ancestors, type_stats, dedup_stats, extra_stats = _run_upheno_mapping(driver, species_norms, _map_model, force_reenrich, embed_backend=embed_backend, max_workers=max_workers, norm_batch_size=norm_batch_size)
     summary["entities_seen"] = mapped + no_match
     summary["entities_mapped"] = mapped
     summary["entities_no_match"] = no_match
     summary["ancestor_terms_added"] = ancestors
+    summary["entity_type_stats"] = type_stats
+    summary["dedup_stats"] = dedup_stats
+    summary["mapping_stage_stats"] = extra_stats.get("mapping_stage_stats", {})
+    summary["per_species_entity_counts"] = extra_stats.get("per_species_entity_counts", {})
 
     # Sub-step 2: similarity edges
     pairs = _run_similarity_edges(driver, species_norms, similarity_threshold, embed_backend=embed_backend)

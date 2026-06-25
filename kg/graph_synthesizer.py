@@ -570,12 +570,12 @@ def _build_subgraph_context(
     max_triples_per_species: int = 150,
     summarize: bool = True,
     model: str | None = None,
-) -> str:
+) -> tuple[str, dict]:
     """
     Retrieve and serialize the enriched subgraph for each species.
-    Returns a single string with all species subgraphs concatenated,
-    each prefixed with a species header. Source chunk text is excluded
-    to keep synthesis context compact.
+    Returns (context_string, retriever_stats_per_species).
+
+    retriever_stats keys per species: n_chunks, n_entities, n_triples, chunk_cap_hit.
 
     summarize: if True, each species subgraph is compressed to a short LLM-generated
     bullet summary before being passed to the synthesis prompt. This reduces context
@@ -583,6 +583,7 @@ def _build_subgraph_context(
     """
     from kg.graph_retriever import retrieve_subgraph, serialize_subgraph_to_context
     sections = []
+    retriever_stats: dict[str, dict] = {}
     for sp_norm in species_norms:
         display = species_display_map.get(sp_norm, sp_norm)
         print(f"[GraphSynthesizer] Retrieving subgraph for '{display}'...")
@@ -591,7 +592,14 @@ def _build_subgraph_context(
             if result.n_chunks == 0:
                 print(f"[GraphSynthesizer] No graph data for '{display}'.")
                 sections.append(f"### {display}\n  (no graph data available)\n")
+                retriever_stats[sp_norm] = {"n_chunks": 0, "n_entities": 0, "n_triples": 0, "chunk_cap_hit": False}
                 continue
+            retriever_stats[sp_norm] = {
+                "n_chunks": result.n_chunks,
+                "n_entities": result.n_entities,
+                "n_triples": result.n_triples,
+                "chunk_cap_hit": result.n_chunks >= 200,
+            }
             result = _deduplicate_subgraph_entities(result)
             triples_limit = MAX_TRIPLES_FOR_SUMMARY if summarize else max_triples_per_species
             context = serialize_subgraph_to_context(
@@ -607,7 +615,8 @@ def _build_subgraph_context(
         except Exception as exc:
             print(f"[GraphSynthesizer] Subgraph retrieval failed for '{display}': {exc}")
             sections.append(f"### {display}\n  (retrieval error)\n")
-    return "\n\n".join(sections)
+            retriever_stats[sp_norm] = {"error": str(exc)}
+    return "\n\n".join(sections), retriever_stats
 
 
 # ---------------------------------------------------------------------------
@@ -779,7 +788,7 @@ def run_synthesis(
 
     # Per-species subgraphs for Tier 3
     print("[GraphSynthesizer] Retrieving per-species subgraphs for Tier 3...")
-    subgraph_context = _build_subgraph_context(
+    subgraph_context, retriever_stats = _build_subgraph_context(
         species_norms, species_display_map,
         summarize=summarize_subgraphs, model=model,
     )
@@ -832,6 +841,7 @@ def run_synthesis(
             "tier1": tier1,
             "tier2_clusters": synthesis.get("tier2_raw", []),
             "subgraph_context_chars": len(subgraph_context),
+            "retriever_stats": retriever_stats,
         }
         try:
             (log_dir / "graph_synthesis_evidence.json").write_text(
