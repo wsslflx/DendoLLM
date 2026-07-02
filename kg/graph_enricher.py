@@ -31,6 +31,20 @@ sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
 
 # ---------------------------------------------------------------------------
+# Entity type filters
+# ---------------------------------------------------------------------------
+
+# Types skipped from uPheno enrichment (Stage 1→2→3). Their DocEntity nodes
+# still exist and participate in Tier 2 similarity edges if listed below.
+# Species: 89–92% fail rate, never contributes to Tier 1 or Tier 2 synthesis.
+_ENRICH_SKIP_TYPES = {"Species"}
+
+# Types included in cross-species embedding similarity computation.
+# Must stay in sync with _TIER2_ALLOWED_ENTITY_TYPES in graph_synthesizer.py.
+_SIMILARITY_ALLOWED_TYPES = ["Phenotype", "Anatomy", "Habitat"]
+
+
+# ---------------------------------------------------------------------------
 # Schema
 # ---------------------------------------------------------------------------
 
@@ -53,19 +67,21 @@ def _init_enricher_schema(driver) -> None:
 # ---------------------------------------------------------------------------
 
 def _pull_entities_to_map(driver, species_norms: list[str], force: bool) -> list[dict]:
-    """Pull DocEntity nodes that need uPheno mapping."""
+    """Pull DocEntity nodes that need uPheno mapping, excluding _ENRICH_SKIP_TYPES."""
     if force:
         condition = ""
     else:
         condition = "AND (e.upheno_enriched IS NULL OR e.upheno_enriched = false) "
     cypher = (
         "MATCH (c:DocChunk)-[:MENTIONS]->(e:DocEntity) "
-        f"WHERE c.species_norm IN $sn {condition}"
+        f"WHERE c.species_norm IN $sn AND e.entity_type NOT IN $skip_etypes {condition}"
         "RETURN DISTINCT e.entity_id AS eid, e.surface_form AS sf, e.entity_type AS etype"
     )
     try:
         from kg.neo4j_client import run_query
-        rows = run_query(cypher, {"sn": species_norms})
+        rows = run_query(cypher, {"sn": species_norms, "skip_etypes": list(_ENRICH_SKIP_TYPES)})
+        print(f"[GraphEnricher] Pulled {len(rows)} entities for enrichment "
+              f"(skipping types: {_ENRICH_SKIP_TYPES})")
         return rows
     except Exception as exc:
         print(f"[GraphEnricher] Pull entities failed: {exc}")
@@ -484,16 +500,18 @@ def _run_similarity_edges(
     add DOC_SIMILAR_TO edges for cross-species pairs above threshold.
     Returns number of pairs added.
     """
-    # Pull entities with their species sets
+    # Pull entities with their species sets — only types used by Tier 2 synthesis
     cypher = (
         "MATCH (c:DocChunk)-[:MENTIONS]->(e:DocEntity) "
-        "WHERE c.species_norm IN $sn "
+        "WHERE c.species_norm IN $sn AND e.entity_type IN $allowed_etypes "
         "RETURN e.entity_id AS eid, e.surface_form AS sf, "
         "       collect(DISTINCT c.species_norm) AS species_set"
     )
     try:
         from kg.neo4j_client import run_query
-        rows = run_query(cypher, {"sn": species_norms})
+        rows = run_query(cypher, {"sn": species_norms, "allowed_etypes": _SIMILARITY_ALLOWED_TYPES})
+        print(f"[GraphEnricher] Similarity matrix: {len(rows)} entities "
+              f"(types: {_SIMILARITY_ALLOWED_TYPES})")
     except Exception as exc:
         print(f"[GraphEnricher] Pull entities for similarity failed: {exc}")
         return 0
