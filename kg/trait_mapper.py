@@ -252,15 +252,18 @@ def find_top_candidates(
     top_k: int = 10,
     embed_backend: str | None = None,
     embedder=None,
+    vec=None,
 ) -> list[dict]:
     """
     Return top_k ontology terms by cosine similarity.
     Pass a pre-created `embedder` to avoid re-instantiating per call in parallel mode.
+    Pass a pre-computed `vec` (float32 ndarray) to skip the embed_query() HTTP call entirely.
     """
     import numpy as np
-    if embedder is None:
-        embedder = make_embeddings(embed_backend=embed_backend)
-    vec = np.array(embedder.embed_query(normalized_trait), dtype="float32")
+    if vec is None:
+        if embedder is None:
+            embedder = make_embeddings(embed_backend=embed_backend)
+        vec = np.array(embedder.embed_query(normalized_trait), dtype="float32")
     sims = _cosine_similarity(vec, embeddings)
     top_idx = np.argsort(sims)[::-1][:top_k]
     return [
@@ -385,6 +388,7 @@ def map_trait(
     embed_backend: str | None = None,
     embedder=None,
     normalized_trait: str | None = None,
+    vec=None,
 ) -> dict:
     """
     Full three-stage mapping for a single raw trait string.
@@ -393,8 +397,9 @@ def map_trait(
     Performance shortcuts (in order):
       1. SQLite cache hit → return immediately, zero LLM calls
       2. normalized_trait provided → skip Stage 1 LLM call
-      3. Cosine auto-accept (>= COSINE_AUTO_ACCEPT) → skip Stage 3 LLM call
-      4. Cosine auto-reject (< COSINE_AUTO_REJECT) → skip Stage 3 LLM call
+      3. vec provided → skip Stage 2 embed_query() HTTP call (cosine math only)
+      4. Cosine auto-accept (>= COSINE_AUTO_ACCEPT) → skip Stage 3 LLM call
+      5. Cosine auto-reject (< COSINE_AUTO_REJECT) → skip Stage 3 LLM call
     """
     # --- Cache check (skip all stages if seen before) ---
     cached = _cache_get(raw_trait)
@@ -417,6 +422,7 @@ def map_trait(
     candidates = find_top_candidates(
         normalized, embeddings, terms, top_k=10,
         embed_backend=embed_backend, embedder=embedder,
+        vec=vec,
     )
     _bstats_add(stage2_calls=1, stage2_time_s=time.monotonic() - _t2)
     if not candidates:
@@ -547,6 +553,7 @@ def map_traits_batch(
     embed_backend: str | None = None,
     max_workers: int = 1,
     norm_batch_size: int = 1,
+    embed_batch_size: int = 256,
 ) -> list[dict]:
     """
     Map a list of traits in parallel, writing no-matches to a JSONL file.
@@ -554,6 +561,12 @@ def map_traits_batch(
     norm_batch_size > 1: pre-normalize all non-cached traits in batches via a
     single LLM call per batch before Stage 2/3, saving ~(batch_size-1)/batch_size
     of Stage 1 LLM calls. norm_batch_size=1 behaves exactly as before.
+
+    embed_batch_size > 1: pre-embed all normalized strings via embed_documents()
+    in chunks before the ThreadPoolExecutor starts, replacing one embed_query()
+    HTTP call per entity with ceil(N/embed_batch_size) batch calls. Requires
+    norm_batch_size > 1 (needs pre_normalized to be populated). Set to 1 to
+    disable and fall back to per-entity embed_query() calls.
 
     The embedder and ontology index are loaded once and shared across threads
     (both are read-only after initialisation).
@@ -583,16 +596,43 @@ def map_traits_batch(
         if cached_count:
             print(f"[KG] Skipping normalization for {cached_count} cached traits.")
 
+    # --- Batch Stage 2: pre-embed all normalized strings ---
+    # Only runs when pre_normalized is populated (norm_batch_size > 1).
+    # Replaces N embed_query() calls with ceil(N/embed_batch_size) embed_documents() calls.
+    pre_embedded: dict[str, "np.ndarray"] = {}  # normalized_text → float32 vector
+    if pre_normalized and embed_batch_size > 1:
+        import numpy as np
+        norm_texts = list(set(pre_normalized.values()))  # deduplicate identical normalizations
+        print(f"[KG] Batch-embedding {len(norm_texts)} normalized traits "
+              f"(batch_size={embed_batch_size}, "
+              f"{-(-len(norm_texts) // embed_batch_size)} HTTP calls)...")
+        _t2_batch = time.monotonic()
+        for start in range(0, len(norm_texts), embed_batch_size):
+            chunk = norm_texts[start:start + embed_batch_size]
+            try:
+                vecs = embedder.embed_documents(chunk)
+                for text, vec in zip(chunk, vecs):
+                    pre_embedded[text] = np.array(vec, dtype="float32")
+            except Exception as exc:
+                print(f"[KG] Batch embed chunk {start}–{start + len(chunk)} failed: {exc} "
+                      "— affected traits will fall back to single embed_query()")
+        _t2_batch_elapsed = time.monotonic() - _t2_batch
+        _bstats_add(stage2_time_s=_t2_batch_elapsed)
+        print(f"[KG] Pre-embedded {len(pre_embedded)}/{len(norm_texts)} normalized traits "
+              f"in {_t2_batch_elapsed:.1f}s")
+
     results: list[dict | None] = [None] * n
     completed = 0
 
     def _map_one(idx_trait):
         idx, trait = idx_trait
-        norm = pre_normalized.get(trait)  # None if batch_size=1 or cache hit
+        norm = pre_normalized.get(trait)  # None if norm_batch_size=1 or cache hit
+        vec = pre_embedded.get(norm) if norm else None  # None if embed failed or not pre-embedded
         return idx, map_trait(
             trait, embeddings, terms,
             model=model, embed_backend=embed_backend, embedder=embedder,
             normalized_trait=norm,
+            vec=vec,
         )
 
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
