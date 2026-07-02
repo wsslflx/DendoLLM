@@ -227,6 +227,39 @@ def _is_junk_chunk(text: str) -> tuple[bool, str]:
 
 
 # ---------------------------------------------------------------------------
+# Junk entity filter
+# ---------------------------------------------------------------------------
+
+_CITATION_RE = re.compile(r"\bet\s+al\b", re.IGNORECASE)
+_AUTHOR_YEAR_RE = re.compile(r"^[A-Z][a-z]+(?:\s+and\s+[A-Z][a-z]+)?\s+\d{4}$")
+_ACCESSION_RE = re.compile(r"^(?:XM_|XP_|NM_|NP_|contig)\d+", re.IGNORECASE)
+
+
+def _is_junk_entity(text: str) -> tuple[bool, str]:
+    """
+    Return (True, reason) if this entity surface form should be dropped before
+    indexing. Hard-deleted entities never reach Neo4j and cannot participate in
+    Tier 2 similarity edges.
+
+    Measurement rule: only strings that START with a digit are dropped.
+    Mid-string metrics ("low body temperature (32-34°C)") pass through.
+    """
+    if len(text) < 3:
+        return True, "too_short"
+    if _CITATION_RE.search(text):
+        return True, "citation_et_al"
+    if _AUTHOR_YEAR_RE.match(text):
+        return True, "author_year"
+    if text[0].isdigit():
+        return True, "starts_with_digit"
+    if _ACCESSION_RE.match(text):
+        return True, "accession_id"
+    if not text.isascii():
+        return True, "non_ascii"
+    return False, ""
+
+
+# ---------------------------------------------------------------------------
 # LLM entity extraction
 # ---------------------------------------------------------------------------
 
@@ -282,6 +315,10 @@ def _extract_entities_from_chunk(
             text = str(e.get("text", "")).strip()
             etype = str(e.get("type", "")).strip()
             if not text or etype not in ALLOWED_ENTITY_TYPES:
+                continue
+            junk, junk_reason = _is_junk_entity(text)
+            if junk:
+                print(f"[GraphIndexer] Dropping junk entity ({junk_reason}): '{text}'")
                 continue
             entities.append({
                 "entity_id": _make_entity_id(etype, text),
