@@ -25,6 +25,7 @@ sys.path.insert(0, str(_Path(__file__).parent))
 import argparse
 import json
 import pathlib
+import time
 from contextlib import nullcontext
 from datetime import datetime
 from typing import Any
@@ -104,7 +105,9 @@ def run_graph_inventory(
         lock_ctx = v1.ingest_lock(ingest_lock_file) if ingest_lock_file else nullcontext()
         with lock_ctx:
             print(f"[GraphRAG] Ingesting docs for '{specie}'...")
+            _t_ingest = time.monotonic()
             v1.ingest_species(rag, canonical=specie, aliases=aliases, pdf_dir=pdf_dir)
+            print(f"[GraphRAG] Ingest complete for '{specie}' ({round(time.monotonic() - _t_ingest, 1)}s)")
 
     log_dir = init_log_dir(log_runs, log_root=log_root, subdir=v1.slugify(specie))
 
@@ -118,6 +121,7 @@ def run_graph_inventory(
     index_summary: dict[str, Any] = {}
     if not skip_index:
         print(f"[GraphRAG] Indexing chunks for '{specie}' into Neo4j document graph...")
+        _t_index = time.monotonic()
         index_summary = index_species(
             species_norm=species_norm,
             chroma_vectorstore=rag.vectorstore,
@@ -128,6 +132,8 @@ def run_graph_inventory(
             log_dir=log_dir,
             max_workers=index_workers,
         )
+        index_summary["index_wall_s"] = round(time.monotonic() - _t_index, 1)
+        print(f"[GraphRAG] Indexing complete for '{specie}' ({index_summary['index_wall_s']}s)")
         if log_dir and index_summary:
             (log_dir / "graph_indexer_summary.json").write_text(
                 json.dumps(index_summary, ensure_ascii=False, indent=2), encoding="utf-8"

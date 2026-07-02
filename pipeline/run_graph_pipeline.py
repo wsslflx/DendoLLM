@@ -362,13 +362,17 @@ def main() -> None:
     # has up-to-date scores before synthesis queries the graph.
     if not args.skip_enrich and not args.skip_synthesis and species_norms:
         print(f"\n[GraphPipeline] Updating global_fan_in on OntologyTerm nodes...")
+        t0 = time.monotonic()
         try:
             from kg.precompute_fan_in import run as _run_fan_in
             fan_in_stats = _run_fan_in()
+            stage_timings["fan_in_s"] = round(time.monotonic() - t0, 1)
+            print(f"[GraphPipeline] Fan-in precompute complete. ({stage_timings['fan_in_s']}s)")
             (bundle_dir / "fan_in_precompute.json").write_text(
                 json.dumps(fan_in_stats, ensure_ascii=False, indent=2), encoding="utf-8"
             )
         except Exception as exc:
+            stage_timings["fan_in_s"] = round(time.monotonic() - t0, 1)
             print(f"[GraphPipeline] precompute_fan_in failed (non-fatal, synthesis will use fallback ranking): {exc}")
             (bundle_dir / "fan_in_precompute.json").write_text(
                 json.dumps({"status": "exception", "error": str(exc)}, indent=2), encoding="utf-8"
@@ -410,6 +414,15 @@ def main() -> None:
         print(f"[GraphPipeline] Skipping synthesis step (--skip-synthesis).")
 
     stage_timings["total_s"] = round(time.monotonic() - pipeline_start, 1)
+
+    print(f"\n[GraphPipeline] ══════════════════════════════════════════")
+    print(f"[GraphPipeline]  Stage timing summary")
+    print(f"[GraphPipeline] ══════════════════════════════════════════")
+    for stage, secs in stage_timings.items():
+        label = stage.replace("_s", "").replace("_", " ").ljust(16)
+        bar = "█" * max(1, int(secs / max(stage_timings.values()) * 30))
+        print(f"[GraphPipeline]  {label}  {bar}  {secs}s")
+    print(f"[GraphPipeline] ══════════════════════════════════════════")
 
     run_list_path = (
         pathlib.Path(args.run_list_out) if args.run_list_out else bundle_dir / "run_list.txt"

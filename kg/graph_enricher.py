@@ -23,6 +23,7 @@ import argparse
 import json
 import pathlib
 import sys
+import time
 from typing import Any
 
 import numpy as np
@@ -604,6 +605,7 @@ def enrich_doc_entities(
     """
     from kg.neo4j_client import _get_driver
 
+    _enrich_t0 = time.monotonic()
     print(f"\n[GraphEnricher] ================================================")
     print(f"[GraphEnricher] Starting enrichment for {len(species_norms)} species.")
     print(f"[GraphEnricher] Species: {species_norms}")
@@ -631,7 +633,10 @@ def enrich_doc_entities(
     # Sub-step 1: uPheno mapping — uses mapping_model if set, falls back to synthesis model
     _map_model = mapping_model or model
     print(f"[GraphEnricher] Mapping model: {_map_model or 'default'}")
+    _t_mapping = time.monotonic()
     mapped, no_match, ancestors, type_stats, dedup_stats, extra_stats = _run_upheno_mapping(driver, species_norms, _map_model, force_reenrich, embed_backend=embed_backend, max_workers=max_workers, norm_batch_size=norm_batch_size)
+    mapping_wall_s = round(time.monotonic() - _t_mapping, 1)
+    print(f"[GraphEnricher] Mapping complete in {mapping_wall_s}s.")
     summary["entities_seen"] = mapped + no_match
     summary["entities_mapped"] = mapped
     summary["entities_no_match"] = no_match
@@ -642,17 +647,28 @@ def enrich_doc_entities(
     summary["per_species_entity_counts"] = extra_stats.get("per_species_entity_counts", {})
 
     # Sub-step 2: similarity edges
+    _t_similarity = time.monotonic()
     pairs = _run_similarity_edges(driver, species_norms, similarity_threshold, embed_backend=embed_backend)
+    similarity_wall_s = round(time.monotonic() - _t_similarity, 1)
+    print(f"[GraphEnricher] Similarity edges complete in {similarity_wall_s}s.")
     summary["similarity_pairs_added"] = pairs
 
     driver.close()
 
+    enrich_wall_s = round(time.monotonic() - _enrich_t0, 1)
+    summary["timing_s"] = {
+        "mapping_s": mapping_wall_s,
+        "similarity_s": similarity_wall_s,
+        "total_s": enrich_wall_s,
+    }
     print(f"\n[GraphEnricher] ================================================")
-    print(f"[GraphEnricher] Enrichment complete.")
+    print(f"[GraphEnricher] Enrichment complete in {enrich_wall_s}s.")
     print(f"[GraphEnricher]   Entities mapped:        {mapped}")
     print(f"[GraphEnricher]   Entities no-match:      {no_match}")
     print(f"[GraphEnricher]   Ancestor terms added:   {ancestors}")
     print(f"[GraphEnricher]   Similarity pairs added: {pairs}")
+    print(f"[GraphEnricher]   Mapping wall time:      {mapping_wall_s}s")
+    print(f"[GraphEnricher]   Similarity wall time:   {similarity_wall_s}s")
     print(f"[GraphEnricher] ================================================\n")
 
     if log_dir:

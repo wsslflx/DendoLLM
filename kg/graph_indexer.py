@@ -21,6 +21,7 @@ import json
 import pathlib
 import re
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any
@@ -467,6 +468,7 @@ def index_species(
       "triples_created": int,
     }
     """
+    _index_t0 = time.monotonic()
     summary: dict[str, Any] = {
         "species_norm": species_norm,
         "chunks_seen": 0,
@@ -571,7 +573,8 @@ def index_species(
 
     driver.close()
 
-    print(f"[GraphIndexer] Done for '{species_norm}': "
+    summary["wall_s"] = round(time.monotonic() - _index_t0, 1)
+    print(f"[GraphIndexer] Done for '{species_norm}' in {summary['wall_s']}s: "
           f"{summary['chunks_indexed']} indexed, "
           f"{summary['chunks_skipped']} skipped (already done), "
           f"{summary['chunks_junk']} skipped (junk filter), "

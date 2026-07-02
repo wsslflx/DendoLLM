@@ -23,6 +23,7 @@ import math
 import pathlib
 import re
 import sys
+import time
 from collections import defaultdict
 from typing import Any
 
@@ -771,33 +772,48 @@ def run_synthesis(
     print(f"[GraphSynthesizer] Subgraph summarization: {'on' if summarize_subgraphs else 'off'}")
     print(f"[GraphSynthesizer] ================================================")
 
+    _synth_t0 = time.monotonic()
+    _timing: dict[str, float] = {}
     species_display_map = dict(zip(species_norms, species_display_names))
 
     # Tier 1 (node-level)
     print("[GraphSynthesizer] Running Tier 1 (uPheno convergence)...")
+    _t = time.monotonic()
     tier1 = _query_tier1(species_norms, min_species, max_entity_forms=tier1_max_entity_forms)
+    _timing["tier1_s"] = round(time.monotonic() - _t, 1)
+    print(f"[GraphSynthesizer] Tier 1 done: {len(tier1)} candidates ({_timing['tier1_s']}s)")
 
     # Tier 1B (relational patterns)
     print("[GraphSynthesizer] Running Tier 1B (RELATED_TO relational patterns)...")
+    _t = time.monotonic()
     tier1_relational = _query_tier1_relational(species_norms, min_species)
+    _timing["tier1b_s"] = round(time.monotonic() - _t, 1)
+    print(f"[GraphSynthesizer] Tier 1B done: {len(tier1_relational)} patterns ({_timing['tier1b_s']}s)")
 
     # Tier 2
     print("[GraphSynthesizer] Running Tier 2 (embedding similarity clusters)...")
+    _t = time.monotonic()
     pairs = _query_tier2_pairs(species_norms, score_threshold=tier2_score_threshold)
     tier2_clusters = _cluster_tier2(pairs, min_species)
+    _timing["tier2_s"] = round(time.monotonic() - _t, 1)
+    print(f"[GraphSynthesizer] Tier 2 done: {len(tier2_clusters)} clusters ({_timing['tier2_s']}s)")
 
     # Per-species subgraphs for Tier 3
     print("[GraphSynthesizer] Retrieving per-species subgraphs for Tier 3...")
+    _t = time.monotonic()
     subgraph_context, retriever_stats = _build_subgraph_context(
         species_norms, species_display_map,
         summarize=summarize_subgraphs, model=model,
     )
+    _timing["subgraph_s"] = round(time.monotonic() - _t, 1)
+    print(f"[GraphSynthesizer] Subgraph context built ({_timing['subgraph_s']}s)")
 
     if not tier1 and not tier1_relational and not tier2_clusters:
         print("[GraphSynthesizer] No Tier 1/1B or Tier 2 evidence — enrichment may not have run.")
 
     # Tier 3: LLM
     print("[GraphSynthesizer] Running Tier 3 (LLM synthesis)...")
+    _t = time.monotonic()
     synthesis = _run_llm_synthesis(
         tier1=tier1,
         tier1_relational=tier1_relational,
@@ -810,6 +826,10 @@ def run_synthesis(
         model=model,
         log_dir=log_dir,
     )
+
+    _timing["tier3_s"] = round(time.monotonic() - _t, 1)
+    _timing["total_s"] = round(time.monotonic() - _synth_t0, 1)
+    print(f"[GraphSynthesizer] Tier 3 done ({_timing['tier3_s']}s)")
 
     # Attach metadata
     synthesis["species_norms"] = species_norms
@@ -827,11 +847,14 @@ def run_synthesis(
     ]
 
     n_comm = len(synthesis.get("communities", []))
+    synthesis["timing_s"] = _timing
     print(f"\n[GraphSynthesizer] ================================================")
-    print(f"[GraphSynthesizer] Synthesis complete.")
+    print(f"[GraphSynthesizer] Synthesis complete in {_timing['total_s']}s.")
     print(f"[GraphSynthesizer]   Communities found:  {n_comm}")
     print(f"[GraphSynthesizer]   Tier 1 candidates:  {len(tier1)}")
     print(f"[GraphSynthesizer]   Tier 2 clusters:    {len(tier2_clusters)}")
+    print(f"[GraphSynthesizer]   Tier 1:    {_timing['tier1_s']}s  |  Tier 1B: {_timing['tier1b_s']}s")
+    print(f"[GraphSynthesizer]   Tier 2:    {_timing['tier2_s']}s  |  Subgraph: {_timing['subgraph_s']}s  |  Tier 3 (LLM): {_timing['tier3_s']}s")
     if synthesis.get("gene_function_hypothesis"):
         print(f"[GraphSynthesizer]   Hypothesis: {synthesis['gene_function_hypothesis'][:120]}...")
     print(f"[GraphSynthesizer] ================================================\n")

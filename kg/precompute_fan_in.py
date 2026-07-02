@@ -21,6 +21,7 @@ Re-run whenever the uPheno OWL file is updated and re-imported.
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
@@ -56,6 +57,7 @@ def run() -> dict:
     Compute and write global_fan_in for all OntologyTerm nodes.
     Returns a stats dict so the pipeline can log and save it.
     """
+    _t0 = time.monotonic()
     print("[FanIn] Counting IS_A descendants for all OntologyTerm nodes...")
     rows = run_query(_COUNT_CYPHER, {})
     if not rows:
@@ -79,8 +81,9 @@ def run() -> dict:
     # Verify how many nodes now have the property
     verify = run_query(_VERIFY_CYPHER, {})
     verified_count = verify[0]["n"] if verify else 0
+    elapsed = round(time.monotonic() - _t0, 1)
     print(f"[FanIn] Done. global_fan_in set on {verified_count} OntologyTerm nodes "
-          f"({total_props_set} property writes).")
+          f"({total_props_set} property writes) in {elapsed}s.")
     if verified_count == 0:
         print("[FanIn] WARNING: 0 nodes verified — writes may not have committed. "
               "Check Neo4j connectivity and driver version.")
@@ -91,6 +94,7 @@ def run() -> dict:
         "verified_count": verified_count,
         "max_fan_in": rows[0]["fan_in"] if rows else 0,
         "min_fan_in": rows[-1]["fan_in"] if rows else 0,
+        "elapsed_s": elapsed,
     }
 
 
