@@ -26,8 +26,77 @@ import time
 from datetime import datetime
 from uuid import uuid4
 
+import requests
+
 from scripts.build_testcase_json import build_entries, parse_species_arg
 from core.llm_backend import DEFAULT_CHAT_MODEL
+
+
+# ---------------------------------------------------------------------------
+# Preflight checks
+# ---------------------------------------------------------------------------
+
+def _preflight_check(args) -> None:
+    """
+    Verify Neo4j and LLM server are reachable before any work begins.
+    Raises SystemExit immediately if either is down, so the operator sees a
+    clear error instead of a silent zero-output run hours later.
+    """
+    from core.llm_backend import ollama_base_url, ollama_headers
+
+    errors: list[str] = []
+
+    # Neo4j — needed by indexer, enricher, synthesizer, fan-in
+    needs_neo4j = not (
+        getattr(args, "skip_index", False)
+        and getattr(args, "skip_enrich", False)
+        and getattr(args, "skip_synthesis", False)
+    )
+    if needs_neo4j:
+        print("[GraphPipeline] Preflight: checking Neo4j...")
+        try:
+            from kg.neo4j_client import _get_driver
+            driver = _get_driver()
+            if driver is None:
+                errors.append(
+                    "Neo4j is not reachable at bolt://localhost:7687\n"
+                    "    → Start the Neo4j Docker container before running the pipeline."
+                )
+            else:
+                driver.close()
+                print("[GraphPipeline] Preflight: Neo4j        ✓")
+        except Exception as exc:
+            errors.append(f"Neo4j check raised an exception: {exc}")
+
+    # LLM server — always needed (indexer, enricher, synthesizer all call it)
+    print("[GraphPipeline] Preflight: checking LLM server...")
+    base = ollama_base_url()
+    try:
+        headers = ollama_headers(require_api_key=False)
+        resp = requests.get(f"{base}/api/tags", headers=headers, timeout=10)
+        if resp.ok:
+            print(f"[GraphPipeline] Preflight: LLM server     ✓  ({base})")
+        else:
+            errors.append(
+                f"LLM server returned HTTP {resp.status_code} ({base})\n"
+                "    → Check OLLAMA_API_KEY and OLLAMA_BASE_URL."
+            )
+    except Exception as exc:
+        errors.append(
+            f"LLM server not reachable ({base}): {exc}\n"
+            "    → Check OLLAMA_BASE_URL and network connectivity."
+        )
+
+    # Emit API key warning (non-fatal) if key is missing
+    import os
+    if not os.getenv("OLLAMA_API_KEY", "").strip():
+        print("[GraphPipeline] Preflight: WARNING — OLLAMA_API_KEY not set; authenticated endpoints will fail.")
+
+    if errors:
+        lines = "\n".join(f"  ✗ {e}" for e in errors)
+        raise SystemExit(
+            f"\n[GraphPipeline] PREFLIGHT FAILED — fix the issues below and re-run:\n{lines}\n"
+        )
 
 
 def slugify(name: str) -> str:
@@ -293,6 +362,8 @@ def main() -> None:
     print(f"\n[GraphPipeline] Bundle: {bundle_dir}")
     print(f"[GraphPipeline] Species file: {species_file}")
     print(f"[GraphPipeline] Runs: {args.runs}")
+
+    _preflight_check(args)
 
     pipeline_start = time.monotonic()
     stage_timings: dict[str, float] = {}
