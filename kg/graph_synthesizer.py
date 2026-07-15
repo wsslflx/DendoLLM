@@ -32,7 +32,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 SYNTHESIS_PROMPT_FILE = "Prompts/prompt_graph_synthesis.txt"
 SUBGRAPH_SUMMARY_PROMPT_FILE = "Prompts/prompt_subgraph_summary.txt"
 MAX_TRIPLES_FOR_SUMMARY = 50   # triples fed to per-species summarizer (fits in 16k ctx)
-MAX_TIER1_RESULTS = 30
+MAX_TIER1_RESULTS = 20
 MAX_TIER1_RELATIONAL_RESULTS = 50
 MAX_TIER2_CLUSTERS = 30
 MAX_SYNTHESIS_RETRIES = 2

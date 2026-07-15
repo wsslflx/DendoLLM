@@ -40,6 +40,11 @@ sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 # Species: 89–92% fail rate, never contributes to Tier 1 or Tier 2 synthesis.
 _ENRICH_SKIP_TYPES = {"Species"}
 
+# Positive allow-list used in the Cypher WHERE clause (NOT IN is unreliable
+# with list parameters in some Neo4j/driver versions; IN always works).
+# Must stay in sync: all ALLOWED_ENTITY_TYPES from graph_indexer minus _ENRICH_SKIP_TYPES.
+_ENRICH_ALLOWED_TYPES = ["Anatomy", "Phenotype", "Habitat", "Process", "Gene"]
+
 # Types included in cross-species embedding similarity computation.
 # Must stay in sync with _TIER2_ALLOWED_ENTITY_TYPES in graph_synthesizer.py.
 _SIMILARITY_ALLOWED_TYPES = ["Phenotype", "Anatomy", "Habitat"]
@@ -73,16 +78,18 @@ def _pull_entities_to_map(driver, species_norms: list[str], force: bool) -> list
         condition = ""
     else:
         condition = "AND (e.upheno_enriched IS NULL OR e.upheno_enriched = false) "
+    # Use IN with a positive allow-list — NOT IN is unreliable with list params
+    # in some Neo4j/driver versions and silently returns 0 rows.
     cypher = (
         "MATCH (c:DocChunk)-[:MENTIONS]->(e:DocEntity) "
-        f"WHERE c.species_norm IN $sn AND e.entity_type NOT IN $skip_etypes {condition}"
+        f"WHERE c.species_norm IN $sn AND e.entity_type IN $allowed_etypes {condition}"
         "RETURN DISTINCT e.entity_id AS eid, e.surface_form AS sf, e.entity_type AS etype"
     )
     try:
         from kg.neo4j_client import run_query
-        rows = run_query(cypher, {"sn": species_norms, "skip_etypes": list(_ENRICH_SKIP_TYPES)})
+        rows = run_query(cypher, {"sn": species_norms, "allowed_etypes": _ENRICH_ALLOWED_TYPES})
         print(f"[GraphEnricher] Pulled {len(rows)} entities for enrichment "
-              f"(skipping types: {_ENRICH_SKIP_TYPES})")
+              f"(types: {_ENRICH_ALLOWED_TYPES}, skipping: {_ENRICH_SKIP_TYPES})")
         return rows
     except Exception as exc:
         print(f"[GraphEnricher] Pull entities failed: {exc}")
