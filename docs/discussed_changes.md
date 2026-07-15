@@ -29,6 +29,12 @@ Mark as done with `**Done YYYY-MM-DD**` when implemented.
 **Risks:** (1) LLM attention dilution at large batch sizes — safe range is ~5, risky above ~15. (2) A malformed JSON response from the LLM loses the whole batch; needs fallback to individual calls on parse failure. (3) Parent broadening (`confidence: low` → re-verify with parent candidates) needs a two-pass design: batch-verify all entities first, then collect low-confidence ones for a second batch pass. (4) Token budget per entity shrinks — may need to reduce candidate definitions or top-k to keep prompt size manageable.\
 **Notes:** P4 (pre-filter generic entities) is a prerequisite that reduces the entity population before Stage 3 and should be implemented first. Pilot at batch_size=5 with full fallback before increasing.\
 
+### P3b — Hard-delete junk entities at indexing time
+**Done 2026-07-05**\
+**File:** `kg/graph_indexer.py` → `_is_junk_entity()` (line 239) + guard at line 320\
+**What:** LLM entity extraction pulled out citations (`"Park et al. 2017"`), measurements (`"13–28 °C"`), accession IDs (`"XM_038812782.1"`), non-ASCII text, and author-year references alongside real biological entities. These junk entities created spurious `DOC_SIMILAR_TO` Tier 2 edges (e.g. two species sharing a citation → fake cross-species similarity signal).\
+**Implemented:** `_is_junk_entity()` applies five rules before Neo4j MERGE — drops entities that: contain `et al`, match `^[A-Z][a-z]+ \d{4}$` (author-year), start with a digit (measurements), match accession ID patterns (`XM_`, `NM_`, `contig`), or contain non-ASCII characters. Entities starting with a letter that contain numbers mid-string are NOT dropped.
+
 ### P4 — Pre-filter generic entity surface forms before uPheno mapping
 **File:** `kg/graph_enricher.py` → `_run_upheno_mapping()`\
 **Expected impact:** Low-medium. Entities like `"cell"`, `"tissue"`, `"protein"`, `"gene"` are too generic to map to a useful specific uPheno term. They consume LLM calls and produce high-level useless ancestors that add noise to Tier 1. A blocklist or length/frequency filter applied before `map_traits_batch()` would skip them. Also improves Tier 1 signal quality.\
@@ -117,6 +123,50 @@ Mark as done with `**Done YYYY-MM-DD**` when implemented.
 **File:** New module or extension to `pipeline/run_graph_pipeline.py`\
 **What:** For testcases with N > 7 species, `min_species = N//2` becomes so strict that only pan-mammalian biology survives. Fix: split species into overlapping sub-groups of 3–5, run synthesis on each sub-group independently, then merge/deduplicate the resulting communities. Communities that appear in multiple sub-groups are promoted as high-confidence. This keeps `min_species` at a level where specific signal can survive while still covering all species.\
 **Risk:** Medium-high. Requires new orchestration logic and a community deduplication/merging step. Needs careful design to avoid double-counting species or inflating community scores.\
+
+---
+
+## Performance — Indexing Parallelism
+
+### P6 — Parallel chunk processing in graph_indexer.py
+**File:** `kg/graph_indexer.py` → `index_species()` inner loop\
+**Expected impact:** Highest. Indexing is 96-97% of total pipeline wall time (~330s per 1000 entities). Currently each chunk is processed synchronously: extract entities (LLM call) → MERGE into Neo4j → next chunk. With 655–1531 chunks per species, that is 655–1531 sequential LLM round trips. Parallelising at 4× concurrency would cut indexing to ~25% of current time, reducing TC4 from 1h 50m to ~28m and TC6 from 2h 42m to ~40m.\
+**Design:** Worker pool over chunks; each worker calls the LLM and collects (chunk_id, entities) tuples; a single writer thread batches MERGE writes via UNWIND. Requires fcntl-style serialisation for the writer only, not the LLM calls.\
+**Risk:** Medium. Need to handle LLM server concurrency limits. Start with 2–4 workers and confirm server stability before increasing.
+
+### P7 — Cap OpenAlex Retry-After header
+**File:** `rag_cli.py` or wherever OpenAlex synonym fetching happens\
+**Expected impact:** Prevents catastrophic 23-hour stalls. One TC6 run waited 83,291s (23h) for a "Fin-backed Whale" synonym lookup. Any Retry-After > 120s should be treated as "skip this synonym" rather than "sleep and retry".\
+**Implementation:** After receiving a 429 response, if `Retry-After > 120`: log a warning, skip the synonym, continue with remaining sources. If `Retry-After <= 120`: sleep and retry as now.
+
+### P8 — Validate species names before ingest (genus vs. binomial)
+**File:** ingestion layer, before Wikipedia/PMC fetching\
+**Expected impact:** Medium. TC6 phyllotis ingest took 1039s (5.7× average) because phyllotis is a genus name, triggering disambiguation across all member species. A GBIF or simple heuristic check (does the name contain exactly one space? does it resolve to a single species?) before ingest would catch this at <1s and warn/skip rather than spending 17 minutes fetching genus-wide documents.\
+**Implementation:** Quick GBIF species match as already used in `build_testcase_json.py`; if match returns >1 canonical result or is genus-rank, warn and either abort or use the first canonical match.
+
+---
+
+## Robustness
+
+### R1 — Fix LLM malformed JSON crash in graph_indexer.py
+**File:** `kg/graph_indexer.py` → `_extract_entities_from_chunk()`\
+**What:** TC5 crashed after 6/7 species indexed (~5.5h of runtime lost) because Qwen 3.5:27b returned extra content after a valid JSON object (`Extra data: line 18 column 1 (char 500)`). Currently the crash propagates and kills the entire run.\
+**Fix:** Wrap JSON parsing in a try/except; on parse failure, attempt to extract the JSON substring up to the first `]` or `}` boundary; if that also fails, log the raw LLM output and return an empty entity list for that chunk (skip-chunk fallback). No entities are better than a crash that loses all subsequent species.
+
+### R2 — Fix Chroma SQLite "too many SQL variables" on large stores
+**File:** `rag_cli.py` → `_restore_ingested_state()` (Chroma internals)\
+**What:** On large Chroma stores the `_restore_ingested_state()` call fails with `OperationalError: too many SQL variables`. This prevents the pipeline from knowing which documents are already ingested, causing potential re-ingestion.\
+**Fix:** Chunk the ID list into batches of 999 and call the query in a loop, or switch to a separate SQLite side-table that records ingested doc IDs outside of Chroma's internal queries.
+
+---
+
+## Output Quality — Large Testcases
+
+### Q5 — Adaptive Tier 2 similarity threshold for large diverse species sets
+**File:** `kg/graph_synthesizer.py` → `_query_tier2()`\
+**What:** TC6 (11 species, taxonomically diverse) found only 4 Tier 2 embedding clusters vs. 29–30 for TC1-4. The fixed threshold of 0.78 is too strict for high-diversity sets where the same biological concept is expressed with different vocabulary across distantly related species. Synthesis had almost no convergence signal and returned 0 communities.\
+**Proposed rule:** If `n_species > 6`, lower threshold from 0.78 → 0.72. Could also be made dynamic: start at 0.78, count clusters, if fewer than 10 found, retry at 0.72.\
+**Risk:** Lower threshold means more false-positive similarity edges (spurious DOC_SIMILAR_TO). Needs evaluation on TC1-4 to confirm no regression.
 
 ---
 

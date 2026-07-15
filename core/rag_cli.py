@@ -58,16 +58,7 @@ MMR_QUERY_FILE = "Prompts/mmr_query.txt"
 STRICT_CITATION_FILTER = False
 
 
-def _retry_delay_seconds(response: Optional[requests.Response], attempt: int) -> float:
-    retry_after = None
-    if response is not None:
-        retry_after = response.headers.get("Retry-After")
-    if retry_after:
-        try:
-            return max(0.0, float(retry_after))
-        except ValueError:
-            pass
-    return min(30.0, 1.5 * (2 ** attempt))
+_RETRY_BUDGET_S = 30.0  # max total seconds spent on retries per request
 
 
 def _http_get_with_retry(
@@ -79,17 +70,23 @@ def _http_get_with_retry(
     max_retries: int = 6,
     label: str = "HTTP request",
 ) -> requests.Response:
+    budget = _RETRY_BUDGET_S
+    attempt = 0
     last_exc: Optional[Exception] = None
-    for attempt in range(max_retries):
+
+    while True:
         try:
             resp = requests.get(url, params=params, headers=headers, timeout=timeout)
         except requests.RequestException as exc:
             last_exc = exc
-            if attempt >= max_retries - 1:
+            delay = min(1.5 * (2 ** attempt), budget)
+            if delay <= 0:
+                print(f"{label} failed ({exc}); retry budget exhausted, skipping")
                 raise
-            delay = _retry_delay_seconds(None, attempt) + random.uniform(0, 0.5)
-            print(f"{label} failed ({exc}); retrying in {delay:.1f}s")
+            print(f"{label} failed ({exc}); retrying in {delay:.1f}s (budget left: {budget:.1f}s)")
             time.sleep(delay)
+            budget -= delay
+            attempt += 1
             continue
 
         status = resp.status_code
@@ -97,17 +94,30 @@ def _http_get_with_retry(
             return resp
 
         retryable = status == 429 or 500 <= status < 600
-        if retryable and attempt < max_retries - 1:
-            delay = _retry_delay_seconds(resp, attempt) + random.uniform(0, 0.5)
-            print(f"{label} returned HTTP {status}; retrying in {delay:.1f}s")
-            time.sleep(delay)
-            continue
+        if not retryable:
+            resp.raise_for_status()
 
-        resp.raise_for_status()
+        # determine how long we'd need to sleep before retrying
+        retry_after_hdr = resp.headers.get("Retry-After")
+        if retry_after_hdr:
+            try:
+                delay = float(retry_after_hdr)
+            except ValueError:
+                delay = 1.5 * (2 ** attempt)
+        else:
+            delay = 1.5 * (2 ** attempt)
+        delay = min(delay, budget)
 
-    if last_exc:
-        raise last_exc
-    raise RuntimeError(f"{label} failed after {max_retries} attempts")
+        if delay <= 0:
+            print(f"{label} returned HTTP {status} (Retry-After: {retry_after_hdr}); "
+                  f"retry budget exhausted, skipping")
+            resp.raise_for_status()
+
+        print(f"{label} returned HTTP {status}; retrying in {delay:.1f}s "
+              f"(budget left: {budget:.1f}s)")
+        time.sleep(delay)
+        budget -= delay
+        attempt += 1
 
 
 def load_mmr_query_template() -> str:
