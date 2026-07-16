@@ -139,6 +139,19 @@ Mark as done with `**Done YYYY-MM-DD**` when implemented.
 **Expected impact:** Prevents catastrophic 23-hour stalls. One TC6 run waited 83,291s (23h) for a "Fin-backed Whale" synonym lookup. Any Retry-After > 120s should be treated as "skip this synonym" rather than "sleep and retry".\
 **Implementation:** After receiving a 429 response, if `Retry-After > 120`: log a warning, skip the synonym, continue with remaining sources. If `Retry-After <= 120`: sleep and retry as now.
 
+### P9 — Strip reference sections before chunking
+**Done 2026-07-16**\
+**File:** `core/rag_cli.py` → `_strip_references()` applied in `load_ocr()`, `ingest_pmc_texts()`, `ingest_wikipedia()`\
+**What:** PDFs, PMC full texts, and Wikipedia articles all contain a References/Bibliography section at the end that has zero biological trait value. Chunking the reference list produces entries like "Smith et al. 2017. Journal of..." which the junk entity filter has to catch after the fact. Truncating at the reference header removes 10–25% of paper length before chunking, reducing chunk count and eliminating the source of et-al junk entities entirely.\
+**Implementation:** `_REF_HEADER_RE` regex matches "References", "Bibliography", "Literature Cited", "Works Cited", "Acknowledgements" as section headers. Text is truncated at the first match. Logs the percentage removed per document.
+
+### P10 — First/last 15% paper chunk cap
+**Done 2026-07-16**\
+**Files:** `core/rag_cli.py` → `_apply_chunk_cap()`, `RAG.__init__(paper_chunk_cap)`, `load_ocr()`, `ingest_pmc_texts()`; `pipeline/graph_inventory_single.py` → `--paper-chunk-cap`; `pipeline/run_graph_pipeline.py` → `--paper-chunk-cap`\
+**What:** For papers (PDF + PMC only, not Wikipedia), keep only the first N% and last N% of chunks, dropping the middle. Hypothesis: abstract + introduction (first ~15%) and discussion/conclusion (last ~15%) contain most biological trait signal; methods + raw results (middle ~70%) contribute less signal per chunk. Reduces chunks per paper from ~65 to ~20 (~3× speedup on indexing for paper chunks). Wikipedia is excluded because its structure is different (traits are in middle sections, not just intro/outro).\
+**Scripts:** `scripts/run_testcases_chunkcap.sh` uses `--paper-chunk-cap 0.15`; `scripts/run_testcases_logging.sh` runs without the cap for comparison.\
+**Status:** Implemented. Quality impact vs full run not yet measured — run both scripts to compare synthesis output.
+
 ### P8 — Validate species names before ingest (genus vs. binomial)
 **File:** ingestion layer, before Wikipedia/PMC fetching\
 **Expected impact:** Medium. TC6 phyllotis ingest took 1039s (5.7× average) because phyllotis is a genus name, triggering disambiguation across all member species. A GBIF or simple heuristic check (does the name contain exactly one space? does it resolve to a single species?) before ingest would catch this at <1s and warn/skip rather than spending 17 minutes fetching genus-wide documents.\
