@@ -116,6 +116,7 @@ def run_inventory(
     index_workers: int = 1,
     index_model: str | None = None,
     force_reindex: bool = False,
+    paper_chunk_cap: float | None = None,
 ) -> list[pathlib.Path]:
     run_dirs: list[pathlib.Path] = []
     runs_root = bundle_dir / "runs"
@@ -145,6 +146,8 @@ def run_inventory(
             cmd.extend(["--index-model", index_model])
         if force_reindex:
             cmd.append("--force-reindex")
+        if paper_chunk_cap is not None:
+            cmd.extend(["--paper-chunk-cap", str(paper_chunk_cap)])
 
         if skip_ingest_after_first and i > 0:
             cmd.append("--skip-ingest")
@@ -312,6 +315,13 @@ def main() -> None:
              "are excluded (default: 200). IC scoring handles specificity below this threshold.",
     )
     parser.add_argument(
+        "--paper-chunk-cap",
+        type=float,
+        default=None,
+        help="Keep only the first N%% and last N%% of chunks per paper (e.g. 0.15). "
+             "Not applied to Wikipedia. Default: disabled (use all chunks).",
+    )
+    parser.add_argument(
         "--no-summarize-subgraphs",
         action="store_true",
         default=False,
@@ -382,6 +392,7 @@ def main() -> None:
         index_workers=args.index_workers,
         index_model=args.index_model,
         force_reindex=args.force_reindex,
+        paper_chunk_cap=args.paper_chunk_cap,
     )
     stage_timings["indexing_s"] = round(time.monotonic() - t0, 1)
 
@@ -529,6 +540,7 @@ def main() -> None:
         "map_workers": args.map_workers,
         "norm_batch_size": args.norm_batch_size,
         "index_workers": args.index_workers,
+        "paper_chunk_cap": args.paper_chunk_cap,
         "index_model": args.index_model or "granite4.1:8b",
         "mapping_model": args.mapping_model,
         "shared_chroma_dir": str(chroma_dir) if args.shared_chroma_dir else None,

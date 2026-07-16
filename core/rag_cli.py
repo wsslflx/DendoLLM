@@ -60,6 +60,37 @@ STRICT_CITATION_FILTER = False
 
 _RETRY_BUDGET_S = 30.0  # max total seconds spent on retries per request
 
+_REF_HEADER_RE = re.compile(
+    r'\n\s*(References|Bibliography|Literature\s+Cited|Works\s+Cited|Acknowledgements?)\s*\n',
+    re.IGNORECASE,
+)
+
+def _strip_references(text: str) -> str:
+    """Truncate text at the references/bibliography section header."""
+    m = _REF_HEADER_RE.search(text)
+    if m:
+        truncated = text[:m.start()]
+        removed_pct = round(100 * (len(text) - len(truncated)) / len(text))
+        print(f"[RAG] Stripped references section ({removed_pct}% of document removed).")
+        return truncated
+    return text
+
+
+def _apply_chunk_cap(splits: list, ratio: float, source_label: str) -> list:
+    """Keep first ratio% and last ratio% of chunks, dropping the middle."""
+    n = len(splits)
+    keep = max(1, round(n * ratio))
+    if 2 * keep >= n:
+        return splits  # cap would keep everything — skip
+    first = splits[:keep]
+    last = splits[n - keep:]
+    kept = first + last
+    print(f"[RAG] Chunk cap ({ratio:.0%} first+last): {n} → {len(kept)} chunks ({source_label})")
+    # re-index chunk_index so downstream sees contiguous indices
+    for i, doc in enumerate(kept):
+        doc.metadata["chunk_index"] = i
+    return kept
+
 
 def _http_get_with_retry(
     url: str,
@@ -451,6 +482,7 @@ class RAG:
         log_root: str = "./logs",
         persist_dir: str = "./chroma_store_ollama",
         embed_backend: str | None = None,
+        paper_chunk_cap: float | None = None,
     ) -> None:
         self.vectorstore = Chroma(
             collection_name="bunch_of_docs",
@@ -463,6 +495,7 @@ class RAG:
         self.per_species_fetch_k = 100
         self.mmr_lambda = 0.5
         self.ingested_per_species: dict[str, set[str]] = defaultdict(set)
+        self.paper_chunk_cap: float | None = paper_chunk_cap
         self.log_runs = log_runs
         self.log_root = pathlib.Path(log_root)
         self.log_dir: pathlib.Path | None = None
@@ -624,9 +657,13 @@ class RAG:
         except Exception as exc:
             print(f"Skipping unreadable PDF during load: {pdf_path} ({exc})")
             return []
+        for doc in docs:
+            doc.page_content = _strip_references(doc.page_content)
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         splits = splitter.split_documents(docs)
         splits = [doc for doc in splits if len(doc.page_content.strip()) >= 80]
+        if self.paper_chunk_cap:
+            splits = _apply_chunk_cap(splits, self.paper_chunk_cap, source_label=str(pdf_path))
 
         specie_norm = puppy.strip().lower() if puppy else None
 
@@ -686,6 +723,7 @@ class RAG:
                 print(f"No PMC full text for {pmcid}")
                 continue
 
+            full_text = _strip_references(full_text)
             splitter = RecursiveCharacterTextSplitter(
                 chunk_size=1000, chunk_overlap=200
             )
@@ -693,6 +731,8 @@ class RAG:
                 [Document(page_content=full_text, metadata={})]
             )
             splits = [doc for doc in splits if len(doc.page_content.strip()) >= 80]
+            if self.paper_chunk_cap:
+                splits = _apply_chunk_cap(splits, self.paper_chunk_cap, source_label=f"pmc:{pmcid}")
             for i, doc in enumerate(splits):
                 doc.metadata.update(
                     {
@@ -724,6 +764,7 @@ class RAG:
             print(f"No Wikipedia content for '{title}'")
             return False
 
+        content = _strip_references(content)
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         splits = splitter.split_documents(
             [Document(page_content=content, metadata={})]

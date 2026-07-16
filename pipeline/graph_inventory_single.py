@@ -87,6 +87,7 @@ def run_graph_inventory(
     temperature: float = 0.0,
     force_reindex: bool = False,
     embed_backend: str | None = None,
+    paper_chunk_cap: float | None = None,
 ) -> dict:
     """
     Ingest documents and index them into the Neo4j document graph.
@@ -100,6 +101,7 @@ def run_graph_inventory(
         log_runs=log_runs,
         persist_dir=str(chroma_dir) if chroma_dir else "./chroma_store_ollama",
         embed_backend=embed_backend,
+        paper_chunk_cap=paper_chunk_cap,
     )
     if not skip_ingest:
         lock_ctx = v1.ingest_lock(ingest_lock_file) if ingest_lock_file else nullcontext()
@@ -177,6 +179,13 @@ def main() -> None:
         choices=["ollama", "openai"],
         help="Embedding backend to use (default: from EMBED_BACKEND env var or ollama).",
     )
+    parser.add_argument(
+        "--paper-chunk-cap",
+        type=float,
+        default=None,
+        help="Keep only the first N%% and last N%% of chunks per paper (e.g. 0.15 = 15%%). "
+             "Not applied to Wikipedia. Default: disabled (use all chunks).",
+    )
     args = parser.parse_args()
 
     explicit_log_dir = pathlib.Path(args.log_dir) if args.log_dir else None
@@ -213,6 +222,7 @@ def main() -> None:
                 temperature=args.temperature,
                 force_reindex=args.force_reindex,
                 embed_backend=args.embed_backend,
+                paper_chunk_cap=args.paper_chunk_cap,
             )
             summaries[canonical] = summary
 
@@ -236,6 +246,7 @@ def main() -> None:
         temperature=args.temperature,
         force_reindex=args.force_reindex,
         embed_backend=args.embed_backend,
+        paper_chunk_cap=args.paper_chunk_cap,
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 
