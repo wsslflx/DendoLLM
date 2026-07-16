@@ -1,0 +1,11 @@
+{
+  "species_norm": "heterocephalus glaber",
+  "chunks_seen": 589,
+  "chunks_skipped": 0,
+  "chunks_junk": 0,
+  "chunks_indexed": 589,
+  "entities_created": 2517,
+  "triples_created": 1288,
+  "wall_s": 658.3,
+  "index_wall_s": 658.3
+}

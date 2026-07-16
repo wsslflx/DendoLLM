@@ -1,0 +1,46 @@
+{
+  "pipeline": "graph_rag",
+  "bundle_dir": "/cosybio_project/fwissel/projects/DendoLLM/logs_graph/2026-07-15_21-57-00-testcases-logging/2026-07-15_21-57-13-testcase1-e34c314d",
+  "run_label": "testcase1",
+  "species_file": "/cosybio_project/fwissel/projects/DendoLLM/testcases/testcase1.json",
+  "species_snapshot": "/cosybio_project/fwissel/projects/DendoLLM/logs_graph/2026-07-15_21-57-00-testcases-logging/2026-07-15_21-57-13-testcase1-e34c314d/species_input.json",
+  "species_input_mode": "file",
+  "species_list": null,
+  "runs": 1,
+  "skip_ingest_after_first": true,
+  "pdf_dir": "/cosybio_project/fwissel/projects/DendoLLM/shared_pdfs",
+  "chroma_dir": "/cosybio_project/fwissel/projects/DendoLLM/shared_chroma",
+  "ingest_lock_file": ".ingest.lock",
+  "run_list": "/cosybio_project/fwissel/projects/DendoLLM/logs_graph/2026-07-15_21-57-00-testcases-logging/2026-07-15_21-57-13-testcase1-e34c314d/run_list.txt",
+  "model": "qwen3.5:27b",
+  "temperature": 0.0,
+  "timestamp": "2026-07-15_21-57-13",
+  "run_dirs": [
+    "/cosybio_project/fwissel/projects/DendoLLM/logs_graph/2026-07-15_21-57-00-testcases-logging/2026-07-15_21-57-13-testcase1-e34c314d/runs/run_01"
+  ],
+  "skip_enrich": false,
+  "force_reenrich": true,
+  "similarity_threshold": 0.78,
+  "skip_synthesis": false,
+  "min_species": 2,
+  "species_norms": [
+    "nannospalax ehrenbergi",
+    "chrysochloris asiatica",
+    "condylura cristata",
+    "heterocephalus glaber"
+  ],
+  "embed_backend": "ollama",
+  "map_workers": 4,
+  "norm_batch_size": 1,
+  "index_workers": 4,
+  "index_model": "granite4.1:8b",
+  "mapping_model": "granite4.1:8b",
+  "shared_chroma_dir": "/cosybio_project/fwissel/projects/DendoLLM/shared_chroma",
+  "stage_timings": {
+    "indexing_s": 3265.9,
+    "enrichment_s": 11756.5,
+    "fan_in_s": 1.3,
+    "synthesis_s": 64.1,
+    "total_s": 15087.9
+  }
+}

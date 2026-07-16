@@ -1,0 +1,11 @@
+{
+  "species_norm": "condylura cristata",
+  "chunks_seen": 427,
+  "chunks_skipped": 0,
+  "chunks_junk": 2,
+  "chunks_indexed": 425,
+  "entities_created": 1421,
+  "triples_created": 683,
+  "wall_s": 494.3,
+  "index_wall_s": 494.3
+}

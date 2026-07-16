@@ -1,0 +1,475 @@
+You are a computational biologist synthesizing cross-species biological evidence
+to generate hypotheses about shared gene function.
+
+4 species share a gene of interest: nannospalax ehrenbergi, chrysochloris asiatica, condylura cristata, heterocephalus glaber
+
+You receive two tiers of pre-computed cross-species evidence from a knowledge graph:
+
+=== TIER 1 — ONTOLOGY CONVERGENCE ===
+High precision. These biological conditions have entities from different species that map
+to shared ancestors in the uPheno/HP/MP/ENVO ontology. May miss synonyms or informal terms.
+
+  [1] cavitated compound organ (UBERON:0000489)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: kidney, kidneys, rim, mouse kidney
+      Via terms: kidney
+  [2] blood gas molecular entity level phenotype (UPHENO:0077825)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hypercapnia, ammonia, low oxygen and high carbon dioxide concentrations, hypercapnia (> 10% CO2) tolerance
+      Via terms: Hypercapnia, abnormal circulating ammonia level
+  [3] compound organ (UBERON:0003103)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: kidney, kidneys, rim, mouse kidney
+      Via terms: kidney
+  [4] response to temperature stimulus phenotype (UPHENO:0049885)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: thermal plasticity, temperature adaptation, environmental cold, thermal stimuli, radiant heat, paw withdrawal to radiant heat, thermal biology, cold exposure
+      Via terms: response to temperature stimulus phenotype, response to cold phenotype, response to heat phenotype, increased qualitatively thermotaxis, decreased occurrence of response to heat
+  [5] abdomen element (UBERON:0005172)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: kidney, kidneys, gubernaculum, gubernaculum ligament, Hunter's gubernaculum, Hunter’s gubernaculum, rim, mouse kidney
+      Via terms: kidney, gubernaculum (male or female), visceral abdominal lymph node
+  [6] Abnormal blood gas level (HP:0012415)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hypercapnia, low oxygen and high carbon dioxide concentrations, hypercapnia (> 10% CO2) tolerance
+      Via terms: Hypercapnia
+  [7] blood carbon dioxide level phenotype (UPHENO:0077815)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hypercapnia, low oxygen and high carbon dioxide concentrations, hypercapnia (> 10% CO2) tolerance
+      Via terms: Hypercapnia
+  [8] Abnormal blood carbon dioxide level (HP:0500164)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hypercapnia, low oxygen and high carbon dioxide concentrations, hypercapnia (> 10% CO2) tolerance
+      Via terms: Hypercapnia
+  [9] increased level of carbon dioxide in blood (UPHENO:0078549)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hypercapnia, low oxygen and high carbon dioxide concentrations, hypercapnia (> 10% CO2) tolerance
+      Via terms: Hypercapnia
+  [10] decreased level of oxygen atom (UPHENO:0066753)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hypoxia, low oxygen, low O2 conditions, low oxygen levels, low-oxygen conditions
+      Via terms: hypoxia, decreased level of oxygen atom
+  [11] abdominal segment element (UBERON:0005173)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: kidney, kidneys, gubernaculum, gubernaculum ligament, Hunter's gubernaculum, Hunter’s gubernaculum, rim, mouse kidney
+      Via terms: kidney, gubernaculum (male or female), visceral abdominal lymph node
+  [12] sensory perception of chemical stimulus (GO:0007606)
+      Species (3): chrysochloris asiatica, condylura cristata, heterocephalus glaber
+      Entity forms: olfaction, sensory perception of smell, gustation, sense of smell, olfactory perception, taste sensing
+      Via terms: sensory perception of smell, sensory perception of taste
+  [13] increased level of carbon dioxide (UPHENO:0048748)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hypercapnia, low oxygen and high carbon dioxide concentrations, high carbon dioxide concentrations, low-oxygen and high–carbon dioxide conditions, very high ambient CO2 concentrations, CO2, hypercapnia (> 10% CO2) tolerance
+      Via terms: Hypercapnia, increased level of carbon dioxide, hypercapnia
+  [14] hemopoietic organ phenotype (UPHENO:0002596)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: spleen, thymus, hemal nodes, spleen size
+      Via terms: spleen phenotype, thymus phenotype, localised hemopoietic organ, size of spleen phenotype
+  [15] decreased number of anatomical structure (UPHENO:0063787)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: loss of hepatocytes, epidermal appendages around the nostrils, reduced blood cell counts, less than 100 individuals
+      Via terms: decreased number of hepatocyte, decreased number of ectoderm-derived structure in the nose, decreased hematopoietic cell number, decreased number of organism subdivision
+  [16] carbon dioxide level phenotype (UPHENO:0046318)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hypercapnia, low oxygen and high carbon dioxide concentrations, high carbon dioxide concentrations, low-oxygen and high–carbon dioxide conditions, very high ambient CO2 concentrations, CO2, hypercapnia (> 10% CO2) tolerance
+      Via terms: Hypercapnia, increased level of carbon dioxide, hypercapnia
+  [17] response to oxidative stress phenotype (UPHENO:0049674)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: responses to oxidative and immune stress, oxidative damage, significant oxidative stress, oxidative stress responses
+      Via terms: response to oxidative stress phenotype, Increased qualitatively response to oxidative stress
+  [18] abnormal oxygen level (MP:0001574)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hypoxia, oxygen, low O2 conditions, low oxygen levels, low-oxygen conditions, oxygen and carbon dioxide fluctuations
+      Via terms: hypoxia, abnormal oxygen level, abnormal blood gas level
+  [19] Abnormal renal insterstitial morphology (HP:0032581)
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: hemosiderin deposition, interstitial amyloid deposition, kidney fibrosis, IMNs
+      Via terms: Renal interstitial hemosiderin, Renal interstitial amyloid deposits, Renal interstitial fibrosis, Tubulointerstitial nephritis
+  [20] immune organ phenotype (UPHENO:0003087)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Entity forms: spleen, thymus, lymph nodes, lymph node, spleen size
+      Via terms: spleen phenotype, thymus phenotype, lymph node phenotype, size of spleen phenotype
+
+=== TIER 1B — RELATIONAL PATTERNS ===
+High precision. Directed biological relationships (subject -[relation]-> object) shared
+across species, where both endpoints map to shared ontology ancestors. Complements TIER 1
+by capturing directionality and relational context, not just co-occurrence.
+
+  [1] (material anatomical entity phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Dorsal Root Ganglion, Trigeminal Ganglion, altered haemoglobin oxygen affinity, glabrous snout, intrathecal SP, liver
+      Objects:  Clock gene, DNA damage repair mechanisms, amyloid deposition, capsaicin stimulation, circadian rhythm perception, gamma irradiation
+  [2] (anatomical structure phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Trigeminal Ganglion, altered haemoglobin oxygen affinity, glabrous snout, heterocephalus glaber, intrathecal SP, liver
+      Objects:  APEX1, Clock gene, DNA damage repair mechanisms, Direct hind‑limb blood cooling, amyloid deposition, capsaicin stimulation
+  [3] (multicellular organism phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Dorsal Root Ganglion, Trigeminal Ganglion, altered haemoglobin oxygen affinity, glabrous snout, heterocephalus glaber, intrathecal SP
+      Objects:  APEX1, Clock gene, Direct hind‑limb blood cooling, acidosis, amyloid deposition, capsaicin stimulation
+  [4] (anatomical entity) -[part_of]-> (anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: BMR skull, DRG, PrV, alveolar septa, bloodstream, cup shapes
+      Objects:  CNS, PrV, bolus of tissue, cups, hemal nodes, incisors
+  [5] (anatomical entity) -[part_of]-> (material anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: BMR skull, DRG, LN chain, PrV, alveolar septa, bloodstream
+      Objects:  CNS, bolus of tissue, cups, dorsal root ganglia, hair coverage, hemal nodes
+  [6] (anatomical entity) -[part_of]-> (anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: BMR skull, DRG, LN chain, PrV, alveolar septa, bloodstream
+      Objects:  CNS, bolus of tissue, cups, hair coverage, hemal nodes, incisors
+  [7] (anatomical entity phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Trigeminal Ganglion, glabrous snout, heterocephalus glaber, intrathecal SP, liver, mutated cells
+      Objects:  APEX1, DNA damage repair mechanisms, amyloid deposition, capsaicin stimulation, certain types of pain, colour vision
+  [8] (multicellular anatomical structure phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Dorsal Root Ganglion, Trigeminal Ganglion, glabrous snout, heterocephalus glaber, intrathecal SP, lactic acid
+      Objects:  APEX1, Direct hind‑limb blood cooling, acidosis, amyloid deposition, capsaicin stimulation, certain types of pain
+  [9] (anatomical entity) -[part_of]-> (anatomical system phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: BMR skull, DRG, PrV, alveolar septa, bloodstream, cup shapes
+      Objects:  CNS, dorsal root ganglia, hemal nodes, incisors, lissencephalic forebrains, lungs
+  [10] (anatomical structure phenotype) -[involved_in]-> (multicellular organism phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: PrV, autocoprophagy, elongation of the gubernaculum, follicles, heterocephalus glaber, interferon-beta
+      Objects:  B cell circulation, Vascular countercurrent heat exchange, afferents, brain size, cancer cells, cancer resistance
+  [11] (anatomical entity) -[part_of]-> (multicellular anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: BMR skull, DRG, PrV, alveolar septa, bloodstream, cupped-shaped extensions
+      Objects:  CNS, bolus of tissue, cups, dorsal root ganglia, hemal nodes, lissencephalic forebrains
+  [12] (anatomical entity) -[part_of]-> (multicellular organism phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: BMR skull, DRG, PrV, alveolar septa, bloodstream, cupped-shaped extensions
+      Objects:  CNS, bolus of tissue, cups, dorsal root ganglia, hemal nodes, lissencephalic forebrains
+  [13] (biological_process phenotype) -[involved_in]-> (anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Acetylation, RAP1, amyloid deposition, amyloidosis, body temperature, extremely slow postnatal growth rates
+      Objects:  SCs, barrel, cancer resistance, chromatin structure, heterocephalus glaber, interferon-beta
+  [14] (anatomical structure phenotype) -[involved_in]-> (material anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Leydig cells, PrV, brown adipocytes, heterocephalus glaber, interferon-beta, microvascular rarefaction
+      Objects:  Vascular countercurrent heat exchange, afferents, brain size, cancer cells, cancer resistance, kidney fibrosis
+  [15] (anatomical structure phenotype) -[involved_in]-> (anatomical entity)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: PrV, elongation of the gubernaculum, heterocephalus glaber, microvascular rarefaction, p53, testes
+      Objects:  Vascular countercurrent heat exchange, afferents, brain size, interferon-beta, kidney fibrosis, malignant transformation
+  [16] (anatomical system phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Dorsal Root Ganglion, Trigeminal Ganglion, altered haemoglobin oxygen affinity, intrathecal SP, liver, skin turnover
+      Objects:  Clock gene, Direct hind‑limb blood cooling, amyloid deposition, capsaicin stimulation, circadian rhythm perception, developmental descent process
+  [17] (material anatomical entity phenotype) -[involved_in]-> (multicellular organism phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Stom, autocoprophagy, elongation of the gubernaculum, follicles, microvascular rarefaction, neuro-endocrine carcinoma
+      Objects:  B cell circulation, DRG, brain size, heterocephalus glaber, interferon-beta, kidney fibrosis
+  [18] (anatomical structure phenotype) -[involved_in]-> (anatomical system phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: PrV, elongation of the gubernaculum, follicles, heterocephalus glaber, microvascular rarefaction, p53
+      Objects:  B cell circulation, Vascular countercurrent heat exchange, afferents, brain size, interferon-beta, kidney fibrosis
+  [19] (biological_process phenotype) -[involved_in]-> (anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Acetylation, RAP1, amyloid deposition, amyloidosis, body temperature, extremely slow postnatal growth rates
+      Objects:  SCs, barrel, cancer resistance, chromatin structure, heterocephalus glaber, liver
+  [20] (material anatomical entity phenotype) -[involved_in]-> (anatomical system phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Stom, elongation of the gubernaculum, follicles, microvascular rarefaction, neuro-endocrine carcinoma, p53
+      Objects:  B cell circulation, DRG, brain size, interferon-beta, kidney fibrosis, malignant transformation
+  [21] (anatomical entity) -[part_of]-> (organ phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: BMR skull, PrV, alveolar septa, bloodstream, cup shapes, large olfactory bulbs
+      Objects:  hemal nodes, incisors, lissencephalic forebrains, lungs, nasal bone, prominent cerebellums
+  [22] (biological_process phenotype) -[involved_in]-> (multicellular organism phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Acetylation, amyloid deposition, amyloidosis, body temperature, extremely slow postnatal growth rates, innervation density
+      Objects:  barrel, cancer resistance, heterocephalus glaber, interferon-beta, liver, malignant transformation
+  [23] (anatomical entity phenotype) -[involved_in]-> (anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Leydig cells, brown adipocytes, elongation of the gubernaculum, heterocephalus glaber, neuro-endocrine carcinoma, p53
+      Objects:  brain size, cancer resistance, interferon-beta, malignant transformation, mitochondria, oxidative stress
+  [24] (anatomical entity phenotype) -[involved_in]-> (anatomical system phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: elongation of the gubernaculum, follicles, heterocephalus glaber, microvascular rarefaction, neuro-endocrine carcinoma, p53
+      Objects:  B cell circulation, brain size, interferon-beta, kidney fibrosis, malignant transformation, potential influence of changes in the sensory periphery
+  [25] (multicellular organism phenotype) -[involved_in]-> (material anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Leydig cells, Stom, brown adipocytes, heterocephalus glaber, interferon-beta, microvascular rarefaction
+      Objects:  DRG, Vascular countercurrent heat exchange, brain size, cancer cells, cancer resistance, kidney fibrosis
+  [26] (anatomical entity) -[part_of]-> (germ layer phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: BMR skull, PrV, alveolar septa, bloodstream, large olfactory bulbs, lissencephalic forebrains
+      Objects:  PrV, hemal nodes, lissencephalic forebrains, lungs, nasal bone, prominent cerebellums
+  [27] (anatomical structure phenotype) -[involved_in]-> (multicellular anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: PrV, autocoprophagy, elongation of the gubernaculum, follicles, heterocephalus glaber, interferon-beta
+      Objects:  B cell circulation, Vascular countercurrent heat exchange, afferents, brain size, cancer cells, cancer resistance
+  [28] (anatomical entity) -[involved_in]-> (biological_process phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Dorsal Root Ganglion, Trigeminal Ganglion, altered haemoglobin oxygen affinity, intrathecal SP, liver, perisinusoidal spaces
+      Objects:  Direct hind‑limb blood cooling, amyloid deposition, capsaicin stimulation, developmental descent process, gene expression profiles, inflammation
+  [29] (anatomical entity) -[involved_in]-> (material anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Leydig cells, PrV, Stom, brown adipocytes, interferon-beta, microvascular rarefaction
+      Objects:  DRG, Vascular countercurrent heat exchange, afferents, brain size, cancer cells, kidney fibrosis
+  [30] (material anatomical entity phenotype) -[involved_in]-> (anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Leydig cells, autocoprophagy, brown adipocytes, elongation of the gubernaculum, neuro-endocrine carcinoma, p53
+      Objects:  brain size, heterocephalus glaber, interferon-beta, malignant transformation, mitochondria, oxidative stress
+  [31] (anatomical entity phenotype) -[involved_in]-> (anatomical entity)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: elongation of the gubernaculum, heterocephalus glaber, microvascular rarefaction, neuro-endocrine carcinoma, p53, trigeminal nerve (CN V)
+      Objects:  brain size, interferon-beta, kidney fibrosis, malignant transformation, nasal cavity, potential influence of changes in the sensory periphery
+  [32] (anatomical entity phenotype) -[involved_in]-> (multicellular organism phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: elongation of the gubernaculum, follicles, heterocephalus glaber, microvascular rarefaction, neuro-endocrine carcinoma, p53
+      Objects:  B cell circulation, brain size, cancer resistance, interferon-beta, kidney fibrosis, malignant transformation
+  [33] (biological_process phenotype) -[involved_in]-> (material anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: RAP1, amyloid deposition, amyloidosis, body temperature, extremely slow postnatal growth rates, histone methylation
+      Objects:  SCs, barrel, cancer resistance, chromatin structure, liver, non-insulated
+  [34] (material anatomical entity phenotype) -[involved_in]-> (anatomical entity)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Stom, elongation of the gubernaculum, microvascular rarefaction, neuro-endocrine carcinoma, p53, trigeminal nerve (CN V)
+      Objects:  DRG, brain size, interferon-beta, kidney fibrosis, malignant transformation, nasal cavity
+  [35] (anatomical structure) -[part_of]-> (anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: POST, alveolar septa, gubernaculum, mechanoreceptors, musculature, spinal cord dorsal horn
+      Objects:  SCs, dorsal horn, heterocephalus glaber, lungs, ribosome, testes
+  [36] (anatomical structure phenotype) -[involved_in]-> (taxon specific phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: BMR p53, Leydig cells, PrV, heterocephalus glaber, interferon-beta, liver
+      Objects:  Direct hind‑limb blood cooling, afferents, amyloid deposition, cancer cells, energy expenditure, hypoxia
+  [37] (anatomical structure) -[part_of]-> (multicellular organism phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: alveolar septa, gubernaculum, lymph node (LN), mechanoreceptors, musculature, optic tract
+      Objects:  SON, heterocephalus glaber, lungs, porcine inverted LN, testes, trigeminal nerve
+  [38] (anatomical structure) -[part_of]-> (anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: POST, alveolar septa, mechanoreceptors, musculature, spinal cord dorsal horn, superficial laminae
+      Objects:  SCs, dorsal horn, heterocephalus glaber, lungs, ribosome, trigeminal nerve
+  [39] (material anatomical entity) -[part_of]-> (multicellular anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: alveolar septa, gubernaculum, optic tract, spinal cord dorsal horn, superficial laminae, superficially located dorsal horn neurons
+      Objects:  CNS, SON, dorsal horn, heterocephalus glaber, lungs, testes
+  [40] (material anatomical entity) -[part_of]-> (anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: alveolar septa, gubernaculum, mechanoreceptors, spinal cord dorsal horn, superficial laminae, superficially located dorsal horn neurons
+      Objects:  CNS, SCs, dorsal horn, heterocephalus glaber, lungs, testes
+  [41] (anatomical entity) -[involved_in]-> (anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Leydig cells, PrV, brown adipocytes, interferon-beta, testes, trigeminal nerve (CN V)
+      Objects:  Vascular countercurrent heat exchange, afferents, brain size, cancer cells, mitochondria, oxidative stress
+  [42] (anatomical entity) -[involved_in]-> (multicellular organism phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: PrV, Stom, interferon-beta, microvascular rarefaction, testes, trigeminal nerve (CN V)
+      Objects:  DRG, Vascular countercurrent heat exchange, afferents, brain size, cancer cells, kidney fibrosis
+  [43] (anatomical system phenotype) -[involved_in]-> (multicellular organism phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Stom, autocoprophagy, interferon-beta, microvascular rarefaction, testes, trigeminal nerve (CN V)
+      Objects:  DRG, Vascular countercurrent heat exchange, brain size, cancer cells, heterocephalus glaber, kidney fibrosis
+  [44] (material anatomical entity phenotype) -[involved_in]-> (multicellular anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Stom, autocoprophagy, elongation of the gubernaculum, follicles, neuro-endocrine carcinoma, trigeminal nerve (CN V)
+      Objects:  B cell circulation, DRG, brain size, heterocephalus glaber, potential influence of changes in the sensory periphery, skeletal muscle
+  [45] (material anatomical entity) -[part_of]-> (anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: alveolar septa, mechanoreceptors, spinal cord dorsal horn, superficial laminae, superficially located dorsal horn neurons, telomere
+      Objects:  CNS, SCs, dorsal horn, heterocephalus glaber, lungs, trigeminal nerve
+  [46] (anatomical system phenotype) -[involved_in]-> (material anatomical entity phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Leydig cells, Stom, interferon-beta, microvascular rarefaction, testes, trigeminal nerve (CN V)
+      Objects:  DRG, Vascular countercurrent heat exchange, brain size, cancer cells, kidney fibrosis, oxidative stress
+  [47] (biological_process phenotype) -[involved_in]-> (anatomical entity)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: amyloid deposition, amyloidosis, body temperature, innervation density, p53, thermoregulation
+      Objects:  barrel, interferon-beta, liver, malignant transformation, non-insulated, venous structures
+  [48] (material anatomical entity) -[part_of]-> (multicellular organism phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: alveolar septa, gubernaculum, mechanoreceptors, optic tract, spinal cord dorsal horn, superficially located dorsal horn neurons
+      Objects:  CNS, SON, heterocephalus glaber, lungs, testes, trigeminal nerve
+  [49] (multicellular organism phenotype) -[involved_in]-> (anatomical structure phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Leydig cells, brown adipocytes, heterocephalus glaber, interferon-beta, testes, trigeminal nerve (CN V)
+      Objects:  Vascular countercurrent heat exchange, brain size, cancer cells, cancer resistance, mitochondria, oxidative stress
+  [50] (anatomical entity) -[involved_in]-> (taxon specific phenotype)
+      Species (4): chrysochloris asiatica, condylura cristata, heterocephalus glaber, nannospalax ehrenbergi
+      Subjects: Leydig cells, PrV, interferon-beta, liver, perisinusoidal spaces, spleen
+      Objects:  Direct hind‑limb blood cooling, afferents, amyloid deposition, cancer cells, oxidative stress
+
+=== TIER 2 — SEMANTIC SIMILARITY CLUSTERS ===
+Medium precision. These are entity pairs from different species with high embedding similarity.
+Catches synonyms and paraphrases that Tier 1 misses. May have false positives.
+
+  [1] Entities: sensory organs, sensory system, somatosensory organization, somatosensory system, somatosensory systems
+      Species (4): condylura cristata, nannospalax ehrenbergi, heterocephalus glaber, chrysochloris asiatica
+      Top pairs: "somatosensory organization" ~ "somatosensory system" (0.85); "somatosensory system" ~ "sensory system" (0.82); "somatosensory organization" ~ "somatosensory systems" (0.86); "somatosensory organization" ~ "somatosensory systems" (0.86); "sensory organs" ~ "sensory system" (0.84)
+  [2] Entities: digestive tract, gastrointestinal tract, human gastrointestinal tract, simple gastrointestinal tract
+      Species (4): condylura cristata, nannospalax ehrenbergi, heterocephalus glaber, chrysochloris asiatica
+      Top pairs: "human gastrointestinal tract" ~ "gastrointestinal tract" (0.92); "simple gastrointestinal tract" ~ "gastrointestinal tract" (0.87); "gastrointestinal tract" ~ "digestive tract" (0.88)
+  [3] Entities: brain, human brain
+      Species (4): nannospalax ehrenbergi, condylura cristata, heterocephalus glaber, chrysochloris asiatica
+      Top pairs: "human brain" ~ "brain" (0.86)
+  [4] Entities: burrows, subterranean, subterranean burrows, subterranean dwelling, subterranean environment, subterranean environments, subterranean habitat, subterranean habitats
+      Species (3): nannospalax ehrenbergi, heterocephalus glaber, chrysochloris asiatica
+      Top pairs: "subterranean" ~ "subterranean milieu" (0.88); "subterranean environment" ~ "subterranean" (0.87); "subterranean habitat" ~ "subterranean" (0.87); "subterranean living" ~ "subterranean" (0.86); "subterranean" ~ "subterranean life" (0.86)
+  [5] Entities: primary somatosensory cortex, secondary somatosensory cortex, sensory neurons, somasensory cortex, somasomatosensory cortex, somatosensory cortex, somatosensory neocortex, somatosensory neurons
+      Species (3): nannospalax ehrenbergi, condylura cristata, heterocephalus glaber
+      Top pairs: "somatosensory cortex" ~ "somasensory cortex" (0.97); "somatosensory cortex" ~ "somasomatosensory cortex" (0.93); "secondary somatosensory cortex" ~ "somatosensory cortex" (0.92); "primary somatosensory cortex" ~ "somatosensory cortex" (0.90); "somatosensory neocortex" ~ "somatosensory cortex" (0.87)
+  [6] Entities: circadian behavior and rhythm, circadian rhythm, circadian rhythm perception, circadian rhythmicity, circadian rhythms
+      Species (3): nannospalax ehrenbergi, heterocephalus glaber, chrysochloris asiatica
+      Top pairs: "circadian rhythmicity" ~ "circadian rhythms" (0.87); "circadian rhythm perception" ~ "circadian rhythms" (0.82); "circadian rhythm" ~ "circadian behavior and rhythm" (0.89)
+  [7] Entities: rRNA, rRNA genes, rRNAs, tRNAs
+      Species (3): condylura cristata, nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "rRNAs" ~ "rRNA genes" (0.86); "rRNA genes" ~ "rRNA" (0.84); "rRNAs" ~ "tRNAs" (0.83)
+  [8] Entities: long tunnels, tunnels
+      Species (3): condylura cristata, nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "tunnels" ~ "long tunnels" (0.85); "tunnels" ~ "tunnels" (1.00)
+  [9] Entities: Body Length, body size
+      Species (3): condylura cristata, nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "Body Length" ~ "body size" (0.83); "Body Length" ~ "body size" (0.83)
+  [10] Entities: central nervous system, cerebral nervous system, nervous system (CNS)
+      Species (3): condylura cristata, heterocephalus glaber, chrysochloris asiatica
+      Top pairs: "cerebral nervous system" ~ "central nervous system" (0.91); "cerebral nervous system" ~ "nervous system (CNS)" (0.84)
+  [11] Entities: hypoxia
+      Species (3): nannospalax ehrenbergi, heterocephalus glaber, chrysochloris asiatica
+      Top pairs: "hypoxia" ~ "hypoxia" (1.00)
+  [12] Entities: tumors
+      Species (3): chrysochloris asiatica, heterocephalus glaber, nannospalax ehrenbergi
+      Top pairs: "tumors" ~ "tumors" (1.00)
+  [13] Entities: PBS, a PBS
+      Species (3): nannospalax ehrenbergi, condylura cristata, chrysochloris asiatica
+      Top pairs: "PBS" ~ "a PBS" (0.90)
+  [14] Entities: papillae, tongue papillae
+      Species (3): nannospalax ehrenbergi, condylura cristata, heterocephalus glaber
+      Top pairs: "papillae" ~ "tongue papillae" (0.83)
+  [15] Entities: Endoplasmic reticulum stress, endoplasmic reticulum
+      Species (3): nannospalax ehrenbergi, heterocephalus glaber, chrysochloris asiatica
+      Top pairs: "endoplasmic reticulum" ~ "Endoplasmic reticulum stress" (0.82)
+  [16] Entities: Carcinogenesis resistance, cancer resistance, cancer resistance mechanisms, cancer-resistance, cancer-resistance mechanism, cancer-resistance mechanisms, cancer-resistant, resistance to cancer
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "cancer resistance" ~ "cancer-resistance" (0.93); "resistance to cancer" ~ "cancer-resistance" (0.90); "cancer-resistance mechanisms" ~ "cancer-resistance" (0.88); "cancer-resistance mechanism" ~ "cancer-resistance" (0.87); "cancer resistance" ~ "cancer resistance mechanisms" (0.87)
+  [17] Entities: hypoxia (< 5% O2) tolerance, hypoxia tolerance, hypoxia-tolerant, hypoxic stress tolerance, hypoxic tolerance, tolerance to hypercapnia and hypoxia, tolerance to hypoxia and hypercapnia
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "hypoxic tolerance" ~ "hypoxia tolerance" (0.93); "hypoxia tolerance" ~ "hypoxic stress tolerance" (0.86); "hypoxia tolerance" ~ "hypoxia-tolerant" (0.85); "hypoxia tolerance" ~ "tolerance to hypoxia and hypercapnia" (0.84); "hypoxia tolerance" ~ "hypoxia (< 5% O2) tolerance" (0.83)
+  [18] Entities: exceptional longevity, extraordinarily long-lived, extreme longevity, extremely long lived, long-lived, longevity
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "exceptional longevity" ~ "extreme longevity" (0.91); "long-lived" ~ "extremely long lived" (0.89); "extraordinarily long-lived" ~ "long-lived" (0.89); "exceptional longevity" ~ "longevity" (0.82)
+  [19] Entities: front incisors, incisors, lower incisors, upper and lower incisors, upper incisor teeth
+      Species (2): nannospalax ehrenbergi, condylura cristata
+      Top pairs: "incisors" ~ "upper and lower incisors" (0.86); "front incisors" ~ "incisors" (0.84); "lower incisors" ~ "incisors" (0.83); "incisors" ~ "upper incisor teeth" (0.82)
+  [20] Entities: Dorsal Root Ganglion, dorsal root ganglia, dorsal root ganglion neurones, dorsal root ganglion neurons
+      Species (2): condylura cristata, heterocephalus glaber
+      Top pairs: "dorsal root ganglion neurones" ~ "dorsal root ganglion neurons" (0.99); "dorsal root ganglia" ~ "dorsal root ganglion neurons" (0.87); "Dorsal Root Ganglion" ~ "dorsal root ganglion neurons" (0.86)
+  [21] Entities: extremely high-molecular-mass hyaluronan, high-molecular-mass hyaluronan, high-molecular-mass hyaluronic acid, very-high-molecular-mass hyaluronan
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "very-high-molecular-mass hyaluronan" ~ "extremely high-molecular-mass hyaluronan" (0.93); "high-molecular-mass hyaluronan" ~ "extremely high-molecular-mass hyaluronan" (0.93); "extremely high-molecular-mass hyaluronan" ~ "high-molecular-mass hyaluronic acid" (0.87)
+  [22] Entities: low O2 conditions, low oxygen, low oxygen levels, low-oxygen and high–carbon dioxide conditions, low-oxygen conditions
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "low oxygen levels" ~ "low oxygen" (0.92); "low-oxygen conditions" ~ "low-oxygen and high–carbon dioxide conditions" (0.85); "low O2 conditions" ~ "low-oxygen conditions" (0.83)
+  [23] Entities: hypoxic conditions, hypoxic environment, hypoxic underground environments
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "hypoxic underground environments" ~ "hypoxic environment" (0.87); "hypoxic environment" ~ "hypoxic conditions" (0.83); "hypoxic conditions" ~ "hypoxic environment" (0.83)
+  [24] Entities: embryonic fibroblasts, fibroblasts, mouse fibroblasts, skin fibroblasts
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "mouse fibroblasts" ~ "fibroblasts" (0.86); "skin fibroblasts" ~ "fibroblasts" (0.85); "embryonic fibroblasts" ~ "fibroblasts" (0.82)
+  [25] Entities: NK cells, natural killer (NK) cells
+      Species (2): nannospalax ehrenbergi, chrysochloris asiatica
+      Top pairs: "NK cells" ~ "NK cells" (1.00); "natural killer (NK) cells" ~ "NK cells" (0.86)
+  [26] Entities: classical nociceptors, nociceptors
+      Species (2): condylura cristata, heterocephalus glaber
+      Top pairs: "nociceptors" ~ "nociceptors" (1.00); "nociceptors" ~ "classical nociceptors" (0.82)
+  [27] Entities: extremely small prey, small prey
+      Species (2): condylura cristata, heterocephalus glaber
+      Top pairs: "small prey" ~ "small prey" (1.00); "small prey" ~ "extremely small prey" (0.84)
+  [28] Entities: Mitochondrion, mitochondria, mitochondrial
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "mitochondria" ~ "Mitochondrion" (0.92); "mitochondrial" ~ "mitochondria" (0.90)
+  [29] Entities: Naked mole-rat cancers, mole-rat cells, naked mole-rat cells, naked mole-rat’s
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "mole-rat cells" ~ "naked mole-rat cells" (0.89); "Naked mole-rat cancers" ~ "naked mole-rat’s" (0.84)
+  [30] Entities: Negligible senescence, negligible senescence phenotype, senescence
+      Species (2): nannospalax ehrenbergi, heterocephalus glaber
+      Top pairs: "negligible senescence phenotype" ~ "Negligible senescence" (0.89); "Negligible senescence" ~ "senescence" (0.82)
+
+=== KNOWLEDGE GRAPH PER SPECIES ===
+Structured knowledge graph for each species: entities with their types and mention
+frequency, and the biological relations between them extracted from source documents.
+Use this to understand the relational context of each species and to identify shared
+biological conditions or patterns not captured by Tier 1 or Tier 2 above.
+
+### nannospalax ehrenbergi
+- Exhibits distinct anatomical features including a specialized bill and inner ear structures adapted for subterranean life within underground tunnel systems and deep nests.
+- Inhabits diverse environments ranging from temperate grasslands (sand steppes) and regenerated fallow lands in Turkey, Israel, Jordan, Iraq, and the Balkans to specific high-altitude or hypoxic niches like Kars-Kazıkoparan and Bjelasnica Mountain.
+- Displays unique phenotypic traits such as karyotypic diversity with C-banding patterns, meiotic prophase I characteristics involving nucleolus organizer regions, and a circadian rhythm phenotype linked to melatonin signaling (MTNR1A/MTNR1B).
+- Possesses notable biological processes including enhanced tumor suppression via the p53 class mediator pathway, INK4a-RB pathways, and specific genes like Birc3, Irf7, Tnfrsf1a, and HAS2.
+- Demonstrates adaptations for low-oxygen environments (subterranean hypoxic conditions) supported by mitochondrial DNA variations in PCGs, tRNAs, rRNAs, and cytochrome b sequences across its mitogenomes.
+
+### chrysochloris asiatica
+- The Cape golden mole (*Chrysochloris asiatica*) possesses a tubular mouth and forelimbs equipped with long claws adapted for burrowing behavior within subterranean environments in South Africa's Western Cape province.
+- Its sensory biology is characterized by reduced visual capabilities, including an eye lens and photoreceptors like OPN4 (melanopsin) involved in circadian phase shifting, while relying heavily on auditory receptor cell differentiation and olfactory transduction via TAS1R3 taste receptors and a de facto vomeronasal organ.
+- Anatomically, the species features scales covering its body, an inner ear specialized for sound perception, and specific reproductive structures including the gubernaculum involved in testicular descent regulated by Insl3 signaling.
+- Notable biological processes include heat shock protein binding responses to stress, muscle adaptation phenotypes suited for digging, and a localized cardiovascular system with endothelium development supporting its fossorial lifestyle.
+
+### condylura cristata
+- Possesses a unique "nasal star" composed of 22 fleshy appendages (rays) surrounding the nostrils, featuring specialized Eimer's organs and a high density of tactile mechanoreceptors that function as a somatosensory fovea for rapid prey detection.
+- Exhibits extreme sensory specialization with an expanded trigeminal system and large olfactory bulbs to process touch and smell in dark underground or aquatic environments, while showing reduced visual capabilities including microphthalmic eyes and decreased functionality of the visual cortex.
+- Lives in moist habitats such as wetlands, streams, ponds, and ice-covered waters where it forages on small soft-bodied prey like earthworms (annelids), mollusks, and aquatic insects using its star to achieve record-breaking handling times.
+- Displays a "tactile fovea" phenotype centered on the 11th pair of rays, which has disproportionate cortical representation in the primary somatosensory cortex and is innervated by specific myelinated nerve fibers for high-resolution tactile perception.
+- Utilizes genes such as CNGA2, TRPV1, Piezo2, and substance P to support its specialized nociceptive and mechanosensitive pathways, enabling rapid localization of prey through mechanical transduction in low-light conditions.
+
+### heterocephalus glaber
+- Exhibits eusocial behavior characterized by living in colonies with distinct reproductive castes (pregnant queens and breeder males) within underground burrows or plexiglass systems that include communal toilet chambers.
+- Possesses unique physiological adaptations for subterranean life, including tolerance to hypoxic environments with high carbon dioxide concentrations, reduced metabolic rates, and the absence of functional TRPV1 receptors which alters pain perception (insensitivity to capsaicin).
+- Displays remarkable longevity traits linked to cellular mechanisms such as telomere elongation, efficient DNA repair phenotypes, resistance to oxidative stress via antioxidant activity, and a lack of typical age-related senescence markers like p16Ink4a upregulation.
+- Features specialized anatomical structures including large external teeth (implied by "pinch" and mechanical stimulation contexts), communal gut microbiomes maintained through allocoprophagy, and specific ocular adaptations involving crystallin formation for low-light vision in dark habitats.
+- Utilizes distinct metabolic strategies such as anaerobic glycolysis and altered haemoglobin oxygen affinity to survive in extreme environments with zero-oxygen or high-CO2 conditions found in their natural burrows of Northeast Africa.
+
+YOUR TASKS:
+1. MERGE: if Tier 1, Tier 1B, and/or Tier 2 identify the same underlying biological condition,
+   merge them into one community (tier = "merged"). Combined evidence is stronger.
+2. GAP-FILL (Tier 3): scan the knowledge graphs for biological conditions or relational
+   patterns (e.g. shared entity-relation-entity chains) clearly present across
+   >= 2 species that neither tier captured. Add these as tier = "llm".
+   Be conservative — only add if the evidence is clear across multiple species.
+3. INTERPRET: for each community, write 1-2 sentences explaining the biological
+   significance and why these species might share this condition.
+4. HYPOTHESIZE: write 2-4 sentences about what the shared gene likely does,
+   integrating all communities into one coherent mechanistic hypothesis.
+
+STRICT RULES:
+- Only include communities with evidence across >= 2 species.
+- Do NOT invent communities unsupported by the provided evidence.
+- Do NOT compare species to each other within interpretations — each interpretation
+  should explain the shared pattern, not describe individual species.
+- tier field must be exactly one of: "upheno", "embedding", "merged", "llm"
+- gene_function_hypothesis must integrate ALL communities, not just the strongest one.
+- If no communities can be supported, return {"communities": [], "gene_function_hypothesis": "Insufficient cross-species evidence."}
+
+OUTPUT: valid JSON only, no markdown fences, no prose before or after.
+{
+  "communities": [
+    {
+      "label": "<short biological label, 2-5 words>",
+      "tier": "upheno|embedding|merged|llm",
+      "species_coverage": ["<species display name>", ...],
+      "species_count": N,
+      "supporting_entities": ["<entity surface form>", ...],
+      "tier1_evidence": {
+        "term_id": "<UPHENO:XXXXXXX or similar>",
+        "term_name": "<ontology term name>",
+        "species_count": N,
+        "entity_forms": ["<surface form>", ...]
+      },
+      "tier2_evidence": {
+        "pairs": [["<sf1>", "<sf2>", <score>], ...],
+        "species_count": N
+      },
+      "tier3_interpretation": "<1-2 sentence biological interpretation>"
+    }
+  ],
+  "gene_function_hypothesis": "<2-4 sentence hypothesis>"
+}
+
+Note: tier1_evidence and tier2_evidence should be null if that tier did not contribute.
+
+Answer:

@@ -290,30 +290,16 @@ def _is_cache_fresh(embed_backend: str | None = None) -> bool:
     if not (embed_npy.exists() and metadata_jsonl.exists() and manifest_json.exists()):
         return False
     manifest = _read_manifest(embed_backend)
-    if not manifest:
-        return False
-    owl_mtimes = manifest.get("owl_mtimes", {})
-    for owl_path, _, label in _OWL_SOURCES:
-        if owl_path.exists():
-            recorded = owl_mtimes.get(label, 0)
-            if owl_path.stat().st_mtime > recorded:
-                print(f"[KG] {label} has been updated — rebuilding index.")
-                return False
-    return True
+    return bool(manifest)
 
 
 def _write_manifest(terms: list[dict], embed_model: str, embed_backend: str | None = None) -> None:
     _, _, manifest_json = _index_paths(embed_backend)
-    owl_mtimes = {}
-    for owl_path, _, label in _OWL_SOURCES:
-        if owl_path.exists():
-            owl_mtimes[label] = owl_path.stat().st_mtime
     manifest = {
         "term_count": len(terms),
         "embedding_model": embed_model,
         "embed_backend": embed_backend or "ollama",
         "build_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "owl_mtimes": owl_mtimes,
     }
     tmp = manifest_json.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(manifest, indent=2), encoding="utf-8")

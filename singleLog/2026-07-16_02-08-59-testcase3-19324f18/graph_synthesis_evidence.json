@@ -1,0 +1,1452 @@
+{
+  "tier1": [
+    {
+      "term_id": "UBERON:0000069",
+      "term_name": "larval stage",
+      "fan_in": 1,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "frogs",
+        "Wood frog tadpoles",
+        "larvae",
+        "nematode larvae",
+        "paralarvae",
+        "paralarva",
+        "paralarvae phase",
+        "L3",
+        "planula larva",
+        "planktonic larval phase",
+        "lobster larvae",
+        "pelagic fish larvae"
+      ],
+      "term_names": [
+        "larval stage",
+        "nematode larval stage"
+      ],
+      "score": 5.8289456176102075
+    },
+    {
+      "term_id": "XPO:0141505",
+      "term_name": "abnormal tadpole morphology",
+      "fan_in": 1,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "entity_forms": [
+        "frogs"
+      ],
+      "term_names": [
+        "abnormal tadpole morphology"
+      ],
+      "score": 4.371709213207655
+    },
+    {
+      "term_id": "XPO:0100178",
+      "term_name": "abnormal digit",
+      "fan_in": 8,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "digits",
+        "forelimb 2D and 4D",
+        "limb region bearing anterior claws (AC)",
+        "posterior claws (PC)",
+        "left arm 2",
+        "arm R3",
+        "crays"
+      ],
+      "term_names": [
+        "abnormal digit",
+        "abnormal forelimb digit 2",
+        "abnormally localised claw of hindlimb digit 1",
+        "absent claw of hindlimb digit 2",
+        "abnormal forelimb digit 3",
+        "abnormal claw morphology"
+      ],
+      "score": 4.324868220833933
+    },
+    {
+      "term_id": "UPHENO:0049892",
+      "term_name": "multi-organism reproductive process phenotype",
+      "fan_in": 9,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "multi-species breeding choruses",
+        "dominance assertion",
+        "readiness to breed",
+        "male–male contests",
+        "prematurely born babies",
+        "multiple mating",
+        "multiple paternity",
+        "mating",
+        "intracerebral sexual or social interactions"
+      ],
+      "term_names": [
+        "multi-organism reproductive process phenotype",
+        "increased aggression towards males in competition for females",
+        "abnormal sexual interaction",
+        "Premature birth",
+        "increased mating frequency",
+        "mating phenotype"
+      ],
+      "score": 4.219507705176107
+    },
+    {
+      "term_id": "XPO:0116429",
+      "term_name": "abnormal behavior",
+      "fan_in": 10,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "bird-voiced tree frog",
+        "aggressive calls",
+        "courting calls",
+        "call",
+        "call structure",
+        "calls",
+        "escape from terrariums",
+        "feeding behaviour",
+        "behavioral patterns"
+      ],
+      "term_names": [
+        "abnormal vocalization behavior",
+        "abnormal courtship behavior",
+        "abnormal escape behavior",
+        "abnormal feeding behavior",
+        "abnormal behavior"
+      ],
+      "score": 4.124197525371782
+    },
+    {
+      "term_id": "UBERON:0000105",
+      "term_name": "life cycle stage",
+      "fan_in": 10,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "frogs",
+        "adult copepods",
+        "Wood frog tadpoles",
+        "larvae",
+        "adults",
+        "fledgling birds",
+        "adult",
+        "nematode larvae",
+        "embryonic stage",
+        "paralarvae",
+        "paralarva",
+        "paralarvae phase",
+        "immature female",
+        "immature male",
+        "L3",
+        "planula larva",
+        "embryo-genesis",
+        "adult developmental stages",
+        "immature",
+        "death",
+        "planktonic larval phase",
+        "early benthic juvenile and adult animals",
+        "adult animals",
+        "lobster larvae",
+        "pelagic fish larvae"
+      ],
+      "term_names": [
+        "larval stage",
+        "post-juvenile adult stage",
+        "sexually immature stage",
+        "nematode larval stage",
+        "embryo stage",
+        "death stage"
+      ],
+      "score": 4.124197525371782
+    },
+    {
+      "term_id": "UPHENO:0003210",
+      "term_name": "otic placode phenotype",
+      "fan_in": 10,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "acoustic data",
+        "cochlea",
+        "papillae",
+        "Scutuloidea maculata"
+      ],
+      "term_names": [
+        "internal acoustic meatus phenotype",
+        "cochlea phenotype",
+        "basilar papilla phenotype",
+        "macula phenotype"
+      ],
+      "score": 4.124197525371782
+    },
+    {
+      "term_id": "XPO:0141499",
+      "term_name": "abnormal tadpole",
+      "fan_in": 2,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "entity_forms": [
+        "frogs"
+      ],
+      "term_names": [
+        "abnormal tadpole morphology"
+      ],
+      "score": 4.067610382126532
+    },
+    {
+      "term_id": "UPHENO:0003229",
+      "term_name": "ear vesicle phenotype",
+      "fan_in": 11,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "acoustic data",
+        "cochlea",
+        "papillae",
+        "statoliths",
+        "Scutuloidea maculata"
+      ],
+      "term_names": [
+        "internal acoustic meatus phenotype",
+        "cochlea phenotype",
+        "basilar papilla phenotype",
+        "otolith morphology, abnormal",
+        "macula phenotype"
+      ],
+      "score": 4.037186148382152
+    },
+    {
+      "term_id": "UBERON:0000000",
+      "term_name": "processual entity",
+      "fan_in": 12,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "frogs",
+        "adult copepods",
+        "Wood frog tadpoles",
+        "larvae",
+        "adults",
+        "fledgling birds",
+        "adult",
+        "nematode larvae",
+        "embryonic stage",
+        "paralarvae",
+        "paralarva",
+        "paralarvae phase",
+        "immature female",
+        "immature male",
+        "L3",
+        "planula larva",
+        "embryo-genesis",
+        "adult developmental stages",
+        "immature",
+        "death",
+        "planktonic larval phase",
+        "early benthic juvenile and adult animals",
+        "adult animals",
+        "lobster larvae",
+        "pelagic fish larvae"
+      ],
+      "term_names": [
+        "larval stage",
+        "post-juvenile adult stage",
+        "sexually immature stage",
+        "nematode larval stage",
+        "embryo stage",
+        "death stage"
+      ],
+      "score": 3.9571434407086157
+    },
+    {
+      "term_id": "XPO:0100205",
+      "term_name": "abnormal limb segment",
+      "fan_in": 13,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "digits",
+        "forelimb 2D and 4D",
+        "limb region bearing anterior claws (AC)",
+        "posterior claws (PC)",
+        "left arm 2",
+        "arm R3",
+        "foot",
+        "crays"
+      ],
+      "term_names": [
+        "abnormal digit",
+        "abnormal forelimb digit 2",
+        "abnormally localised claw of hindlimb digit 1",
+        "absent claw of hindlimb digit 2",
+        "abnormal forelimb digit 3",
+        "abnormal foot",
+        "abnormal claw morphology"
+      ],
+      "score": 3.8830354685548936
+    },
+    {
+      "term_id": "XPO:0100458",
+      "term_name": "abnormal autopod",
+      "fan_in": 13,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "digits",
+        "forelimb 2D and 4D",
+        "limb region bearing anterior claws (AC)",
+        "posterior claws (PC)",
+        "left arm 2",
+        "arm R3",
+        "foot",
+        "crays"
+      ],
+      "term_names": [
+        "abnormal digit",
+        "abnormal forelimb digit 2",
+        "abnormally localised claw of hindlimb digit 1",
+        "absent claw of hindlimb digit 2",
+        "abnormal forelimb digit 3",
+        "abnormal foot",
+        "abnormal claw morphology"
+      ],
+      "score": 3.8830354685548936
+    },
+    {
+      "term_id": "UPHENO:0004454",
+      "term_name": "pit phenotype",
+      "fan_in": 14,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "acoustic data",
+        "double-pithing",
+        "cochlea",
+        "papillae",
+        "statoliths",
+        "Scutuloidea maculata"
+      ],
+      "term_names": [
+        "internal acoustic meatus phenotype",
+        "pit phenotype",
+        "cochlea phenotype",
+        "basilar papilla phenotype",
+        "otolith morphology, abnormal",
+        "macula phenotype"
+      ],
+      "score": 3.8140425970679424
+    },
+    {
+      "term_id": "UPHENO:0055091",
+      "term_name": "increased immune system process",
+      "fan_in": 15,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "Cd",
+        "immune environment",
+        "frequent reports of allergic reactions",
+        "seafood allergy",
+        "food-induced anaphylaxis",
+        "European Anaphylaxis Registry",
+        "crustacean allergy",
+        "mollusk allergy",
+        "seafood",
+        "European shellfish-allergic subjects",
+        "IgE-reactive allergens",
+        "molluscan allergens",
+        "shellfish-allergic subjects",
+        "shellfish allergen extracts",
+        "food allergies",
+        "allergens",
+        "anaphylaxis",
+        "life-threatening anaphylaxis",
+        "molluscan allergen ingestion",
+        "shellfish allergies",
+        "allergen groups",
+        "immune cell infiltration",
+        "immune and neuroendocrine signaling"
+      ],
+      "term_names": [
+        "Celiac disease",
+        "increased immune system process",
+        "Increased immune response",
+        "Seafood allergy",
+        "Food-induced anaphylaxis",
+        "Idiopathic anaphylaxis",
+        "Shellfish allergy",
+        "Dust mite allergy",
+        "Food allergy",
+        "Allergy",
+        "Anaphylactic shock",
+        "Plant product allergy"
+      ],
+      "score": 3.7495040759303713
+    },
+    {
+      "term_id": "UPHENO:0003212",
+      "term_name": "dorsolateral placode phenotype",
+      "fan_in": 16,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "acoustic data",
+        "cochlea",
+        "papillae",
+        "L153",
+        "Scutuloidea maculata"
+      ],
+      "term_names": [
+        "internal acoustic meatus phenotype",
+        "cochlea phenotype",
+        "basilar papilla phenotype",
+        "increased number of anterior lateral line neuromast",
+        "macula phenotype"
+      ],
+      "score": 3.6888794541139363
+    },
+    {
+      "term_id": "XPO:0102178",
+      "term_name": "abnormal whole organism morphology",
+      "fan_in": 4,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "entity_forms": [
+        "frogs"
+      ],
+      "term_names": [
+        "abnormal tadpole morphology"
+      ],
+      "score": 3.684491164302039
+    },
+    {
+      "term_id": "XPO:0101016",
+      "term_name": "abnormal egg",
+      "fan_in": 4,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "entity_forms": [
+        "egg envelopes",
+        "egg",
+        "eggs",
+        "large eggs",
+        "egg masses"
+      ],
+      "term_names": [
+        "abnormal egg",
+        "abnormal egg morphology",
+        "increased size of the egg"
+      ],
+      "score": 3.684491164302039
+    },
+    {
+      "term_id": "UPHENO:0053652",
+      "term_name": "localised immaterial anatomical entity",
+      "fan_in": 4,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "entity_forms": [
+        "landmarks",
+        "anatomical location",
+        "patch-and-groove topology of the skin",
+        "ventral ambulacral grooves"
+      ],
+      "term_names": [
+        "localised immaterial anatomical entity",
+        "localised anatomical space",
+        "localised surface groove",
+        "localised anatomical line along groove"
+      ],
+      "score": 3.684491164302039
+    },
+    {
+      "term_id": "UPHENO:0003070",
+      "term_name": "leg phenotype",
+      "fan_in": 17,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "legs",
+        "tibiofibula",
+        "leg skeletal muscle",
+        "leg muscle",
+        "left femur",
+        "right femur",
+        "muscular ventral foot",
+        "muscle tissues (legs and cephalothorax)",
+        "right walking legs",
+        "calves"
+      ],
+      "term_names": [
+        "leg phenotype",
+        "tibiofibula phenotype",
+        "Abnormality of the musculature of the lower limbs",
+        "Abnormal femur morphology",
+        "Abnormality of the foot musculature",
+        "musculature of leg phenotype",
+        "Calf muscle hypertrophy"
+      ],
+      "score": 3.631721040273988
+    },
+    {
+      "term_id": "MP:0001186",
+      "term_name": "pigmentation phenotype",
+      "fan_in": 17,
+      "species_list": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "entity_forms": [
+        "color",
+        "epidermal pigmentation",
+        "colour morphs",
+        "colouration",
+        "colour",
+        "colour change",
+        "white skin",
+        "cream-grey",
+        "color change",
+        "color variation"
+      ],
+      "term_names": [
+        "abnormal pigmentation pattern",
+        "abnormal epidermal pigmentation",
+        "absent skin pigmentation",
+        "diluted coat color"
+      ],
+      "score": 3.631721040273988
+    }
+  ],
+  "tier2_clusters": [
+    {
+      "surface_forms": [
+        "temperature"
+      ],
+      "species_count": 4,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "temperature",
+          "temperature",
+          1.0
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "hind leg muscle",
+        "hind legs",
+        "leg muscle",
+        "leg skeletal muscle",
+        "muscle tissue",
+        "muscle tissues",
+        "muscular tissue",
+        "skeletal muscle",
+        "skeletal muscle tissue",
+        "soft tissues",
+        "tissues"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "skeletal muscle",
+          "skeletal muscle tissue",
+          0.8746
+        ],
+        [
+          "leg skeletal muscle",
+          "skeletal muscle",
+          0.8555
+        ],
+        [
+          "muscle tissue",
+          "muscular tissue",
+          0.9589
+        ],
+        [
+          "leg skeletal muscle",
+          "leg muscle",
+          0.8616
+        ],
+        [
+          "skeletal muscle tissue",
+          "muscle tissues",
+          0.8397
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "South African zooplankton",
+        "zooplankton",
+        "zooplankton communities",
+        "zooplankton community composition",
+        "zooplankton community structure",
+        "zooplankton eggs"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "zooplankton communities",
+          "zooplankton",
+          0.8418
+        ],
+        [
+          "South African zooplankton",
+          "zooplankton",
+          0.8399
+        ],
+        [
+          "zooplankton",
+          "zooplankton",
+          1.0
+        ],
+        [
+          "zooplankton communities",
+          "zooplankton communities",
+          1.0
+        ],
+        [
+          "zooplankton community structure",
+          "zooplankton communities",
+          0.923
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "SW coast of Kenya",
+        "South African west coast",
+        "coast of South Africa",
+        "northwest coast of Africa",
+        "northwestern coast of Africa",
+        "southeast coast South Africa",
+        "southern coast of South Africa",
+        "west coast South Africa"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "southeast coast South Africa",
+          "coast of South Africa",
+          0.9018
+        ],
+        [
+          "southern coast of South Africa",
+          "southeast coast South Africa",
+          0.8997
+        ],
+        [
+          "coast of South Africa",
+          "west coast South Africa",
+          0.8282
+        ],
+        [
+          "SW coast of Kenya",
+          "northwest coast of Africa",
+          0.8137
+        ],
+        [
+          "northwestern coast of Africa",
+          "SW coast of Kenya",
+          0.8063
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "Mediterranean",
+        "Mediterranean Region",
+        "Mediterranean Sea",
+        "Mediterranean area",
+        "Mediterranean coast",
+        "Mediterranean region of Europe",
+        "Mediterranean regions"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "Mediterranean regions",
+          "Mediterranean region of Europe",
+          0.917
+        ],
+        [
+          "Mediterranean Region",
+          "Mediterranean area",
+          0.8943
+        ],
+        [
+          "Mediterranean Region",
+          "Mediterranean",
+          0.8156
+        ],
+        [
+          "Mediterranean Sea",
+          "Mediterranean area",
+          0.8009
+        ],
+        [
+          "Mediterranean region of Europe",
+          "Mediterranean coast",
+          0.7977
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "Asia",
+        "Asian countries",
+        "East Asia",
+        "East Asia and Southeast Asia",
+        "Southeast Asia"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "East Asia and Southeast Asia",
+          "Asia",
+          0.8086
+        ],
+        [
+          "East Asia and Southeast Asia",
+          "Southeast Asia",
+          0.8995
+        ],
+        [
+          "East Asia and Southeast Asia",
+          "East Asia",
+          0.8901
+        ],
+        [
+          "Asia",
+          "Asian countries",
+          0.8181
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "13–28 °C (55–82 °F)",
+        "20–35◦S",
+        "22°C–24°C",
+        "28°C–30°C",
+        "30° S to 50° S"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "13–28 °C (55–82 °F)",
+          "28°C–30°C",
+          0.8797
+        ],
+        [
+          "28°C–30°C",
+          "20–35◦S",
+          0.8609
+        ],
+        [
+          "30° S to 50° S",
+          "28°C–30°C",
+          0.8456
+        ],
+        [
+          "20–35◦S",
+          "22°C–24°C",
+          0.8442
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "geographic isolation",
+        "isolation",
+        "reproductive isolation"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "isolation",
+          "geographic isolation",
+          0.8048
+        ],
+        [
+          "isolation",
+          "geographic isolation",
+          0.8048
+        ],
+        [
+          "isolation",
+          "reproductive isolation",
+          0.7969
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "salinity",
+        "salinity requirement"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "salinity",
+          "salinity",
+          1.0
+        ],
+        [
+          "salinity requirement",
+          "salinity",
+          0.8121
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "color",
+        "colour"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "color",
+          "colour",
+          0.9053
+        ],
+        [
+          "color",
+          "color",
+          1.0
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "FL",
+        "Florida",
+        "Florida, United States"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "FL",
+          "Florida",
+          0.8443
+        ],
+        [
+          "Florida, United States",
+          "Florida",
+          0.7953
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "winter"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "winter",
+          "winter",
+          1.0
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "water"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "water",
+          "water",
+          1.0
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "South Africa",
+        "southern Africa"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "furcifer pardalis",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "southern Africa",
+          "South Africa",
+          0.8909
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "ovaries",
+        "ovary"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "ovary",
+          "ovaries",
+          0.8393
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "green",
+        "green color"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "green",
+          "green color",
+          0.8303
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "testicles",
+        "testis"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "testis",
+          "testicles",
+          0.8073
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "nerve cord",
+        "spinal cord"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "spinal cord",
+          "nerve cord",
+          0.8071
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "North America",
+        "USA"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "USA",
+          "North America",
+          0.8003
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "gills",
+        "internal gills"
+      ],
+      "species_count": 3,
+      "species_set": [
+        "dryophytes versicolor",
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "internal gills",
+          "gills",
+          0.7972
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "D-iridophores",
+        "S-iridophores",
+        "dermal iridophores",
+        "iridophore",
+        "iridophore cells",
+        "iridophores"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "iridophores",
+          "S-iridophores",
+          0.8669
+        ],
+        [
+          "iridophores",
+          "D-iridophores",
+          0.8617
+        ],
+        [
+          "dermal iridophores",
+          "iridophores",
+          0.8387
+        ],
+        [
+          "S-iridophores",
+          "iridophore",
+          0.8281
+        ],
+        [
+          "iridophore cells",
+          "iridophores",
+          0.8005
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "chloride",
+        "chloride salts"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "dryophytes versicolor",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "chloride",
+          "chloride",
+          1.0
+        ],
+        [
+          "chloride",
+          "chloride",
+          1.0
+        ],
+        [
+          "chloride",
+          "chloride salts",
+          0.8027
+        ],
+        [
+          "chloride",
+          "chloride salts",
+          0.8027
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "acceptable ambient temperature range",
+        "ambient temperature",
+        "ambient temperature range",
+        "temperature range"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "ambient temperature",
+          "ambient temperature range",
+          0.9157
+        ],
+        [
+          "temperature range",
+          "ambient temperature range",
+          0.8357
+        ],
+        [
+          "acceptable ambient temperature range",
+          "ambient temperature",
+          0.8199
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "faecal sample",
+        "faecal samples",
+        "fecal samples"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "furcifer pardalis",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "faecal samples",
+          "fecal samples",
+          0.8925
+        ],
+        [
+          "fecal samples",
+          "faecal samples",
+          0.8925
+        ],
+        [
+          "fecal samples",
+          "faecal sample",
+          0.8458
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "aquatic communities",
+        "aquatic ecosystems",
+        "aquatic environments",
+        "marine environments"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "dryophytes versicolor",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "aquatic ecosystems",
+          "aquatic environments",
+          0.8566
+        ],
+        [
+          "aquatic environments",
+          "marine environments",
+          0.8405
+        ],
+        [
+          "aquatic environments",
+          "aquatic communities",
+          0.8114
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "hemolymph",
+        "hemolymph matrix"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "hemolymph",
+          "hemolymph",
+          1.0
+        ],
+        [
+          "hemolymph",
+          "hemolymph matrix",
+          0.8033
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "bivalve mollusks",
+        "molluscs",
+        "mollusks"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "molluscs",
+          "mollusks",
+          0.9686
+        ],
+        [
+          "bivalve mollusks",
+          "molluscs",
+          0.8079
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "freeze response",
+        "freeze-specific responses",
+        "freezing response"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "dryophytes versicolor",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "freeze response",
+          "freezing response",
+          0.9488
+        ],
+        [
+          "freeze-specific responses",
+          "freezing response",
+          0.8091
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "parasite infections",
+        "parasitic infections",
+        "secondary parasitic infections"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "furcifer pardalis",
+        "octopus vulgaris"
+      ],
+      "top_pairs": [
+        [
+          "parasite infections",
+          "parasitic infections",
+          0.9432
+        ],
+        [
+          "secondary parasitic infections",
+          "parasitic infections",
+          0.8374
+        ]
+      ]
+    },
+    {
+      "surface_forms": [
+        "natural seawater",
+        "sea water",
+        "seawater"
+      ],
+      "species_count": 2,
+      "species_set": [
+        "octopus vulgaris",
+        "panulirus cygnus"
+      ],
+      "top_pairs": [
+        [
+          "seawater",
+          "sea water",
+          0.9167
+        ],
+        [
+          "seawater",
+          "natural seawater",
+          0.8165
+        ]
+      ]
+    }
+  ],
+  "subgraph_context_chars": 3969,
+  "retriever_stats": {
+    "octopus vulgaris": {
+      "n_chunks": 200,
+      "n_entities": 3685,
+      "n_triples": 5000,
+      "chunk_cap_hit": true
+    },
+    "furcifer pardalis": {
+      "n_chunks": 200,
+      "n_entities": 2068,
+      "n_triples": 5000,
+      "chunk_cap_hit": true
+    },
+    "dryophytes versicolor": {
+      "n_chunks": 200,
+      "n_entities": 1183,
+      "n_triples": 4088,
+      "chunk_cap_hit": true
+    },
+    "panulirus cygnus": {
+      "n_chunks": 200,
+      "n_entities": 800,
+      "n_triples": 1419,
+      "chunk_cap_hit": true
+    }
+  }
+}

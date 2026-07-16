@@ -1,0 +1,11 @@
+{
+  "species_norm": "nannospalax ehrenbergi",
+  "chunks_seen": 727,
+  "chunks_skipped": 0,
+  "chunks_junk": 11,
+  "chunks_indexed": 716,
+  "entities_created": 2938,
+  "triples_created": 1298,
+  "wall_s": 851.7,
+  "index_wall_s": 851.7
+}

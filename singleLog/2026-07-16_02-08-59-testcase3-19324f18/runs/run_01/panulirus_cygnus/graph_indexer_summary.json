@@ -1,0 +1,11 @@
+{
+  "species_norm": "panulirus cygnus",
+  "chunks_seen": 297,
+  "chunks_skipped": 0,
+  "chunks_junk": 2,
+  "chunks_indexed": 295,
+  "entities_created": 1055,
+  "triples_created": 437,
+  "wall_s": 289.9,
+  "index_wall_s": 289.9
+}

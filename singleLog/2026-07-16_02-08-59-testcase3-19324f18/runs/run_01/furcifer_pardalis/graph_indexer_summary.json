@@ -1,0 +1,11 @@
+{
+  "species_norm": "furcifer pardalis",
+  "chunks_seen": 557,
+  "chunks_skipped": 0,
+  "chunks_junk": 6,
+  "chunks_indexed": 550,
+  "entities_created": 3097,
+  "triples_created": 1191,
+  "wall_s": 758.5,
+  "index_wall_s": 758.5
+}

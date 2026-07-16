@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "terms_found": 12088,
+  "properties_set": 12088,
+  "verified_count": 12088,
+  "max_fan_in": 4865,
+  "min_fan_in": 1,
+  "elapsed_s": 1.3
+}

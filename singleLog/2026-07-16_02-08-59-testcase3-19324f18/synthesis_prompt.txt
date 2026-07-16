@@ -1,0 +1,472 @@
+You are a computational biologist synthesizing cross-species biological evidence
+to generate hypotheses about shared gene function.
+
+4 species share a gene of interest: Octopus vulgaris, Furcifer pardalis, Dryophytes versicolor, Panulirus cygnus
+
+You receive two tiers of pre-computed cross-species evidence from a knowledge graph:
+
+=== TIER 1 — ONTOLOGY CONVERGENCE ===
+High precision. These biological conditions have entities from different species that map
+to shared ancestors in the uPheno/HP/MP/ENVO ontology. May miss synonyms or informal terms.
+
+  [1] larval stage (UBERON:0000069)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: frogs, Wood frog tadpoles, larvae, nematode larvae, paralarvae, paralarva, paralarvae phase, L3
+      Via terms: larval stage, nematode larval stage
+  [2] abnormal tadpole morphology (XPO:0141505)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Entity forms: frogs
+      Via terms: abnormal tadpole morphology
+  [3] abnormal digit (XPO:0100178)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: digits, forelimb 2D and 4D, limb region bearing anterior claws (AC), posterior claws (PC), left arm 2, arm R3, crays
+      Via terms: abnormal digit, abnormal forelimb digit 2, abnormally localised claw of hindlimb digit 1, absent claw of hindlimb digit 2, abnormal forelimb digit 3
+  [4] multi-organism reproductive process phenotype (UPHENO:0049892)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: multi-species breeding choruses, dominance assertion, readiness to breed, male–male contests, prematurely born babies, multiple mating, multiple paternity, mating
+      Via terms: multi-organism reproductive process phenotype, increased aggression towards males in competition for females, abnormal sexual interaction, Premature birth, increased mating frequency
+  [5] abnormal behavior (XPO:0116429)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: bird-voiced tree frog, aggressive calls, courting calls, call, call structure, calls, escape from terrariums, feeding behaviour
+      Via terms: abnormal vocalization behavior, abnormal courtship behavior, abnormal escape behavior, abnormal feeding behavior, abnormal behavior
+  [6] life cycle stage (UBERON:0000105)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: frogs, adult copepods, Wood frog tadpoles, larvae, adults, fledgling birds, adult, nematode larvae
+      Via terms: larval stage, post-juvenile adult stage, sexually immature stage, nematode larval stage, embryo stage
+  [7] otic placode phenotype (UPHENO:0003210)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: acoustic data, cochlea, papillae, Scutuloidea maculata
+      Via terms: internal acoustic meatus phenotype, cochlea phenotype, basilar papilla phenotype, macula phenotype
+  [8] abnormal tadpole (XPO:0141499)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Entity forms: frogs
+      Via terms: abnormal tadpole morphology
+  [9] ear vesicle phenotype (UPHENO:0003229)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: acoustic data, cochlea, papillae, statoliths, Scutuloidea maculata
+      Via terms: internal acoustic meatus phenotype, cochlea phenotype, basilar papilla phenotype, otolith morphology, abnormal, macula phenotype
+  [10] processual entity (UBERON:0000000)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: frogs, adult copepods, Wood frog tadpoles, larvae, adults, fledgling birds, adult, nematode larvae
+      Via terms: larval stage, post-juvenile adult stage, sexually immature stage, nematode larval stage, embryo stage
+  [11] abnormal limb segment (XPO:0100205)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: digits, forelimb 2D and 4D, limb region bearing anterior claws (AC), posterior claws (PC), left arm 2, arm R3, foot, crays
+      Via terms: abnormal digit, abnormal forelimb digit 2, abnormally localised claw of hindlimb digit 1, absent claw of hindlimb digit 2, abnormal forelimb digit 3
+  [12] abnormal autopod (XPO:0100458)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: digits, forelimb 2D and 4D, limb region bearing anterior claws (AC), posterior claws (PC), left arm 2, arm R3, foot, crays
+      Via terms: abnormal digit, abnormal forelimb digit 2, abnormally localised claw of hindlimb digit 1, absent claw of hindlimb digit 2, abnormal forelimb digit 3
+  [13] pit phenotype (UPHENO:0004454)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: acoustic data, double-pithing, cochlea, papillae, statoliths, Scutuloidea maculata
+      Via terms: internal acoustic meatus phenotype, pit phenotype, cochlea phenotype, basilar papilla phenotype, otolith morphology, abnormal
+  [14] increased immune system process (UPHENO:0055091)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: Cd, immune environment, frequent reports of allergic reactions, seafood allergy, food-induced anaphylaxis, European Anaphylaxis Registry, crustacean allergy, mollusk allergy
+      Via terms: Celiac disease, increased immune system process, Increased immune response, Seafood allergy, Food-induced anaphylaxis
+  [15] dorsolateral placode phenotype (UPHENO:0003212)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: acoustic data, cochlea, papillae, L153, Scutuloidea maculata
+      Via terms: internal acoustic meatus phenotype, cochlea phenotype, basilar papilla phenotype, increased number of anterior lateral line neuromast, macula phenotype
+  [16] abnormal whole organism morphology (XPO:0102178)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Entity forms: frogs
+      Via terms: abnormal tadpole morphology
+  [17] abnormal egg (XPO:0101016)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Entity forms: egg envelopes, egg, eggs, large eggs, egg masses
+      Via terms: abnormal egg, abnormal egg morphology, increased size of the egg
+  [18] localised immaterial anatomical entity (UPHENO:0053652)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Entity forms: landmarks, anatomical location, patch-and-groove topology of the skin, ventral ambulacral grooves
+      Via terms: localised immaterial anatomical entity, localised anatomical space, localised surface groove, localised anatomical line along groove
+  [19] leg phenotype (UPHENO:0003070)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: legs, tibiofibula, leg skeletal muscle, leg muscle, left femur, right femur, muscular ventral foot, muscle tissues (legs and cephalothorax)
+      Via terms: leg phenotype, tibiofibula phenotype, Abnormality of the musculature of the lower limbs, Abnormal femur morphology, Abnormality of the foot musculature
+  [20] pigmentation phenotype (MP:0001186)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Entity forms: color, epidermal pigmentation, colour morphs, colouration, colour, colour change, white skin, cream-grey
+      Via terms: abnormal pigmentation pattern, abnormal epidermal pigmentation, absent skin pigmentation, diluted coat color
+
+=== TIER 1B — RELATIONAL PATTERNS ===
+High precision. Directed biological relationships (subject -[relation]-> object) shared
+across species, where both endpoints map to shared ontology ancestors. Complements TIER 1
+by capturing directionality and relational context, not just co-occurrence.
+
+  [1] (anatomical structure phenotype) -[part_of]-> (anatomical system phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: Faecalibaculum, Gallbladder, L153, accelerating the blood vessel formation during wound healing, aorta, body wall
+      Objects:  Clostridium sensu stricto, L191, abdominal aorta, air sacs, articulated endoskeleton, blood vessels
+  [2] (multicellular organism phenotype) -[part_of]-> (anatomical system phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: Faecalibaculum, Gallbladder, L153, aorta, articulated endoskeleton, body wall
+      Objects:  Clostridium sensu stricto, Gallbladder, L191, abdominal aorta, air sacs, articulated endoskeleton
+  [3] (material anatomical entity phenotype) -[part_of]-> (anatomical system phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: Faecalibaculum, Gallbladder, L153, accelerating the blood vessel formation during wound healing, articulated endoskeleton, body wall
+      Objects:  Clostridium sensu stricto, Gallbladder, L191, abdominal aorta, air sacs, articulated endoskeleton
+  [4] (multicellular anatomical structure phenotype) -[part_of]-> (anatomical system phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: Faecalibaculum, Gallbladder, L153, body wall, brain temperature, cloaca
+      Objects:  Clostridium sensu stricto, Gallbladder, L191, abdominal aorta, air sacs, articulated endoskeleton
+  [5] (anatomical entity phenotype) -[part_of]-> (anatomical system phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: Faecalibaculum, Gallbladder, accelerating the blood vessel formation during wound healing, articulated endoskeleton, body wall, cerebral larvae
+      Objects:  Clostridium sensu stricto, abdominal aorta, air sacs, articulated endoskeleton, blood vessels, brain
+  [6] (anatomical structure phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: IGFs, arms, bursting ORNs, chemotactile receptors, cloaca, epithelial injury
+      Objects:  ILPs, afferent and efferent innervation, chemical stimulus, colour change, contact-dependent chemosensation, diet
+  [7] (multicellular organism phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: IGFs, arms, bursting ORNs, chemotactile receptors, cloaca, epithelial injury
+      Objects:  ILPs, afferent and efferent innervation, chemical stimulus, colour change, contact-dependent chemosensation, electrical coupling
+  [8] (multicellular organism phenotype) -[part_of]-> (taxon specific phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: Faecalibaculum, Gallbladder, brain temperature, choanoderm, cloaca, descending aorta
+      Objects:  Clostridium sensu stricto, arms, body wall, caudoventral coelom, celomic cavity, dorsal skin
+  [9] (multicellular anatomical structure phenotype) -[part_of]-> (taxon specific phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: Faecalibaculum, Gallbladder, brain temperature, choanoderm, cloaca, descending aorta
+      Objects:  Clostridium sensu stricto, arms, body wall, caudoventral coelom, celomic cavity, dorsal skin
+  [10] (multicellular anatomical structure phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: bursting ORNs, capillary-retention scaffold, chemotactile receptors, cloaca, epithelial injury, extracellular spaces
+      Objects:  afferent and efferent innervation, chemical stimulus, colour change, contact-dependent chemosensation, electrical coupling, enhanced hepatic activity
+  [11] (anatomical structure phenotype) -[part_of]-> (taxon specific phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: Faecalibaculum, Gallbladder, brain temperature, choanoderm, cloaca, descending aorta
+      Objects:  Clostridium sensu stricto, arms, body wall, caudoventral coelom, celomic cavity, dorsal skin
+  [12] (anatomical structure phenotype) -[has_phenotype]-> (taxon specific phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: cloaca, dryophytes versicolor, embryonic development, fetuses, follicles, mouth capsule
+      Objects:  REM sleep, Seminatrix, aggressive calls, body wall, bursting activity, call structure
+  [13] (material anatomical entity phenotype) -[has_phenotype]-> (taxon specific phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: cloaca, dryophytes versicolor, embryonic development, fetuses, follicles, mouth capsule
+      Objects:  REM sleep, Seminatrix, aggressive calls, body wall, bursting activity, call structure
+  [14] (material anatomical entity phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: bursting ORNs, capillary-retention scaffold, chemotactile receptors, cloaca, extracellular spaces, hemolymph
+      Objects:  ILPs, afferent and efferent innervation, chemical stimulus, contact-dependent chemosensation, diet, enhanced hepatic activity
+  [15] (biological_process phenotype) -[involved_in]-> (material anatomical entity phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: PI3K, RNA Editing, behavioral enrichment, bone regeneration outcomes, controlled therapeutic delivery, immune environment
+      Objects:  GO:0030286, Gastrointestinal helminths, brain, enteroendocrine N cells, information currents, melanosomes
+  [16] (biological_process phenotype) -[involved_in]-> (anatomical structure phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: PI3K, RNA Editing, behavioral enrichment, bone regeneration outcomes, controlled therapeutic delivery, increased locomotion
+      Objects:  GO:0030286, brain, endogenous fuel reserves, enteroendocrine N cells, information currents, melanosomes
+  [17] (anatomical entity phenotype) -[involved_in]-> (biological_process phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: capillary-retention scaffold, extracellular spaces, gastric mill and pyloric networks, hemolymph, insulin, limb movements
+      Objects:  ILPs, afferent and efferent innervation, diet, electrical coupling, enhanced hepatic activity, immune and neuroendocrine signaling
+  [18] (anatomical entity phenotype) -[has_phenotype]-> (taxon specific phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: embryonic development, fetuses, follicles, mouth capsule, muscle tissue, ovarian follicles
+      Objects:  REM sleep, Seminatrix, body wall, bursting activity, early life stages, eggs
+  [19] (biological_process phenotype) -[has_phenotype]-> (taxon specific phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: Oo, color variation, embryonic development, freeze tolerance, tonically active, weight loss
+      Objects:  S., bursting activity, color variation, early life stages, lactate, tissue necrosis
+  [20] (biological_process phenotype) -[causes]-> (material anatomical entity phenotype)
+      Species (4): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Subjects: gene expression, heatwave, mRNA transcripts, oxygenates, subambient daytime cooling of −5.3 °C, trematodes
+      Objects:  aligned platelet layers, muscle tissue, protozoa, reduction in abundance, vascularization
+  [21] (anatomical entity) -[part_of]-> (anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, accelerating the blood vessel formation during wound healing, aorta, arms, articulated endoskeleton, blood films
+      Objects:  Gallbladder, Hema 3 ™ Stat Pack, abdominal aorta, air sacs, arms, blood vessels
+  [22] (anatomical structure phenotype) -[part_of]-> (material anatomical entity phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, aorta, arms, body wall
+      Objects:  L191, abdominal aorta, air sacs, articulated endoskeleton, blood vessels, body wall
+  [23] (multicellular organism phenotype) -[part_of]-> (anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, aorta, arms, articulated endoskeleton, body wall, brain temperature
+      Objects:  Gallbladder, abdominal aorta, air sacs, arms, blood vessels, body wall
+  [24] (anatomical entity) -[part_of]-> (material anatomical entity phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, aorta, arms, blood films
+      Objects:  Gallbladder, Hema 3 ™ Stat Pack, L191, abdominal aorta, air sacs, blood vessels
+  [25] (multicellular anatomical structure phenotype) -[part_of]-> (anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, body wall, brain temperature, buccal cadre (BC), capillaries, choanoderm
+      Objects:  Gallbladder, abdominal aorta, air sacs, arms, body wall, calcified structures
+  [26] (material anatomical entity phenotype) -[part_of]-> (anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, accelerating the blood vessel formation during wound healing, articulated endoskeleton, body wall, brain temperature, buccal cadre (BC)
+      Objects:  Gallbladder, abdominal aorta, air sacs, arms, blood vessels, body wall
+  [27] (anatomical structure phenotype) -[part_of]-> (multicellular organism phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, arms, body wall, brain temperature
+      Objects:  L191, abdominal aorta, air sacs, arms, articulated endoskeleton, body wall
+  [28] (anatomical entity) -[part_of]-> (multicellular organism phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, arms, articulated endoskeleton, blood films
+      Objects:  Gallbladder, Hema 3 ™ Stat Pack, L191, abdominal aorta, air sacs, arms
+  [29] (multicellular anatomical structure phenotype) -[part_of]-> (material anatomical entity phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, body wall, brain temperature, capillaries, choanoderm
+      Objects:  Gallbladder, L191, abdominal aorta, air sacs, articulated endoskeleton, body wall
+  [30] (multicellular organism phenotype) -[part_of]-> (multicellular anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, arms, articulated endoskeleton, body wall, capillaries
+      Objects:  Gallbladder, L191, air sacs, body wall, calcareous ossicles, caudoventral coelom
+  [31] (anatomical structure phenotype) -[part_of]-> (anatomical entity)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, aorta, axial complex, body wall
+      Objects:  L191, abdominal aorta, arms, articulated endoskeleton, blood vessels, brain
+  [32] (anatomical structure phenotype) -[part_of]-> (multicellular anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, arms, body wall, capillaries, cerebral larvae
+      Objects:  L191, air sacs, body wall, brain, capillary-retention scaffold, caudoventral coelom
+  [33] (multicellular anatomical structure phenotype) -[part_of]-> (multicellular organism phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, body wall, brain temperature, buccal cadre (BC), choanoderm
+      Objects:  Gallbladder, L191, abdominal aorta, air sacs, arms, articulated endoskeleton
+  [34] (multicellular organism phenotype) -[part_of]-> (material anatomical entity phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, aorta, arms, body wall, brain temperature
+      Objects:  Gallbladder, L191, abdominal aorta, air sacs, articulated endoskeleton, blood vessels
+  [35] (material anatomical entity phenotype) -[part_of]-> (multicellular organism phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, articulated endoskeleton, body wall, brain temperature
+      Objects:  Gallbladder, L191, abdominal aorta, air sacs, arms, articulated endoskeleton
+  [36] (anatomical entity) -[part_of]-> (anatomical system phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, aorta, articulated endoskeleton, blood films
+      Objects:  Gallbladder, Hema 3 ™ Stat Pack, L191, abdominal aorta, air sacs, blood vessels
+  [37] (anatomical system phenotype) -[part_of]-> (anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, accelerating the blood vessel formation during wound healing, aorta, articulated endoskeleton, brain temperature, capillaries
+      Objects:  Gallbladder, abdominal aorta, air sacs, arms, blood vessels, calcareous ossicles
+  [38] (multicellular organism phenotype) -[part_of]-> (anatomical entity)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, aorta, articulated endoskeleton, body wall, brain temperature
+      Objects:  Gallbladder, L191, abdominal aorta, arms, articulated endoskeleton, blood vessels
+  [39] (material anatomical entity phenotype) -[part_of]-> (anatomical entity)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, articulated endoskeleton, axial complex, body wall
+      Objects:  Gallbladder, L191, abdominal aorta, arms, articulated endoskeleton, blood vessels
+  [40] (anatomical system phenotype) -[part_of]-> (anatomical entity)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, aorta, articulated endoskeleton, brain temperature
+      Objects:  Gallbladder, L191, abdominal aorta, arms, blood vessels, calcareous ossicles
+  [41] (anatomical entity) -[part_of]-> (multicellular anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, arms, articulated endoskeleton, capillaries, cloaca
+      Objects:  Gallbladder, L191, air sacs, calcareous ossicles, caudoventral coelom, celomic cavity
+  [42] (anatomical system phenotype) -[part_of]-> (material anatomical entity phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, aorta, brain temperature, capillaries
+      Objects:  Gallbladder, L191, abdominal aorta, air sacs, blood vessels, caudal vena cava
+  [43] (multicellular anatomical structure phenotype) -[part_of]-> (anatomical entity)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, body wall, brain temperature, cloaca, closed-cell network
+      Objects:  Gallbladder, L191, abdominal aorta, arms, articulated endoskeleton, caudal vena cava
+  [44] (anatomical system phenotype) -[part_of]-> (multicellular organism phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, accelerating the blood vessel formation during wound healing, articulated endoskeleton, brain temperature, cloaca
+      Objects:  Gallbladder, L191, abdominal aorta, air sacs, arms, calcareous ossicles
+  [45] (anatomical entity phenotype) -[part_of]-> (anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, accelerating the blood vessel formation during wound healing, articulated endoskeleton, body wall, buccal cadre (BC), capillaries
+      Objects:  abdominal aorta, air sacs, arms, blood vessels, body wall, border effacement
+  [46] (material anatomical entity phenotype) -[part_of]-> (multicellular anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, articulated endoskeleton, body wall, capillaries, cerebral larvae
+      Objects:  Gallbladder, L191, air sacs, body wall, brain, calcareous ossicles
+  [47] (anatomical system phenotype) -[part_of]-> (multicellular anatomical structure phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, L153, articulated endoskeleton, capillaries, cloaca, dermal layer
+      Objects:  Gallbladder, L191, air sacs, calcareous ossicles, caudoventral coelom, celomic cavity
+  [48] (anatomical entity) -[part_of]-> (anatomical entity phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, aorta, articulated endoskeleton, cloaca, dermal layer, descending aorta
+      Objects:  Gallbladder, air sacs, blood vessels, calcareous ossicles, calcified structures, caudal vena cava
+  [49] (anatomical structure phenotype) -[part_of]-> (anatomical entity phenotype)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, aorta, body wall, cerebral larvae, choanoderm, cloaca
+      Objects:  air sacs, anatomical location, articulated endoskeleton, blood vessels, body wall, brain
+  [50] (anatomical entity phenotype) -[part_of]-> (anatomical entity)
+      Species (3): Dryophytes versicolor, Furcifer pardalis, Octopus vulgaris
+      Subjects: Gallbladder, accelerating the blood vessel formation during wound healing, articulated endoskeleton, axial complex, body wall, cerebral larvae
+      Objects:  abdominal aorta, arms, articulated endoskeleton, blood vessels, border effacement, brain
+
+=== TIER 2 — SEMANTIC SIMILARITY CLUSTERS ===
+Medium precision. These are entity pairs from different species with high embedding similarity.
+Catches synonyms and paraphrases that Tier 1 misses. May have false positives.
+
+  [1] Entities: temperature
+      Species (4): Furcifer pardalis, Octopus vulgaris, Dryophytes versicolor, Panulirus cygnus
+      Top pairs: "temperature" ~ "temperature" (1.00)
+  [2] Entities: hind leg muscle, hind legs, leg muscle, leg skeletal muscle, muscle tissue, muscle tissues, muscular tissue, skeletal muscle
+      Species (3): Octopus vulgaris, Dryophytes versicolor, Furcifer pardalis
+      Top pairs: "skeletal muscle" ~ "skeletal muscle tissue" (0.87); "leg skeletal muscle" ~ "skeletal muscle" (0.86); "muscle tissue" ~ "muscular tissue" (0.96); "leg skeletal muscle" ~ "leg muscle" (0.86); "skeletal muscle tissue" ~ "muscle tissues" (0.84)
+  [3] Entities: South African zooplankton, zooplankton, zooplankton communities, zooplankton community composition, zooplankton community structure, zooplankton eggs
+      Species (3): Octopus vulgaris, Dryophytes versicolor, Panulirus cygnus
+      Top pairs: "zooplankton communities" ~ "zooplankton" (0.84); "South African zooplankton" ~ "zooplankton" (0.84); "zooplankton" ~ "zooplankton" (1.00); "zooplankton communities" ~ "zooplankton communities" (1.00); "zooplankton community structure" ~ "zooplankton communities" (0.92)
+  [4] Entities: SW coast of Kenya, South African west coast, coast of South Africa, northwest coast of Africa, northwestern coast of Africa, southeast coast South Africa, southern coast of South Africa, west coast South Africa
+      Species (3): Octopus vulgaris, Panulirus cygnus, Furcifer pardalis
+      Top pairs: "southeast coast South Africa" ~ "coast of South Africa" (0.90); "southern coast of South Africa" ~ "southeast coast South Africa" (0.90); "coast of South Africa" ~ "west coast South Africa" (0.83); "SW coast of Kenya" ~ "northwest coast of Africa" (0.81); "northwestern coast of Africa" ~ "SW coast of Kenya" (0.81)
+  [5] Entities: Mediterranean, Mediterranean Region, Mediterranean Sea, Mediterranean area, Mediterranean coast, Mediterranean region of Europe, Mediterranean regions
+      Species (3): Octopus vulgaris, Panulirus cygnus, Furcifer pardalis
+      Top pairs: "Mediterranean regions" ~ "Mediterranean region of Europe" (0.92); "Mediterranean Region" ~ "Mediterranean area" (0.89); "Mediterranean Region" ~ "Mediterranean" (0.82); "Mediterranean Sea" ~ "Mediterranean area" (0.80); "Mediterranean region of Europe" ~ "Mediterranean coast" (0.80)
+  [6] Entities: Asia, Asian countries, East Asia, East Asia and Southeast Asia, Southeast Asia
+      Species (3): Octopus vulgaris, Dryophytes versicolor, Furcifer pardalis
+      Top pairs: "East Asia and Southeast Asia" ~ "Asia" (0.81); "East Asia and Southeast Asia" ~ "Southeast Asia" (0.90); "East Asia and Southeast Asia" ~ "East Asia" (0.89); "Asia" ~ "Asian countries" (0.82)
+  [7] Entities: 13–28 °C (55–82 °F), 20–35◦S, 22°C–24°C, 28°C–30°C, 30° S to 50° S
+      Species (3): Octopus vulgaris, Panulirus cygnus, Furcifer pardalis
+      Top pairs: "13–28 °C (55–82 °F)" ~ "28°C–30°C" (0.88); "28°C–30°C" ~ "20–35◦S" (0.86); "30° S to 50° S" ~ "28°C–30°C" (0.85); "20–35◦S" ~ "22°C–24°C" (0.84)
+  [8] Entities: geographic isolation, isolation, reproductive isolation
+      Species (3): Furcifer pardalis, Octopus vulgaris, Dryophytes versicolor
+      Top pairs: "isolation" ~ "geographic isolation" (0.80); "isolation" ~ "geographic isolation" (0.80); "isolation" ~ "reproductive isolation" (0.80)
+  [9] Entities: salinity, salinity requirement
+      Species (3): Octopus vulgaris, Dryophytes versicolor, Panulirus cygnus
+      Top pairs: "salinity" ~ "salinity" (1.00); "salinity requirement" ~ "salinity" (0.81)
+  [10] Entities: color, colour
+      Species (3): Octopus vulgaris, Dryophytes versicolor, Furcifer pardalis
+      Top pairs: "color" ~ "colour" (0.91); "color" ~ "color" (1.00)
+  [11] Entities: FL, Florida, Florida, United States
+      Species (3): Octopus vulgaris, Dryophytes versicolor, Furcifer pardalis
+      Top pairs: "FL" ~ "Florida" (0.84); "Florida, United States" ~ "Florida" (0.80)
+  [12] Entities: winter
+      Species (3): Furcifer pardalis, Octopus vulgaris, Dryophytes versicolor
+      Top pairs: "winter" ~ "winter" (1.00)
+  [13] Entities: water
+      Species (3): Octopus vulgaris, Dryophytes versicolor, Panulirus cygnus
+      Top pairs: "water" ~ "water" (1.00)
+  [14] Entities: South Africa, southern Africa
+      Species (3): Furcifer pardalis, Octopus vulgaris, Panulirus cygnus
+      Top pairs: "southern Africa" ~ "South Africa" (0.89)
+  [15] Entities: ovaries, ovary
+      Species (3): Furcifer pardalis, Octopus vulgaris, Dryophytes versicolor
+      Top pairs: "ovary" ~ "ovaries" (0.84)
+  [16] Entities: green, green color
+      Species (3): Furcifer pardalis, Dryophytes versicolor, Panulirus cygnus
+      Top pairs: "green" ~ "green color" (0.83)
+  [17] Entities: testicles, testis
+      Species (3): Furcifer pardalis, Octopus vulgaris, Dryophytes versicolor
+      Top pairs: "testis" ~ "testicles" (0.81)
+  [18] Entities: nerve cord, spinal cord
+      Species (3): Furcifer pardalis, Octopus vulgaris, Dryophytes versicolor
+      Top pairs: "spinal cord" ~ "nerve cord" (0.81)
+  [19] Entities: North America, USA
+      Species (3): Furcifer pardalis, Octopus vulgaris, Dryophytes versicolor
+      Top pairs: "USA" ~ "North America" (0.80)
+  [20] Entities: gills, internal gills
+      Species (3): Octopus vulgaris, Dryophytes versicolor, Panulirus cygnus
+      Top pairs: "internal gills" ~ "gills" (0.80)
+  [21] Entities: D-iridophores, S-iridophores, dermal iridophores, iridophore, iridophore cells, iridophores
+      Species (2): Furcifer pardalis, Octopus vulgaris
+      Top pairs: "iridophores" ~ "S-iridophores" (0.87); "iridophores" ~ "D-iridophores" (0.86); "dermal iridophores" ~ "iridophores" (0.84); "S-iridophores" ~ "iridophore" (0.83); "iridophore cells" ~ "iridophores" (0.80)
+  [22] Entities: chloride, chloride salts
+      Species (2): Octopus vulgaris, Dryophytes versicolor
+      Top pairs: "chloride" ~ "chloride" (1.00); "chloride" ~ "chloride" (1.00); "chloride" ~ "chloride salts" (0.80); "chloride" ~ "chloride salts" (0.80)
+  [23] Entities: acceptable ambient temperature range, ambient temperature, ambient temperature range, temperature range
+      Species (2): Furcifer pardalis, Octopus vulgaris
+      Top pairs: "ambient temperature" ~ "ambient temperature range" (0.92); "temperature range" ~ "ambient temperature range" (0.84); "acceptable ambient temperature range" ~ "ambient temperature" (0.82)
+  [24] Entities: faecal sample, faecal samples, fecal samples
+      Species (2): Furcifer pardalis, Panulirus cygnus
+      Top pairs: "faecal samples" ~ "fecal samples" (0.89); "fecal samples" ~ "faecal samples" (0.89); "fecal samples" ~ "faecal sample" (0.85)
+  [25] Entities: aquatic communities, aquatic ecosystems, aquatic environments, marine environments
+      Species (2): Octopus vulgaris, Dryophytes versicolor
+      Top pairs: "aquatic ecosystems" ~ "aquatic environments" (0.86); "aquatic environments" ~ "marine environments" (0.84); "aquatic environments" ~ "aquatic communities" (0.81)
+  [26] Entities: hemolymph, hemolymph matrix
+      Species (2): Octopus vulgaris, Panulirus cygnus
+      Top pairs: "hemolymph" ~ "hemolymph" (1.00); "hemolymph" ~ "hemolymph matrix" (0.80)
+  [27] Entities: bivalve mollusks, molluscs, mollusks
+      Species (2): Octopus vulgaris, Panulirus cygnus
+      Top pairs: "molluscs" ~ "mollusks" (0.97); "bivalve mollusks" ~ "molluscs" (0.81)
+  [28] Entities: freeze response, freeze-specific responses, freezing response
+      Species (2): Dryophytes versicolor, Panulirus cygnus
+      Top pairs: "freeze response" ~ "freezing response" (0.95); "freeze-specific responses" ~ "freezing response" (0.81)
+  [29] Entities: parasite infections, parasitic infections, secondary parasitic infections
+      Species (2): Furcifer pardalis, Octopus vulgaris
+      Top pairs: "parasite infections" ~ "parasitic infections" (0.94); "secondary parasitic infections" ~ "parasitic infections" (0.84)
+  [30] Entities: natural seawater, sea water, seawater
+      Species (2): Octopus vulgaris, Panulirus cygnus
+      Top pairs: "seawater" ~ "sea water" (0.92); "seawater" ~ "natural seawater" (0.82)
+
+=== KNOWLEDGE GRAPH PER SPECIES ===
+Structured knowledge graph for each species: entities with their types and mention
+frequency, and the biological relations between them extracted from source documents.
+Use this to understand the relational context of each species and to identify shared
+biological conditions or patterns not captured by Tier 1 or Tier 2 above.
+
+### Octopus vulgaris
+- Exhibits a distributed nervous system and possesses specialized anatomical structures including flexible arms with sensory suckers, sucker cups, eyestalks, a cephalothorax, hepatopancreas, and internal organs such as an ovary phenotype and VNC (ventral nerve cord).
+- Displays specific reproductive traits involving the hectocotylus (including its tip) for spermatophore transfer during sexual reproduction, alongside phenomena like TUNEL-positive cell counts indicating apoptosis in certain tissues.
+- Inhabits diverse marine environments ranging from seafloor and surface of prey to aquatic settings with barriers, while engaging in mating search behaviors influenced by bioactive lipid molecules and norharmane.
+- Shows phenotypic variations including abnormal craniofacial regions, abnormal oviduct morphology, brain phenotype changes, and gill phenotypes associated with its biological processes.
+
+### Furcifer pardalis
+- Exhibits phenotypic variations including abnormal skin conditions, malformed mouths, pneumonia, and trematodiasis, alongside specific physiological states such as being sexually immature or in a post-juvenile adult stage.
+- Possesses anatomical structures comprising adipose tissue and hepatic parenchyma, while also harboring internal entities like helminth parasites, cestodes, Ophidiomyces ophidiicola, Raillietiella orientalis, and Hepatozoon spp.
+- Inhabits diverse environments ranging from specific locations in Florida (including Volusia County) and South Carolina to global regions such as Madagascar, the Mascarene Islands, North America, Europe, Africa, and Southeast Asia.
+- Faces biological pressures including predation, human persecution, anthropogenic stressors, climate change, and recurrent parasitic infections that lead to increased susceptibility to other organisms like Salmonella osteomyelitis and Stenotrophomonas maltophila.
+
+### Dryophytes versicolor
+- Exhibits a warty appearance with dorsal coloration and a yellow-spotted thigh pattern as key phenotypic traits.
+- Possesses anatomical features including seminiferous tubules, legs, skin, and intracellular structures that support functions like ice nucleation activity.
+- Inhabits diverse environments ranging from oxbow lakes, mesocosms, and artificial ponds to specific regions in northeast China (Jilin, Inner Mongolia, Liaoning, Heilongjiang) while facing threats from habitat degradation.
+- Demonstrates remarkable physiological processes such as whole-body freezing tolerance supported by cryoprotectant glycerol production and the ability to survive abnormal circulating lactate levels during freeze-thaw cycles.
+
+### Panulirus cygnus
+- **Phenotypic Traits:** The species exhibits distinct life stages including early benthic juveniles and a free-swimming puerulus stage, with observed phenotypes such as abnormal pigmentation patterns (including pink coloration), recruitment abundance fluctuations linked to marine heatwaves, and specific behavioral responses like antennule waving/flicking and pronounced grooming.
+- **Anatomical Features:** Key anatomical structures include the exoskeleton, carapace, gills, mouthparts, nephropores, and specialized sensory organs such as aesthetasc sensilla located on the lateral flagella of the antennules (olfactory receptor neurons).
+- **Habitat and Lifestyle:** *Panulirus cygnus* inhabits Western Australian marine environments including Shark Bay, Exmouth Gulf, Denham Sound, and Abrolhos Islands, utilizing sea grass beds as critical nursery habitats while facing population impacts from events like the 2011/2012 marine heatwave.
+- **Biological Processes:** The species engages in complex sensory processing involving olfactory pathways to detect chemical plumes (food-related chemicals, sex pheromones, and conspecific alarm cues) and possesses an immune system characterized by antimicrobial peptide production (e.g., Crustins) and hemocyte migration within the haemolymphatic fluid.
+
+YOUR TASKS:
+1. MERGE: if Tier 1, Tier 1B, and/or Tier 2 identify the same underlying biological condition,
+   merge them into one community (tier = "merged"). Combined evidence is stronger.
+2. GAP-FILL (Tier 3): scan the knowledge graphs for biological conditions or relational
+   patterns (e.g. shared entity-relation-entity chains) clearly present across
+   >= 2 species that neither tier captured. Add these as tier = "llm".
+   Be conservative — only add if the evidence is clear across multiple species.
+3. INTERPRET: for each community, write 1-2 sentences explaining the biological
+   significance and why these species might share this condition.
+4. HYPOTHESIZE: write 2-4 sentences about what the shared gene likely does,
+   integrating all communities into one coherent mechanistic hypothesis.
+
+STRICT RULES:
+- Only include communities with evidence across >= 2 species.
+- Do NOT invent communities unsupported by the provided evidence.
+- Do NOT compare species to each other within interpretations — each interpretation
+  should explain the shared pattern, not describe individual species.
+- tier field must be exactly one of: "upheno", "embedding", "merged", "llm"
+- gene_function_hypothesis must integrate ALL communities, not just the strongest one.
+- If no communities can be supported, return {"communities": [], "gene_function_hypothesis": "Insufficient cross-species evidence."}
+
+OUTPUT: valid JSON only, no markdown fences, no prose before or after.
+{
+  "communities": [
+    {
+      "label": "<short biological label, 2-5 words>",
+      "tier": "upheno|embedding|merged|llm",
+      "species_coverage": ["<species display name>", ...],
+      "species_count": N,
+      "supporting_entities": ["<entity surface form>", ...],
+      "tier1_evidence": {
+        "term_id": "<UPHENO:XXXXXXX or similar>",
+        "term_name": "<ontology term name>",
+        "species_count": N,
+        "entity_forms": ["<surface form>", ...]
+      },
+      "tier2_evidence": {
+        "pairs": [["<sf1>", "<sf2>", <score>], ...],
+        "species_count": N
+      },
+      "tier3_interpretation": "<1-2 sentence biological interpretation>"
+    }
+  ],
+  "gene_function_hypothesis": "<2-4 sentence hypothesis>"
+}
+
+Note: tier1_evidence and tier2_evidence should be null if that tier did not contribute.
+
+Answer:
