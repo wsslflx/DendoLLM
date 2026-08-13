@@ -11,6 +11,8 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
+from core.utils import ontology_source_from_term_id
+
 ALLOWED_PREFIXES = ("UPHENO:", "HP:", "MP:", "GO:", "ENVO:", "UBERON:", "ZP:", "XPO:")
 MAX_ANCESTOR_DEPTH = 3
 SIMILAR_TO_THRESHOLD = 0.78
@@ -314,7 +316,7 @@ def build_graph(
                     "_label": "OntologyTerm",
                     "term_id": term_id,
                     "term_name": tr.get("term_name", ""),
-                    "ontology_source": term_id.split(":")[0] if ":" in term_id else "UNKNOWN",
+                    "ontology_source": ontology_source_from_term_id(term_id),
                     "definition": "",
                     "run_id": run_id,
                 })
@@ -342,7 +344,7 @@ def build_graph(
                             "_label": "OntologyTerm",
                             "term_id": anc_id,
                             "term_name": "",
-                            "ontology_source": anc_id.split(":")[0] if ":" in anc_id else "UNKNOWN",
+                            "ontology_source": ontology_source_from_term_id(anc_id),
                             "definition": "",
                             "run_id": run_id,
                         })

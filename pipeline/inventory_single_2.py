@@ -15,9 +15,7 @@ import hashlib
 import json
 import math
 import pathlib
-import re
 from contextlib import contextmanager, nullcontext
-from datetime import datetime
 
 import numpy as np
 from langchain_core.prompts import PromptTemplate
@@ -25,6 +23,13 @@ from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 
 from core.llm_backend import make_chat_llm
 from core.rag_cli import RAG, maximal_marginal_relevance
+from core.utils import (
+    extract_json_text as _extract_json_text,
+    init_log_dir,
+    init_run_log_dir,
+    load_species_file,
+    slugify,
+)
 
 try:
     import fcntl
@@ -34,15 +39,6 @@ except ImportError:  # pragma: no cover - only relevant on non-POSIX platforms
 PROMPT_FILE = "Prompts/prompt_inventory_5.txt"
 SYNTHESIS_PROMPT_FILE = "Prompts/prompt_synthesis_5.txt"
 MAX_SYNTHESIS_RETRIES = 3
-
-
-def _extract_json_text(payload: object) -> str:
-    text_payload = str(payload).strip()
-    if text_payload.startswith("```"):
-        match = re.search(r"```(?:json)?\s*(.*?)```", text_payload, re.DOTALL | re.IGNORECASE)
-        if match:
-            text_payload = match.group(1).strip()
-    return text_payload
 
 
 def _validate_synthesis_json(data: object) -> dict:
@@ -79,37 +75,6 @@ def _validate_synthesis_json(data: object) -> dict:
             )
         out[key] = cleaned
     return out
-
-
-def slugify(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in name.lower()).strip("_")
-
-
-def init_log_dir(
-    log_runs: bool, log_root: pathlib.Path | None = None, subdir: str | None = None
-) -> pathlib.Path | None:
-    if not log_runs:
-        return None
-    base = pathlib.Path(log_root) if log_root else pathlib.Path("logs")
-    log_dir = base / subdir if subdir else base
-    log_dir.mkdir(parents=True, exist_ok=True)
-    return log_dir
-
-
-def init_run_log_dir(
-    log_runs: bool,
-    run_label: str,
-    explicit_log_dir: pathlib.Path | None = None,
-) -> pathlib.Path | None:
-    if not log_runs:
-        return None
-    if explicit_log_dir is not None:
-        explicit_log_dir.mkdir(parents=True, exist_ok=True)
-        return explicit_log_dir
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = pathlib.Path("logs") / f"{timestamp}-{slugify(run_label)}"
-    run_dir.mkdir(parents=True, exist_ok=True)
-    return run_dir
 
 
 @contextmanager
@@ -366,14 +331,6 @@ def run_inventory(
         json.dump(traits, f, ensure_ascii=False, indent=2)
     print(json.dumps(traits, ensure_ascii=False, indent=2))
     return traits
-
-
-def load_species_file(path: str) -> list[dict]:
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    if not isinstance(data, list):
-        raise ValueError("Species file must contain a list of mappings")
-    return data
 
 
 def run_synthesis(

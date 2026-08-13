@@ -29,6 +29,8 @@ from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
+from core.utils import extract_json_text as _extract_json_text
+
 SYNTHESIS_PROMPT_FILE = "Prompts/prompt_graph_synthesis.txt"
 SUBGRAPH_SUMMARY_PROMPT_FILE = "Prompts/prompt_subgraph_summary.txt"
 MAX_TRIPLES_FOR_SUMMARY = 50   # triples fed to per-species summarizer (fits in 16k ctx)
@@ -623,14 +625,6 @@ def _build_subgraph_context(
 # ---------------------------------------------------------------------------
 # Tier 3 — LLM synthesis
 # ---------------------------------------------------------------------------
-
-def _extract_json_text(payload: object) -> str:
-    text = str(payload).strip()
-    if text.startswith("```"):
-        m = re.search(r"```(?:json)?\s*(.*?)```", text, re.DOTALL | re.IGNORECASE)
-        if m:
-            text = m.group(1).strip()
-    return text
 
 
 def _validate_synthesis(data: object) -> dict:

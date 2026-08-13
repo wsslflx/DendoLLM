@@ -30,6 +30,7 @@ import requests
 
 from scripts.build_testcase_json import build_entries, parse_species_arg
 from core.llm_backend import DEFAULT_CHAT_MODEL
+from core.utils import slugify
 
 
 # ---------------------------------------------------------------------------
@@ -97,10 +98,6 @@ def _preflight_check(args) -> None:
         raise SystemExit(
             f"\n[GraphPipeline] PREFLIGHT FAILED — fix the issues below and re-run:\n{lines}\n"
         )
-
-
-def slugify(name: str) -> str:
-    return "".join(c if c.isalnum() else "_" for c in name.lower()).strip("_")
 
 
 def run_inventory(

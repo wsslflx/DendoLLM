@@ -13,7 +13,6 @@ import re
 import json
 import hashlib
 import argparse
-import random
 import time
 from collections import defaultdict
 from typing import Optional
@@ -35,15 +34,15 @@ from langchain_community.document_loaders import (
     PyPDFLoader,
     UnstructuredPDFLoader,
 )
-from PyPDF2 import PdfReader 
+from PyPDF2 import PdfReader
 from PyPDF2.errors import PdfReadError
-from pydantic import BaseModel, constr
 try:
     from langchain_community.vectorstores.utils import maximal_marginal_relevance
 except ImportError:  # fallback for older langchain versions
     from langchain.vectorstores.utils import maximal_marginal_relevance
 
 from core.llm_backend import make_chat_llm, make_embeddings
+from core.utils import load_species_file
 
 load_dotenv()
 
@@ -1062,15 +1061,6 @@ class RAG:
             final_question = ", ".join([c for c, _ in groups])
 
         print(self.chain(final_question))
-
-
-def load_species_file(path: str) -> list:
-    """Load species/alias mapping from a JSON file."""
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    if not isinstance(data, list):
-        raise ValueError("Species file must contain a list of mappings")
-    return data
 
 
 if __name__ == "__main__":

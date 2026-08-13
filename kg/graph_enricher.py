@@ -30,6 +30,8 @@ import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
+from core.utils import ontology_source_from_term_id
+
 
 # ---------------------------------------------------------------------------
 # Entity type filters
@@ -123,7 +125,7 @@ def _push_mapping(driver, entity_id: str, map_result: dict, world, embed_model: 
             print(f"[GraphEnricher] Mark no-match failed for {entity_id}: {exc}")
         return 0
 
-    ontology_source = term_id.split(":")[0] if ":" in term_id else "UNKNOWN"
+    ontology_source = ontology_source_from_term_id(term_id)
 
     try:
         with driver.session() as session:
@@ -160,7 +162,7 @@ def _push_mapping(driver, entity_id: str, map_result: dict, world, embed_model: 
             if anc_id in seen:
                 continue
             seen.add(anc_id)
-            anc_src = anc_id.split(":")[0] if ":" in anc_id else "UNKNOWN"
+            anc_src = ontology_source_from_term_id(anc_id)
             anc_name = (term_name_lookup or {}).get(anc_id, "")
             try:
                 with driver.session() as session:
@@ -313,7 +315,7 @@ def _run_upheno_mapping(
             if not term_id:
                 no_match_eids.append(eid)
                 continue
-            ontology_source = term_id.split(":")[0] if ":" in term_id else "UNKNOWN"
+            ontology_source = ontology_source_from_term_id(term_id)
             mapped_rows.append({
                 "eid": eid,
                 "term_id": term_id,
@@ -340,7 +342,7 @@ def _run_upheno_mapping(
             ancestors = _load_ancestors(tid, world, depth=3)
             for anc_id, rel_type in ancestors:
                 anc_name = term_name_lookup.get(anc_id, "")
-                anc_src = anc_id.split(":")[0] if ":" in anc_id else "UNKNOWN"
+                anc_src = ontology_source_from_term_id(anc_id)
                 ancestor_rows.append({
                     "from_id": tid,
                     "to_id": anc_id,

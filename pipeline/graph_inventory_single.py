@@ -23,48 +23,25 @@ sys.path.insert(0, str(_Path(__file__).parents[1]))
 sys.path.insert(0, str(_Path(__file__).parent))
 
 import argparse
+import functools
 import json
 import pathlib
 import time
 from contextlib import nullcontext
-from datetime import datetime
 from typing import Any
 
 import inventory_single_2 as v1
 from kg.graph_indexer import index_species
+from core.utils import init_log_dir as _init_log_dir
+from core.utils import init_run_log_dir as _init_run_log_dir
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def init_log_dir(
-    log_runs: bool,
-    log_root: pathlib.Path | None,
-    subdir: str | None = None,
-) -> pathlib.Path | None:
-    if not log_runs:
-        return None
-    base = pathlib.Path(log_root) if log_root else pathlib.Path("logs_graph")
-    log_dir = base / subdir if subdir else base
-    log_dir.mkdir(parents=True, exist_ok=True)
-    return log_dir
-
-
-def init_run_log_dir(
-    log_runs: bool,
-    run_label: str,
-    explicit_log_dir: pathlib.Path | None = None,
-) -> pathlib.Path | None:
-    if not log_runs:
-        return None
-    if explicit_log_dir is not None:
-        explicit_log_dir.mkdir(parents=True, exist_ok=True)
-        return explicit_log_dir
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = pathlib.Path("logs_graph") / f"{timestamp}-{v1.slugify(run_label)}"
-    run_dir.mkdir(parents=True, exist_ok=True)
-    return run_dir
+init_log_dir = functools.partial(_init_log_dir, default_base="logs_graph")
+init_run_log_dir = functools.partial(_init_run_log_dir, default_base="logs_graph")
 
 
 # ---------------------------------------------------------------------------
