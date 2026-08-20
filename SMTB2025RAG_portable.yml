@@ -20,6 +20,7 @@ dependencies:
       - langchain
       - langchain-core
       - langchain-ollama
+      - langchain-openai
       - langchain-community
       - langchain-text-splitters
       - langchain-chroma
@@ -28,3 +29,7 @@ dependencies:
       - unstructured-pytesseract
       - pdf2image
       - pycryptodome
+      - neo4j
+      - owlready2
+      - networkx
+      - tqdm
